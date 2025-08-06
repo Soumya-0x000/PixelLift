@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { Button } from './ui/button';
-import { LayoutDashboard } from 'lucide-react';
+import { LayoutDashboard, LogIn, LogOut } from 'lucide-react';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -19,6 +19,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import Image from 'next/image';
+import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs';
 
 const Header = () => {
     const tabs = [
@@ -30,7 +31,7 @@ const Header = () => {
     const [activeTab, setActiveTab] = useState('');
 
     return (
-        <header className="bg-slate-700/50 backdrop-blur-3xl rounded-full px-6 py-1.5 fixed top-6 left-1/2 -translate-x-1/2 text-nowrap flex items-center justify-between gap-24 z-50">
+        <header className="bg-slate-700/50 backdrop-blur-3xl rounded-full px-6 py-2.5 fixed top-6 left-1/2 -translate-x-1/2 text-nowrap flex items-center justify-between gap-24 z-50">
             <div className=" uppercase text-lg font-semibold tracking-[0.1rem] bg-gradient-to-r from-blue-400 to-indigo-300 bg-clip-text text-transparent">
                 PixelLift
             </div>
@@ -44,7 +45,7 @@ const Header = () => {
                             activeTab.toLowerCase() === tab.name.toLowerCase()
                                 ? 'text-slate-300 ring-slate-600 bg-slate-700'
                                 : ''
-                            } px-3 py-1 border-none outline-none`}
+                        } px-3 py-1 border-none outline-none`}
                         onClick={() => setActiveTab(tab.name)}
                     >
                         {tab.name}
@@ -57,7 +58,7 @@ const Header = () => {
                     <LayoutDashboard size={28} strokeWidth={1.5} /> Dashboard
                 </Button>
                 <div>
-                    <DropdownMenu>
+                    {/* <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <span className="min-w-[2.8rem] min-h-[2.8rem] flex items-center justify-center cursor-pointer rounded-full">
                                 <Image
@@ -120,7 +121,25 @@ const Header = () => {
                                 <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
                             </DropdownMenuItem>
                         </DropdownMenuContent>
-                    </DropdownMenu>
+                    </DropdownMenu> */}
+
+                    <SignedOut>
+                        <SignInButton>
+                            <Button variant={'gradient'}>
+                                <LogIn />
+                                Sign In
+                            </Button>
+                        </SignInButton>
+                        {/* <SignUpButton>
+                            <Button variant={'gradient'} className={`ml-2`} >
+                                <LogOut />
+                                Sign Up
+                            </Button>
+                        </SignUpButton> */}
+                    </SignedOut>
+                    <SignedIn>
+                        <UserButton />
+                    </SignedIn>
                 </div>
             </div>
         </header>

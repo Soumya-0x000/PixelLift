@@ -5,6 +5,7 @@ import { ThemeProvider } from '@/components/ThemeProvider';
 import FloatingShapes from '@/components/FloatingShapes';
 import Header from '@/components/Header';
 import { ConvexClientProvider } from './ConvexClientProvider';
+import { ClerkProvider } from '@clerk/nextjs';
 
 const geistSans = Geist({
     variable: '--font-geist-sans',
@@ -52,14 +53,16 @@ export default function RootLayout({ children }) {
                     storageKey="theme"
                     className={`${inter.variable} ${roboto.variable} ${poppins.variable}`}
                 >
-                    <ConvexClientProvider>
-                        <Header />
-                        <main className=" bg-slate-900 min-h-[100rem] text-slate-50 overflow-x-hidden">
-                            <FloatingShapes />
-                            <Toaster richColors />
-                            {children}
-                        </main>
-                    </ConvexClientProvider>
+                    <ClerkProvider>
+                        <ConvexClientProvider>
+                            <Header />
+                            <main className=" bg-slate-900 min-h-[100rem] text-slate-50 overflow-x-hidden">
+                                <FloatingShapes />
+                                <Toaster richColors />
+                                {children}
+                            </main>
+                        </ConvexClientProvider>
+                    </ClerkProvider>
                 </ThemeProvider>
             </body>
         </html>
