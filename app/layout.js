@@ -6,6 +6,7 @@ import FloatingShapes from '@/components/FloatingShapes';
 import Header from '@/components/Header';
 import { ConvexClientProvider } from './ConvexClientProvider';
 import { ClerkProvider } from '@clerk/nextjs';
+import { shadcn } from '@clerk/themes';
 
 const geistSans = Geist({
     variable: '--font-geist-sans',
@@ -43,7 +44,7 @@ export default function RootLayout({ children }) {
     return (
         <html lang="en" suppressHydrationWarning>
             <body
-                className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${roboto.variable} ${poppins.variable} antialiased`}
+                className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${roboto.variable} ${poppins.variable} antialiased h-screen`}
             >
                 <ThemeProvider
                     attribute="class"
@@ -53,10 +54,20 @@ export default function RootLayout({ children }) {
                     storageKey="theme"
                     className={`${inter.variable} ${roboto.variable} ${poppins.variable}`}
                 >
-                    <ClerkProvider>
+                    <ClerkProvider
+                        appearance={{
+                            cssLayerName: 'clerk',
+                            layout: {
+                                socialButtonsPlacement: 'bottom',
+                                socialButtonsVariant: 'iconButton',
+                                termsPageUrl: 'https://clerk.com/terms',
+                            },
+                            baseTheme: shadcn,
+                        }}
+                    >
                         <ConvexClientProvider>
                             <Header />
-                            <main className=" bg-slate-900 min-h-[100rem] text-slate-50 overflow-x-hidden">
+                            <main className=" bg-slate-900 h-full text-slate-50 overflow-x-hidden">
                                 <FloatingShapes />
                                 <Toaster richColors />
                                 {children}

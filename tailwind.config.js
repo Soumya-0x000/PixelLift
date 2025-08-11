@@ -14,6 +14,15 @@ module.exports = {
                 roboto: ['var(--font-roboto)'],
                 poppins: ['var(--font-poppins)'],
             },
+            keyframes: {
+                'gradient-xy': {
+                    '0%, 100%': { backgroundPosition: '0% 50%' },
+                    '50%': { backgroundPosition: '100% 50%' },
+                },
+            },
+            animation: {
+                'gradient-xy': 'gradient-xy 3s ease infinite',
+            },
         },
     },
     plugins: [],
