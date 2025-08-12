@@ -51,41 +51,41 @@ const Header = () => {
             </nav>
 
             <div className="flex items-center justify-center gap-x-2 overflow-hidden ">
-                <Button
-                    variant={'glass'}
-                    onClick={() =>
-                        toast('Event has been created', {
-                            description: new Date().toLocaleString(),
-                            action: {
-                                label: 'Undo',
-                                onClick: () => console.log('Undo'),
-                            },
-                        })
-                    }
-                >
-                    <LayoutDashboard size={28} strokeWidth={1.5} /> Dashboard
-                </Button>
-                <div>
-                    {isLoading ? (
-                        <div className="w-8 h-8 flex items-center justify-center bg-slate-600 animate-pulse rounded-full" />
-                    ) : (
-                        <>
-                            <Authenticated>
-                                <div className="w-8 h-8 flex items-center justify-center bg-slate-700 rounded-full">
-                                    <UserButton appearance={{ elements: { avatarBox: ' ' } }} />
-                                </div>
-                            </Authenticated>
-                            <Unauthenticated>
-                                <SignInButton>
-                                    <Button variant={'magic'} className={`hidden sm:inline-flex`}>
-                                        <LogIn />
-                                        Sign In
-                                    </Button>
-                                </SignInButton>
-                            </Unauthenticated>
-                        </>
-                    )}
-                </div>
+                {isLoading ? (
+                    <div className="w-8 h-8 flex items-center justify-center bg-slate-600 animate-pulse rounded-full" />
+                ) : (
+                    <>
+                        <Authenticated>
+                            <Button
+                                variant={'glass'}
+                                onClick={() =>
+                                    toast('Event has been created', {
+                                        description: new Date().toLocaleString(),
+                                        action: {
+                                            label: 'Undo',
+                                            onClick: () => console.log('Undo'),
+                                        },
+                                    })
+                                }
+                            >
+                                <LayoutDashboard size={28} strokeWidth={1.5} />
+                                <span className="hidden sm:flex">Dashboard</span>
+                            </Button>
+
+                            <div className="w-8 h-8 flex items-center justify-center bg-slate-700 rounded-full">
+                                <UserButton appearance={{ elements: { avatarBox: ' ' } }} />
+                            </div>
+                        </Authenticated>
+                        <Unauthenticated>
+                            <SignInButton>
+                                <Button variant={'magic'} className={`hidden sm:inline-flex`}>
+                                    <LogIn />
+                                    Sign In
+                                </Button>
+                            </SignInButton>
+                        </Unauthenticated>
+                    </>
+                )}
             </div>
 
             {isLoading && (
