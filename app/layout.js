@@ -3,7 +3,6 @@ import './globals.css';
 import { Toaster } from '@/components/ui/sonner';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import FloatingShapes from '@/components/FloatingShapes';
-import Header from '@/components/Header';
 import { ConvexClientProvider } from './ConvexClientProvider';
 import { ClerkProvider } from '@clerk/nextjs';
 import { shadcn } from '@clerk/themes';
@@ -17,11 +16,6 @@ const geistMono = Geist_Mono({
     variable: '--font-geist-mono',
     subsets: ['latin'],
 });
-
-export const metadata = {
-    title: 'PixelLift',
-    description: 'Created for doing AI stuffs on an image',
-};
 
 const inter = Inter({
     variable: '--font-inter',
@@ -40,9 +34,17 @@ const poppins = Poppins({
     weight: ['300', '400', '500', '600', '700'],
 });
 
+export const metadata = {
+    title: 'PixelLift',
+    description: 'Created for doing AI stuffs on an image',
+};
+
 export default function RootLayout({ children }) {
     return (
         <html lang="en" suppressHydrationWarning>
+            <head>
+                <link rel="icon" href="/app/favicon.ico" />
+            </head>
             <body
                 className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${roboto.variable} ${poppins.variable} antialiased h-screen`}
             >
@@ -66,7 +68,6 @@ export default function RootLayout({ children }) {
                         }}
                     >
                         <ConvexClientProvider>
-                            <Header />
                             <main className=" bg-slate-900 h-full text-slate-50 overflow-x-hidden">
                                 <FloatingShapes />
                                 <Toaster richColors />

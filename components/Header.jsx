@@ -10,6 +10,7 @@ import { usePathname } from 'next/navigation';
 import useStoreUser from '@/hooks/useStoreUser';
 import { BarLoader } from 'react-spinners';
 import { Authenticated, Unauthenticated } from 'convex/react';
+import { motion } from 'motion/react';
 
 const Header = () => {
     const path = usePathname();
@@ -27,8 +28,21 @@ const Header = () => {
         return null;
     }
 
+    const scrollToSection = (event, tab) => {
+        event.preventDefault();
+        setActiveTab(tab.name);
+        const section = document.querySelector(tab.href);
+        if (section) {
+            section.scrollIntoView({ behavior: 'smooth' });
+        }
+    };
+
     return (
-        <header className="bg-slate-700/50 backdrop-blur-3xl rounded-full px-6 py-2.5 fixed top-6 left-1/2 -translate-x-1/2 text-nowrap flex items-center justify-between gap-24 z-50 overflow-hidden">
+        <motion.header
+            layout
+            className="bg-slate-700/50 backdrop-blur-3xl rounded-full px-6 py-2.5 fixed top-6 left-1/2 -translate-x-1/2 text-nowrap flex items-center justify-between gap-24 z-40 overflow-hidden"
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+        >
             <div className=" uppercase text-lg font-semibold tracking-[0.1rem] bg-gradient-to-r from-blue-400 to-indigo-300 bg-clip-text text-transparent">
                 PixelLift
             </div>
@@ -43,7 +57,7 @@ const Header = () => {
                                 ? 'text-slate-300 ring-slate-600 bg-slate-700'
                                 : ''
                         } px-3 py-1 border-none outline-none`}
-                        onClick={() => setActiveTab(tab.name)}
+                        onClick={e => scrollToSection(e, tab)}
                     >
                         {tab.name}
                     </Link>
@@ -93,7 +107,7 @@ const Header = () => {
                     <BarLoader color={'#e67c06'} width={'98%'} />
                 </div>
             )}
-        </header>
+        </motion.header>
     );
 };
 

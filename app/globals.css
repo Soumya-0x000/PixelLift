@@ -140,3 +140,14 @@ body::-webkit-scrollbar {
         transform: rotate(360deg);
     }
 }
+
+body,
+button,
+a,
+[role='button'] .custom-cursor-area {
+    cursor: none !important;
+}
+
+body {
+  font-family: var(--font-poppins), sans-serif;
+}
