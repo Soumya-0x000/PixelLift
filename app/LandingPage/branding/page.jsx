@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 
 const BrandingSection = () => {
     return (
-        <section className="py-32 px-4 relative">
+        <section className="py-32 px-4 relative flex justify-center items-center overflow-hidden">
             <CometCard shouldGlow={false}>
                 <div className="max-w-6xl mx-auto text-center relative z-10">
                     <motion.div
@@ -16,15 +16,6 @@ const BrandingSection = () => {
                         transition={{ duration: 1 }}
                         className="backdrop-blur-2xl bg-gradient-to-br from-white/10 to-white/5 border border-white/20 rounded-3xl p-16 relative overflow-hidden"
                     >
-                        <motion.div
-                            className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-cyan-500/10"
-                            animate={{
-                                opacity: [0.3, 0.7, 0.3],
-                                scale: [1, 1.05, 1],
-                            }}
-                            transition={{ duration: 4, repeat: Number.POSITIVE_INFINITY }}
-                        />
-
                         <motion.div
                             className="text-5xl md:text-7xl font-black mb-8 bg-gradient-to-r from-blue-400 via-purple-500 to-cyan-400 bg-clip-text text-transparent relative z-10 flex flex-col justify-center items-center leading-[5rem] text-center gap-5"
                             animate={{

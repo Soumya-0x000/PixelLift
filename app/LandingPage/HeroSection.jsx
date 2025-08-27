@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, useScroll, useTransform, AnimatePresence } from 'motion/react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -138,150 +138,130 @@ const HolographicHero = () => {
             className="h-screen flex items-center justify-center relative overflow-hidden"
             style={{ y, opacity }}
         >
-            {/* <div className="absolute inset-0 opacity-20">
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-transparent to-purple-500/10" />
-                <motion.div
-                    className="absolute inset-0"
-                    style={{
-                        backgroundImage: `linear-gradient(rgba(59, 130, 246, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px)`,
-                        backgroundSize: '50px 50px',
-                    }}
-                    animate={{
-                        backgroundPosition: ['0px 0px', '50px 50px'],
-                    }}
-                    transition={{
-                        duration: 20,
-                        repeat: Number.POSITIVE_INFINITY,
-                        ease: 'linear',
-                    }}
-                />
-            </div> */}
-
             <div className="text-center z-10 relative">
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.5, rotateX: -90 }}
-                    animate={{ opacity: 1, scale: 1, rotateX: 0 }}
-                    transition={{ duration: 1.5, delay: 0.5, type: 'spring', stiffness: 100 }}
-                    className="mb-8"
-                >
-                    <motion.h1
-                        className={`text-7xl md:text-9xl font-black mb-6 bg-gradient-to-r from-blue-400 via-purple-500 to-cyan-400 bg-clip-text text-transparent ${
-                            isGlitching ? 'animate-pulse' : ''
-                        }`}
-                        style={{
-                            textShadow: isGlitching ? '0 0 20px rgba(59, 130, 246, 0.5)' : 'none',
-                            filter: isGlitching ? 'hue-rotate(90deg)' : 'none',
-                        }}
-                        animate={
-                            isGlitching
-                                ? {
-                                      x: [0, -2, 2, -1, 1, 0],
-                                      y: [0, 1, -1, 2, -2, 0],
-                                  }
-                                : {}
-                        }
-                        transition={{ duration: 0.1, repeat: isGlitching ? 10 : 0 }}
-                    >
-                        {glitchText}
-                    </motion.h1>
-                </motion.div>
-
-                <motion.p
-                    initial={{ opacity: 0, y: 50 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 1, delay: 1 }}
-                    className="text-2xl md:text-3xl text-white/90 mb-12 max-w-4xl mx-auto leading-relaxed"
-                >
-                    Transcend reality with quantum-powered image manipulation that bends the laws of
-                    digital physics
-                </motion.p>
-
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.8, delay: 1.5 }}
-                    className="flex flex-col sm:flex-row gap-6 justify-center"
-                >
-                    <motion.div whileHover={{ scale: 1.05, rotateY: 5 }} whileTap={{ scale: 0.95 }}>
-                        <Button
-                            size="lg"
-                            className="magnetic bg-gradient-to-r from-blue-500 via-purple-600 to-cyan-500 hover:from-blue-600 hover:via-purple-700 hover:to-cyan-600 text-white border-0 px-12 py-6 text-xl font-bold shadow-2xl"
-                        >
-                            <span className="flex items-center gap-3">🚀 ENTER THE NEXUS</span>
-                        </Button>
-                    </motion.div>
-
+                {/* Main Content */}
+                <div className="text-center z-10 relative min-w-[80rem] w-[78vw">
+                    {/* Holographic Frame */}
                     <motion.div
-                        whileHover={{ scale: 1.05, rotateY: -5 }}
-                        whileTap={{ scale: 0.95 }}
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{
+                            duration: 1.2,
+                            delay: 0.3,
+                            type: 'spring',
+                            stiffness: 300,
+                            damping: 30,
+                        }}
+                        layout
+                        className="relative p-12 rounded-3xl backdrop-blur-xl bg-gradient-to-br from-white/5 via-white/2 to-transparent border border-cyan-500/20 shadow-2xl "
                     >
-                        <Button
-                            variant="outline"
-                            size="lg"
-                            className="magnetic border-2 border-white/40 text-white hover:bg-white/10 px-12 py-6 text-xl bg-transparent backdrop-blur-sm font-bold"
-                        >
-                            <span className="flex items-center gap-3">⚡ WITNESS POWER</span>
-                        </Button>
-                    </motion.div>
-                </motion.div>
-            </div>
+                        {/* Corner Accents */}
+                        <div className="absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-cyan-400 rounded-tl-3xl"></div>
+                        <div className="absolute top-0 right-0 w-16 h-16 border-t-2 border-r-2 border-cyan-400 rounded-tr-3xl"></div>
+                        <div className="absolute bottom-0 left-0 w-16 h-16 border-b-2 border-l-2 border-cyan-400 rounded-bl-3xl"></div>
+                        <div className="absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-cyan-400 rounded-br-3xl"></div>
 
-            {/* <motion.div
-                initial={{ opacity: 0, rotateY: -45, z: -100 }}
-                animate={{ opacity: 1, rotateY: 0, z: 0 }}
-                transition={{ duration: 2, delay: 2 }}
-                className="absolute right-20 top-1/2 transform -translate-y-1/2 hidden xl:block"
-            >
-                <motion.div
-                    className="relative"
-                    animate={{
-                        rotateY: [0, 10, -10, 0],
-                        rotateX: [0, 5, -5, 0],
-                    }}
-                    transition={{
-                        duration: 8,
-                        repeat: Number.POSITIVE_INFINITY,
-                        ease: 'easeInOut',
-                    }}
-                >
-                    <div className="w-96 h-72 backdrop-blur-2xl bg-gradient-to-br from-white/10 to-white/5 border border-white/20 rounded-2xl p-6 shadow-2xl">
-                        <div className="w-full h-full bg-gradient-to-br from-blue-500/20 via-purple-500/20 to-cyan-500/20 rounded-xl relative overflow-hidden">
+                        {/* Pulsing Border Effect */}
+                        <motion.div
+                            className="absolute inset-0 rounded-3xl border border-cyan-400/30"
+                            animate={{
+                                boxShadow: [
+                                    '0 0 20px rgba(0, 255, 255, 0.3)',
+                                    '0 0 40px rgba(0, 255, 255, 0.6)',
+                                    '0 0 20px rgba(0, 255, 255, 0.3)',
+                                ],
+                            }}
+                            transition={{
+                                duration: 3,
+                                repeat: Infinity,
+                                ease: 'easeInOut',
+                            }}
+                        />
+
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.5, rotateX: -90 }}
+                            animate={{ opacity: 1, scale: 1, rotateX: 0 }}
+                            transition={{
+                                duration: 1.5,
+                                delay: 0.5,
+                                type: 'spring',
+                                stiffness: 100,
+                            }}
+                        >
                             <motion.div
-                                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
+                                initial={{ opacity: 0, scale: 0.5, rotateX: -90 }}
+                                animate={{ opacity: 1, scale: 1, rotateX: 0 }}
+                                transition={{
+                                    duration: 1.5,
+                                    delay: 0.5,
+                                    type: 'spring',
+                                    stiffness: 100,
+                                }}
+                                className="mb-8"
+                            >
+                                <motion.h1
+                                    className={`text-7xl md:text-9xl font-black mb-6 bg-gradient-to-r from-blue-400 via-purple-500 to-cyan-400 bg-clip-text text-transparent ${
+                                        isGlitching ? 'animate-pulse' : ''
+                                    }`}
+                                    style={{
+                                        textShadow: isGlitching
+                                            ? '0 0 20px rgba(59, 130, 246, 0.5)'
+                                            : 'none',
+                                        filter: isGlitching ? 'hue-rotate(90deg)' : 'none',
+                                    }}
+                                    animate={
+                                        isGlitching
+                                            ? {
+                                                  x: [0, -2, 2, -1, 1, 0],
+                                                  y: [0, 1, -1, 2, -2, 0],
+                                              }
+                                            : {}
+                                    }
+                                    transition={{ duration: 0.1, repeat: isGlitching ? 10 : 0 }}
+                                >
+                                    {glitchText}
+                                </motion.h1>
+                            </motion.div>
+                        </motion.div>
+
+                        {/* Status Indicator */}
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 1.2 }}
+                            className="flex items-center justify-center gap-2 mb-6"
+                        >
+                            <motion.div
+                                className="w-3 h-3 rounded-full bg-green-400"
                                 animate={{
-                                    x: [-100, 400],
+                                    opacity: [1, 0.3, 1],
+                                    scale: [1, 1.2, 1],
                                 }}
                                 transition={{
-                                    duration: 3,
-                                    repeat: Number.POSITIVE_INFINITY,
+                                    duration: 2,
+                                    repeat: Infinity,
                                     ease: 'easeInOut',
                                 }}
                             />
-                        </div>
-                    </div>
+                            <span className="text-green-400 font-mono text-sm tracking-wider">
+                                NEURAL NETWORK ONLINE
+                            </span>
+                        </motion.div>
 
-                    {[...Array(5)].map((_, i) => (
-                        <motion.div
-                            key={i}
-                            className="absolute w-4 h-4 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full"
-                            style={{
-                                top: `${20 + i * 15}%`,
-                                left: `${-10 + i * 5}%`,
-                            }}
-                            animate={{
-                                y: [0, -20, 0],
-                                opacity: [0.3, 1, 0.3],
-                                scale: [1, 1.2, 1],
-                            }}
-                            transition={{
-                                duration: 2 + i * 0.5,
-                                repeat: Number.POSITIVE_INFINITY,
-                                delay: i * 0.3,
-                            }}
-                        />
-                    ))}
-                </motion.div>
-            </motion.div> */}
+                        <motion.p
+                            initial={{ opacity: 0, y: 30 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 1, delay: 1 }}
+                            className="text-xl md:text-2xl text-gray-300 mb-8 max-w-4xl mx-auto leading-relaxed font-light"
+                        >
+                            <span className="text-cyan-400 font-medium">Quantum-Enhanced</span>{' '}
+                            image processing that transcends
+                            <br />
+                            the boundaries of conventional AI enhancement
+                        </motion.p>
+                    </motion.div>
+                </div>
+            </div>
         </motion.section>
     );
 };
@@ -575,7 +555,91 @@ const HolographicPricingCard = ({ plan, price, features, featured = false, butto
     );
 };
 
+const ParticleField = React.memo(({ count = 150 }) => {
+    const [particles, setParticles] = useState([]);
 
+    useEffect(() => {
+        // Only run on client
+        const generated = Array.from({ length: count }, (_, i) => ({
+            id: i,
+            x: Math.random() * 100,
+            y: Math.random() * 100,
+            size: Math.random() * 3 + 1,
+            duration: Math.random() * 20 + 10,
+            delay: Math.random() * 5,
+        }));
+        setParticles(generated);
+    }, [count]);
+
+    return (
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            {particles.map(particle => (
+                <motion.div
+                    key={particle.id}
+                    className="absolute rounded-full bg-gradient-to-r from-cyan-400 to-blue-500"
+                    style={{
+                        left: `${particle.x}%`,
+                        top: `${particle.y}%`,
+                        width: `${particle.size}px`,
+                        height: `${particle.size}px`,
+                    }}
+                    animate={{
+                        y: [-20, -100],
+                        opacity: [0, 1, 0],
+                        scale: [0, 1, 0],
+                    }}
+                    transition={{
+                        duration: particle.duration,
+                        repeat: Infinity,
+                        delay: particle.delay,
+                        ease: 'easeOut',
+                    }}
+                />
+            ))}
+        </div>
+    );
+});
+
+const HolographicGrid = () => {
+    return (
+        <motion.div
+            className="absolute inset-0 opacity-30"
+            style={{
+                backgroundImage: `
+          linear-gradient(rgba(0, 255, 255, 0.1) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px)
+        `,
+                backgroundSize: '60px 60px',
+            }}
+            animate={{
+                backgroundPosition: ['0px 0px', '60px 60px'],
+            }}
+            transition={{
+                duration: 25,
+                repeat: Infinity,
+                ease: 'linear',
+            }}
+        />
+    );
+};
+
+const ScanLineBgEffect = () => (
+    <motion.div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+            background: 'linear-gradient(transparent 50%, rgba(0, 255, 255, 0.03) 50%)',
+            backgroundSize: '100% 4px',
+        }}
+        animate={{
+            backgroundPositionY: ['0px', '4px'],
+        }}
+        transition={{
+            duration: 0.1,
+            repeat: Infinity,
+            ease: 'linear',
+        }}
+    />
+);
 
 // Main App Component
 export default function HeroSection() {
@@ -665,9 +729,16 @@ export default function HeroSection() {
 
     return (
         <div className="min-h-screen bg-slate-900/60 text-white overflow-x-hidden relative">
-            <HolographicHero />
+            <ParticleField count={20} />
 
-            {/* <section id="features" className="py-32 px-4 relative">
+            <HolographicGrid />
+
+            <ScanLineBgEffect />
+
+            <HolographicHero />
+            {/* 
+
+            <section id="features" className="py-32 px-4 relative">
                 <motion.div
                     className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-500/5 to-transparent"
                     animate={{
@@ -705,7 +776,7 @@ export default function HeroSection() {
                 </div>
             </section>
 
-             <section className="py-32 px-4 relative">
+            <section className="py-32 px-4 relative">
                 <motion.div
                     className="absolute inset-0"
                     animate={{
@@ -766,7 +837,6 @@ export default function HeroSection() {
                 </div>
             </section> */}
 
-            {/* branding section */}
             <BrandingSection />
         </div>
     );
