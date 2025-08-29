@@ -21,7 +21,7 @@ const BrandingSection = () => {
                             animate={{
                                 scale: [1, 1.02, 1],
                             }}
-                            transition={{ duration: 3, repeat: Number.POSITIVE_INFINITY }}
+                            // transition={{ duration: 3, repeat: Number.POSITIVE_INFINITY }}
                         >
                             READY TO BECOME OMNIPOTENT ?
                         </motion.div>

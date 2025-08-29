@@ -6,6 +6,7 @@ import { FollowerPointerCard } from '@/components/ui/following-pointer';
 import useStoreUser from '@/hooks/useStoreUser';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
+import { ScrollProgress } from '@/components/magicui/scroll-progress';
 
 const TitleComponent = ({ title, avatar }) => (
     <div className="flex items-center space-x-2">
@@ -41,11 +42,12 @@ export default function Home() {
     }, []);
 
     return (
-        <div className="">
+        <div>
             <FollowerPointerCard
                 title={<TitleComponent title={user?.username} avatar={user?.imageUrl} />}
                 isMobile={isMobile}
             >
+                {/* <ScrollProgress className="top-[65px]" /> */}
                 <Header />
                 <HeroSection />
             </FollowerPointerCard>

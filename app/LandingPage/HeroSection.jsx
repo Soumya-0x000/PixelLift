@@ -9,6 +9,8 @@ import useStoreUser from '@/hooks/useStoreUser';
 import { CometCard } from '../../components/ui/comet-card';
 import { PointerHighlight } from '../../components/ui/pointer-highlight';
 import BrandingSection from './branding/page';
+import { FlipWords } from '@/components/ui/flip-words';
+import { MorphingText } from '@/components/magicui/morphing-text';
 
 const useMousePosition = () => {
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -86,52 +88,17 @@ const Noise = () => {
 };
 
 const HolographicHero = () => {
-    const [glitchText, setGlitchText] = useState('AI IMAGE NEXUS');
-    const [isGlitching, setIsGlitching] = useState(false);
-    const originalText = 'AI IMAGE NEXUS';
     const { scrollY } = useScroll();
     const y = useTransform(scrollY, [0, 500], [0, -150]);
     const opacity = useTransform(scrollY, [0, 300], [1, 0]);
 
-    useEffect(() => {
-        const glitchChars = '█▓▒░!@#$%^&*()_+-=[]{}|;:,.<>?ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-        let interval;
-
-        const startGlitch = () => {
-            setIsGlitching(true);
-            let iterations = 0;
-            interval = setInterval(() => {
-                setGlitchText(prev =>
-                    prev
-                        .split('')
-                        .map((char, index) => {
-                            if (index < iterations) {
-                                return originalText[index];
-                            }
-                            return glitchChars[Math.floor(Math.random() * glitchChars.length)];
-                        })
-                        .join('')
-                );
-
-                if (iterations >= originalText.length) {
-                    clearInterval(interval);
-                    setGlitchText(originalText);
-                    setIsGlitching(false);
-                }
-
-                iterations += 1 / 2;
-            }, 50);
-        };
-
-        const glitchInterval = setInterval(startGlitch, 8000);
-        const initialGlitch = setTimeout(startGlitch, 2000);
-
-        return () => {
-            clearTimeout(initialGlitch);
-            clearInterval(glitchInterval);
-            clearInterval(interval);
-        };
-    }, []);
+    const words = [
+        'Transform ordinary photos into masterpieces',
+        'Unleash impossible visual perfection',
+        'Bend reality with quantum precision',
+        'Elevate your images to divine quality',
+        'Rewrite the rules of digital artistry',
+    ];
 
     return (
         <motion.section
@@ -178,51 +145,12 @@ const HolographicHero = () => {
                             }}
                         />
 
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.5, rotateX: -90 }}
-                            animate={{ opacity: 1, scale: 1, rotateX: 0 }}
-                            transition={{
-                                duration: 1.5,
-                                delay: 0.5,
-                                type: 'spring',
-                                stiffness: 100,
-                            }}
-                        >
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.5, rotateX: -90 }}
-                                animate={{ opacity: 1, scale: 1, rotateX: 0 }}
-                                transition={{
-                                    duration: 1.5,
-                                    delay: 0.5,
-                                    type: 'spring',
-                                    stiffness: 100,
-                                }}
-                                className="mb-8"
-                            >
-                                <motion.h1
-                                    className={`text-7xl md:text-9xl font-black mb-6 bg-gradient-to-r from-blue-400 via-purple-500 to-cyan-400 bg-clip-text text-transparent ${
-                                        isGlitching ? 'animate-pulse' : ''
-                                    }`}
-                                    style={{
-                                        textShadow: isGlitching
-                                            ? '0 0 20px rgba(59, 130, 246, 0.5)'
-                                            : 'none',
-                                        filter: isGlitching ? 'hue-rotate(90deg)' : 'none',
-                                    }}
-                                    animate={
-                                        isGlitching
-                                            ? {
-                                                  x: [0, -2, 2, -1, 1, 0],
-                                                  y: [0, 1, -1, 2, -2, 0],
-                                              }
-                                            : {}
-                                    }
-                                    transition={{ duration: 0.1, repeat: isGlitching ? 10 : 0 }}
-                                >
-                                    {glitchText}
-                                </motion.h1>
-                            </motion.div>
-                        </motion.div>
+                        <MorphingText
+                            texts={words}
+                            morphTime={1.5}
+                            cooldownTime={0.9}
+                            className={`h-48 text-[4rem] leading-[5rem] bg-gradient-to-r from-blue-400 via-purple-500 to-cyan-400 bg-clip-text text-transparent`}
+                        />
 
                         {/* Status Indicator */}
                         <motion.div
@@ -729,9 +657,9 @@ export default function HeroSection() {
 
     return (
         <div className="min-h-screen bg-slate-900/60 text-white overflow-x-hidden relative">
-            <ParticleField count={20} />
+            <ParticleField count={100} />
 
-            <HolographicGrid />
+            {/* <HolographicGrid /> */}
 
             <ScanLineBgEffect />
 
