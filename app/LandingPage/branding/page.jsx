@@ -47,6 +47,7 @@ const BrandingSection = () => {
                     whileInView={{ opacity: 1, scale: 1, y: 0 }}
                     transition={{ duration: 1, ease: 'easeOut' }}
                     className="max-w-6xl mx-auto text-center relative z-10"
+                    style={{ willChange: 'transform, opacity' }}
                 >
                     <div className="backdrop-blur-2xl bg-gradient-to-br from-white/10 to-white/5 border border-white/20 rounded-3xl p-16 relative overflow-hidden">
                         <div className="text-5xl md:text-7xl font-black mb-8 bg-gradient-to-r from-blue-400 via-purple-500 to-cyan-400 bg-clip-text text-transparent relative z-10 flex flex-col justify-center items-center leading-[5rem] text-center gap-5">
