@@ -68,8 +68,8 @@ export default function RootLayout({ children }) {
                         }}
                     >
                         <ConvexClientProvider>
-                            <main className=" bg-slate-900 h-full text-slate-50 overflow-x-hidden">
-                                <FloatingShapes />
+                            <main className=" h-full text-slate-50 overflow-x-hidden">
+                                <div className="absolute top-0 z-[-2] h-screen w-screen bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.3),rgba(255,255,255,0))] bg-neutral-950"></div>
                                 <Toaster richColors />
                                 {children}
                             </main>

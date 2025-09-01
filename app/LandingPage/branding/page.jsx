@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { CometCard } from '@/components/ui/comet-card';
 import { PointerHighlight } from '@/components/ui/pointer-highlight';
-import { Button } from '@/components/ui/button';
 import { ChevronRight } from 'lucide-react';
 import { AnimatedGradientText } from '@/components/magicui/animated-gradient-text';
 import { cn } from '@/lib/utils';
@@ -67,7 +66,6 @@ const BrandingSection = () => {
                             ) : (
                                 <span className="relative z-10 px-1 ml-1">digital deities</span>
                             )}
-                            {` `}
                             who have transcended the boundaries of
                             {showHighlight ? (
                                 <PointerHighlight

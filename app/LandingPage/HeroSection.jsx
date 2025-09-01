@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { motion, useScroll, useTransform, AnimatePresence } from 'motion/react';
+import { motion, useScroll, useTransform, AnimatePresence, useInView } from 'motion/react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { FollowerPointerCard, FollowPointer } from '../../components/ui/following-pointer';
@@ -12,7 +12,19 @@ import BrandingSection from './branding/page';
 import { FlipWords } from '@/components/ui/flip-words';
 import { MorphingText } from '@/components/magicui/morphing-text';
 import { CardSpotlight } from '@/components/ui/card-spotlight';
-import { Wand2, Expand, Layers, Eraser, Palette, Sparkles } from 'lucide-react';
+import {
+    Wand2,
+    Expand,
+    Layers,
+    Eraser,
+    Palette,
+    Sparkles,
+    MoveRight,
+    ChevronRight,
+} from 'lucide-react';
+import { HoverBorderGradient } from '@/components/ui/hover-border-gradient';
+import { LampContainer } from '@/components/ui/lamp';
+import { cn } from '@/lib/utils';
 
 const useMousePosition = () => {
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -99,14 +111,51 @@ const HolographicHero = () => {
         'Unleash impossible visual perfection',
         'Bend reality with quantum precision',
         'Elevate your images to divine quality',
-        'Rewrite the rules of digital artistry',
+        'Rewrite the rules of modern digital artistry',
     ];
 
     return (
         <motion.section
-            className="h-screen flex items-center justify-center relative overflow-hidden"
+            className="h-screen flex flex-col gap-10 items-center justify-center relative overflow-hidden"
             style={{ y, opacity }}
         >
+            <motion.div
+                initial={{ opacity: 0, y: 100 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                    duration: 10,
+                    delay: 0.6,
+                    type: 'spring',
+                    stiffness: 300,
+                    damping: 30,
+                }}
+                className="z-10"
+            >
+                <HoverBorderGradient
+                    containerClassName="rounded-full mt-[5rem] tracking-wide text-[0.9rem] p-0"
+                    as="button"
+                    className="group dark:bg-black bg-white text-slate-800 dark:text-slate-400 flex items-center gap-x-3"
+                >
+                    <motion.div
+                        animate={{
+                            color: ['#00ffff', '#0080ff', '#8000ff', '#ff0080', '#00ffff'],
+                        }}
+                        transition={{
+                            duration: 6,
+                            repeat: Infinity,
+                            ease: 'linear',
+                        }}
+                        className=" border-r-2 border-gray-600 pr-3 flex items-center justify-center"
+                    >
+                        <Sparkles className="w-[1rem] h-[1rem]" />
+                    </motion.div>
+                    <span className=" flex items-center gap-2">
+                        Introduction to PixelLift
+                        <ChevronRight className="w-[1.2rem] h-[1.2rem] group-hover:translate-x-2 transition-all duration-500 text-gray-500" />
+                    </span>
+                </HoverBorderGradient>
+            </motion.div>
+
             <div className="text-center z-10 relative">
                 {/* Main Content */}
                 <div className="text-center z-10 relative min-w-[80rem] w-[78vw">
@@ -182,7 +231,7 @@ const HolographicHero = () => {
                             initial={{ opacity: 0, y: 30 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 1, delay: 1 }}
-                            className="text-xl md:text-2xl text-gray-300 mb-8 max-w-4xl mx-auto leading-relaxed font-light"
+                            className="text-xl md:text-2xl text-gray-400 mb-8 max-w-4xl mx-auto leading-relaxed font-light"
                         >
                             <span className="text-cyan-400 font-medium">Quantum-Enhanced</span>{' '}
                             image processing that transcends
@@ -193,21 +242,6 @@ const HolographicHero = () => {
                 </div>
             </div>
         </motion.section>
-    );
-};
-
-const LevitatingFeatureCard = ({ title, description, icon }) => {
-    return (
-        <CardSpotlight className="backdrop-blur-2xl bg-gradient-to-br from-white/10 to-white/5 px-6 py-7 transition-all duration-500 group overflow-hidden relative h-full">
-            <motion.div className="absolute -translate-x-[4rem] translate-y-0.5 group-hover:-translate-x-[1rem] transition-all duration-500">
-                {icon}
-            </motion.div>
-            <h3 className="text-[1.4rem] font-semibold text-white mb-3 relative group-hover:translate-x-5 transition-all duration-500 z-10">
-                {title}
-            </h3>
-            <div className=" w-1/4 group-hover:w-full transition-all duration-500 rounded-full h-[0.02rem] mb-2 bg-slate-200" />
-            <p className="text-white/80 text-md leading-relaxed relative z-10">{description}</p>
-        </CardSpotlight>
     );
 };
 
@@ -280,51 +314,6 @@ const QuantumCounter = ({ target, duration = 2000, suffix = '', label }) => {
     );
 };
 
-const ParticleField = React.memo(({ count = 150 }) => {
-    const [particles, setParticles] = useState([]);
-
-    useEffect(() => {
-        // Only run on client
-        const generated = Array.from({ length: count }, (_, i) => ({
-            id: i,
-            x: Math.random() * 100,
-            y: Math.random() * 100,
-            size: Math.random() * 3 + 1,
-            duration: Math.random() * 20 + 10,
-            delay: Math.random() * 5,
-        }));
-        setParticles(generated);
-    }, [count]);
-
-    return (
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            {particles.map(particle => (
-                <motion.div
-                    key={particle.id}
-                    className="absolute rounded-full bg-gradient-to-r from-cyan-400 to-blue-500"
-                    style={{
-                        left: `${particle.x}%`,
-                        top: `${particle.y}%`,
-                        width: `${particle.size}px`,
-                        height: `${particle.size}px`,
-                    }}
-                    animate={{
-                        y: [-20, -100],
-                        opacity: [0, 1, 0],
-                        scale: [0, 1, 0],
-                    }}
-                    transition={{
-                        duration: particle.duration,
-                        repeat: Infinity,
-                        delay: particle.delay,
-                        ease: 'easeOut',
-                    }}
-                />
-            ))}
-        </div>
-    );
-});
-
 const HolographicGrid = () => {
     return (
         <motion.div
@@ -366,17 +355,16 @@ const ScanLineBgEffect = () => (
     />
 );
 
-const Background = React.memo(() => (
-    <>
-        <ParticleField count={30} />
-
-        <HolographicGrid />
-
-        {/* <ScanLineBgEffect /> */}
-    </>
-));
-
 const Features = React.memo(() => {
+    const [hoverIndex, setHoverIndex] = useState(null);
+    const [hasEverHovered, setHasEverHovered] = useState(false);
+
+    const [ref, isIntersecting] = useIntersectionObserver({ threshold: 0.2 });
+
+    useEffect(() => {
+        if (!isIntersecting) setHasEverHovered(false);
+    }, [isIntersecting]);
+
     const featureGridVariants = {
         hidden: {},
         visible: {
@@ -397,42 +385,48 @@ const Features = React.memo(() => {
             description:
                 'Harness the power of quantum AI to obliterate backgrounds with subatomic precision, leaving only pure perfection',
             delay: 0.1,
-            icon: <Wand2 size={27} className="text-cyan-400" />,
+            icon: <Wand2 size={27} />,
+            iconColor: 'text-cyan-400',
         },
         {
             title: 'Infinity Upscaling Engine',
             description:
                 'Transcend resolution limits with our reality-bending upscaling that creates detail from the quantum foam itself',
             delay: 0.2,
-            icon: <Expand size={27} className="text-purple-400" />,
+            icon: <Expand size={27} />,
+            iconColor: 'text-purple-400',
         },
         {
             title: 'Dimensional Style Fusion',
             description:
                 'Merge artistic dimensions in real-time, transforming images through parallel universe style matrices',
             delay: 0.3,
-            icon: <Layers size={27} className="text-blue-400" />,
+            icon: <Layers size={27} />,
+            iconColor: 'text-blue-400',
         },
         {
             title: 'Temporal Object Erasure',
             description:
                 'Rewrite visual history by removing objects across spacetime, healing reality with impossible precision',
             delay: 0.4,
-            icon: <Eraser size={27} className="text-pink-400" />,
+            icon: <Eraser size={27} />,
+            iconColor: 'text-pink-400',
         },
         {
             title: 'Chromatic Harmony Matrix',
             description:
                 'Orchestrate color symphonies that resonate with the fundamental frequencies of visual perfection',
             delay: 0.5,
-            icon: <Palette size={27} className="text-green-400" />,
+            icon: <Palette size={27} />,
+            iconColor: 'text-green-400',
         },
         {
             title: 'Omnipotent Enhancement',
             description:
                 'Achieve godlike image perfection with a single quantum click that rewrites the laws of photography',
             delay: 0.6,
-            icon: <Sparkles size={27} className="text-yellow-400" />,
+            icon: <Sparkles size={27} />,
+            iconColor: 'text-yellow-400',
         },
     ];
 
@@ -444,32 +438,59 @@ const Features = React.memo(() => {
                 transition={{ duration: 1 }}
                 className="text-center mb-20"
             >
-                <motion.h2
-                    className="text-6xl md:text-8xl font-black mb-8 bg-gradient-to-r from-blue-400 via-purple-500 to-cyan-400 bg-clip-text text-transparent"
-                    animate={{
-                        backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
-                    }}
-                    transition={{ duration: 5, repeat: Number.POSITIVE_INFINITY }}
-                >
-                    OMNIPOTENT ABILITIES
-                </motion.h2>
+                <ColorChangingTextAnimation text="OMNIPOTENT ABILITIES" />
                 <p className="text-2xl text-white/80 max-w-4xl mx-auto leading-relaxed">
                     Wield powers that reshape the very fabric of digital reality itself
                 </p>
             </motion.div>
 
             <motion.div
+                ref={ref}
                 className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10"
                 variants={featureGridVariants}
                 initial="hidden"
                 whileInView="visible"
-                viewport={{ once: true, amount: 0.2 }}
+                viewport={{ once: false, amount: 0.2 }}
             >
-                {features.map((feature, index) => (
-                    <motion.div key={index} variants={featureCardVariants} custom={index}>
-                        <LevitatingFeatureCard {...feature} index={index} />
-                    </motion.div>
-                ))}
+                {features.map((feature, index) => {
+                    const isHovered = hoverIndex === index;
+
+                    return (
+                        <motion.div
+                            key={index}
+                            variants={featureCardVariants}
+                            onMouseEnter={() => {
+                                setHoverIndex(index);
+                                if (!hasEverHovered) setHasEverHovered(true);
+                            }}
+                            onMouseLeave={() => setHoverIndex(null)}
+                            className={`${hasEverHovered ? 'transition-all duration-300' : ''} ${
+                                isHovered ? '' : hoverIndex !== null ? 'scale-95 opacity-70' : ''
+                            }`}
+                        >
+                            <CardSpotlight
+                                className="backdrop-blur-2xl bg-gradient-to-br from-white/10 to-white/5 p-5 transition-all duration-500 group overflow-hidden relative h-full"
+                                color={feature?.iconColor}
+                            >
+                                <div
+                                    className={`mb-4 ${hoverIndex === index ? feature?.iconColor : 'text-slate-500'}`}
+                                >
+                                    {feature?.icon}
+                                </div>
+
+                                <h3
+                                    className={`text-[1.4rem] font-semibold text-white mb-3 relative transition-all duration-500 z-10`}
+                                >
+                                    {feature?.title}
+                                </h3>
+
+                                <p className="text-white/80 text-md leading-relaxed relative z-10 hyphens-auto">
+                                    {feature?.description}
+                                </p>
+                            </CardSpotlight>
+                        </motion.div>
+                    );
+                })}
             </motion.div>
         </section>
     );
@@ -790,10 +811,13 @@ const HolographicPricingCard = ({ plan, price, features, featured, buttonText, i
     );
 };
 
-const ColorChangingTextAnimation = React.memo(({ text }) => {
+const ColorChangingTextAnimation = React.memo(({ text, className }) => {
     return (
-        <motion.h2
-            className="text-5xl md:text-7xl lg:text-8xl font-black mb-8 leading-tight"
+        <motion.span
+            className={cn(
+                'text-5xl md:text-7xl lg:text-8xl font-black mb-8 leading-tight',
+                className
+            )}
             style={{
                 background: 'linear-gradient(45deg, #00ffff, #0080ff, #8000ff, #ff0080, #00ffff)',
                 backgroundSize: '300% 300%',
@@ -812,7 +836,7 @@ const ColorChangingTextAnimation = React.memo(({ text }) => {
             }}
         >
             {text}
-        </motion.h2>
+        </motion.span>
     );
 });
 
@@ -868,7 +892,7 @@ const PricingSection = React.memo(() => {
                     className="text-center mb-20"
                 >
                     <ColorChangingTextAnimation text="PRICING MATRIX" />
-                    
+
                     <motion.p
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
@@ -936,16 +960,48 @@ const PricingSection = React.memo(() => {
 
 export default function HeroSection() {
     return (
-        <div className="min-h-screen bg-slate-900/60 text-white overflow-x-hidden relative">
-            <Background />
-
+        <div className="min-h-screen text-white overflow-x-hidden relative">
             <HolographicHero />
 
             <Features />
 
-            <Counter to={10000000} suffix="+" />
+            {/* <Counter to={1000000} suffix="+" /> */}
 
-            <PricingSection />
+            {/* <PricingSection /> */}
+            <LampContainer>
+                <motion.div
+                    initial={{ opacity: 0.5, y: 100 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{
+                        delay: 0.3,
+                        duration: 0.8,
+                        ease: 'easeInOut',
+                    }}
+                    className='flex flex-col items-center px-4 max-w-4xl mx-auto mt-[13 rem]'
+                >
+                    <div className=" bg-gradient-to-br leading-[6rem] from-slate-300 to-slate-500 bg-clip-text text-center text-4xl md:text-7xl font-medium tracking-wide text-transparent">
+                        Step into the Future of <br /> AI Image{' '}
+                        <ColorChangingTextAnimation
+                            text="Creation"
+                            className="text-4xl md:text-7xl lg:text-7xl font-semibold"
+                        />
+                    </div>
+
+                    <p className=" text-[1.15rem] max-w-2xl hyphens-auto mt-16 text-center text-slate-400">
+                        A Neural Network powered image editing and generation tool that uses the
+                        power of the multiverse to bring your imagination to life.
+                    </p>
+
+                    <Button
+                        size="lg"
+                        variant={'glass'}
+                        className="mt-12 border-0 py-4 px-8 text-lg tracking-wider flex items-center justify-center gap-3 font-thin"
+                        style={{ backgroundSize: '200% 200%' }}
+                    >
+                        ENTER THE MULTIVERSE <ChevronRight className="w-7 h-7" />
+                    </Button>
+                </motion.div>
+            </LampContainer>
 
             <BrandingSection />
         </div>

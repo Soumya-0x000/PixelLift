@@ -11,6 +11,7 @@ import useStoreUser from '@/hooks/useStoreUser';
 import { BarLoader } from 'react-spinners';
 import { Authenticated, Unauthenticated } from 'convex/react';
 import { motion } from 'motion/react';
+import { cn } from '@/lib/utils';
 
 const Header = () => {
     const path = usePathname();
@@ -48,19 +49,25 @@ const Header = () => {
             </div>
 
             <nav className="flex gap-x-2">
-                {tabs.map(tab => (
-                    <Link
+                {tabs.map((tab, idx) => (
+                    <button
                         key={tab.name}
-                        href={tab.href}
-                        className={`text-slate-200 hover:text-slate-300 transition-colors ring-1 ring-transparent rounded-xl hover:ring-slate-600 hover:bg-slate-700 ${
-                            activeTab.toLowerCase() === tab.name.toLowerCase()
-                                ? 'text-slate-300 ring-slate-600 bg-slate-700'
-                                : ''
-                        } px-3 py-1 border-none outline-none`}
                         onClick={e => scrollToSection(e, tab)}
+                        className={cn(
+                            'relative px-3 py-1 rounded-xl border-none outline-none text-slate-200 hover:text-slate-300 transition-colors ring-1 ring-transparent hover:ring-slate-600 hover:bg-slate-700',
+                            activeTab === tab.name && 'text-slate-300 ring-slate-600 bg-slate-700'
+                        )}
+                        style={{ transformStyle: 'preserve-3d' }}
                     >
-                        {tab.name}
-                    </Link>
+                        {activeTab === tab.name && (
+                            <motion.div
+                                layoutId="clickedbutton"
+                                transition={{ type: 'spring', bounce: 0.3, duration: 0.6 }}
+                                className="absolute inset-0 bg-slate-700/80 rounded-xl z-0"
+                            />
+                        )}
+                        <span className="relative block z-10">{tab.name}</span>
+                    </button>
                 ))}
             </nav>
 

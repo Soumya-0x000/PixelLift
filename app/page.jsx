@@ -6,7 +6,8 @@ import { FollowerPointerCard } from '@/components/ui/following-pointer';
 import useStoreUser from '@/hooks/useStoreUser';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
-import { ScrollProgress } from '@/components/magicui/scroll-progress';
+import Footer from '@/components/Footer';
+import ParticleBackground from '@/components/ParticleBackground';
 
 const TitleComponent = ({ title, avatar }) => (
     <div className="flex items-center space-x-2">
@@ -29,7 +30,14 @@ const TitleComponent = ({ title, avatar }) => (
 
 export default function Home() {
     const [isMobile, setIsMobile] = useState(false);
+    const [loadParticles, setLoadParticles] = useState(false);
     const { user } = useStoreUser();
+
+    useEffect(() => {
+        setTimeout(() => {
+            setLoadParticles(true);
+        }, 1000);
+    }, []);
 
     useEffect(() => {
         const checkMobile = () => {
@@ -43,13 +51,15 @@ export default function Home() {
 
     return (
         <div>
+            {loadParticles && <ParticleBackground count={50} />}
+
             <FollowerPointerCard
                 title={<TitleComponent title={user?.username} avatar={user?.imageUrl} />}
                 isMobile={isMobile}
             >
-                {/* <ScrollProgress className="top-[65px]" /> */}
                 <Header />
                 <HeroSection />
+                <Footer />
             </FollowerPointerCard>
         </div>
     );
