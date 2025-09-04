@@ -21,25 +21,24 @@ import {
     Sparkles,
     MoveRight,
     ChevronRight,
+    File,
+    Settings,
+    Search,
+    Image,
+    Crop,
+    Filter,
+    Download,
+    Upload,
+    Zap,
+    Eye,
+    Brush,
+    Scissors,
+    RotateCcw,
+    Maximize,
 } from 'lucide-react';
 import { HoverBorderGradient } from '@/components/ui/hover-border-gradient';
-import { LampContainer } from '@/components/ui/lamp';
 import { cn } from '@/lib/utils';
-
-const useMousePosition = () => {
-    const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-
-    useEffect(() => {
-        const updateMousePosition = e => {
-            setMousePosition({ x: e.clientX, y: e.clientY });
-        };
-
-        window.addEventListener('mousemove', updateMousePosition);
-        return () => window.removeEventListener('mousemove', updateMousePosition);
-    }, []);
-
-    return mousePosition;
-};
+import { OrbitingCircles } from '@/components/magicui/orbiting-circles';
 
 const useIntersectionObserver = (options = {}) => {
     const [isIntersecting, setIsIntersecting] = useState(false);
@@ -58,47 +57,6 @@ const useIntersectionObserver = (options = {}) => {
     }, [options]);
 
     return [ref, isIntersecting];
-};
-
-const CustomCursor = ({ mousePosition }) => {
-    const [isHovering, setIsHovering] = useState(false);
-
-    useEffect(() => {
-        const handleMouseOver = e => {
-            if (e.target.matches('button, a, [role="button"]')) {
-                setIsHovering(true);
-            } else {
-                setIsHovering(false);
-            }
-        };
-
-        document.addEventListener('mouseover', handleMouseOver);
-        return () => document.removeEventListener('mouseover', handleMouseOver);
-    }, []);
-
-    return (
-        <motion.div
-            className="fixed w-5 h-5 bg-blue-500 rounded-full pointer-events-none z-50 mix-blend-difference"
-            animate={{
-                x: mousePosition.x - 10,
-                y: mousePosition.y - 10,
-                scale: isHovering ? 2 : 1,
-            }}
-            transition={{ type: 'spring', stiffness: 500, damping: 28 }}
-        />
-    );
-};
-
-const Noise = () => {
-    return (
-        <div
-            className="absolute inset-0 w-full h-full scale-[1.2] transform opacity-10 [mask-image:radial-gradient(#fff,transparent,75%)]"
-            style={{
-                backgroundImage: 'url(/noise.webp)',
-                backgroundSize: '30%',
-            }}
-        ></div>
-    );
 };
 
 const HolographicHero = () => {
@@ -313,47 +271,6 @@ const QuantumCounter = ({ target, duration = 2000, suffix = '', label }) => {
         </div>
     );
 };
-
-const HolographicGrid = () => {
-    return (
-        <motion.div
-            className="absolute inset-0 opacity-30"
-            style={{
-                backgroundImage: `
-          linear-gradient(rgba(0, 255, 255, 0.1) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px)
-        `,
-                backgroundSize: '60px 60px',
-            }}
-            animate={{
-                backgroundPosition: ['0px 0px', '60px 60px'],
-            }}
-            transition={{
-                duration: 25,
-                repeat: Infinity,
-                ease: 'linear',
-            }}
-        />
-    );
-};
-
-const ScanLineBgEffect = () => (
-    <motion.div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-            background: 'linear-gradient(transparent 50%, rgba(0, 255, 255, 0.03) 50%)',
-            backgroundSize: '100% 4px',
-        }}
-        animate={{
-            backgroundPositionY: ['0px', '4px'],
-        }}
-        transition={{
-            duration: 0.1,
-            repeat: Infinity,
-            ease: 'linear',
-        }}
-    />
-);
 
 const Features = React.memo(() => {
     const [hoverIndex, setHoverIndex] = useState(null);
@@ -959,6 +876,71 @@ const PricingSection = React.memo(() => {
 });
 
 export default function HeroSection() {
+    const outerOrbit = [
+        { Icon: Wand2, colors: ['#8b5cf6', '#3b82f6', '#06b6d4', '#8b5cf6'], duration: 4, size: 7 },
+        {
+            Icon: Palette,
+            colors: ['#f43f5e', '#ec4899', '#be185d', '#f43f5e'],
+            duration: 3.1,
+            size: 7,
+        },
+        {
+            Icon: Image,
+            colors: ['#06b6d4', '#14b8a6', '#10b981', '#06b6d4'],
+            duration: 3.5,
+            size: 7,
+        },
+        {
+            Icon: Sparkles,
+            colors: ['#ec4899', '#8b5cf6', '#f59e0b', '#ec4899'],
+            duration: 3,
+            size: 7,
+        },
+    ];
+
+    const middleOrbit = [
+        {
+            Icon: Brush,
+            colors: ['#f97316', '#ef4444', '#dc2626', '#f97316'],
+            duration: 3.2,
+            size: 6,
+        },
+        {
+            Icon: Crop,
+            colors: ['#10b981', '#059669', '#047857', '#10b981'],
+            duration: 2.8,
+            size: 6,
+        },
+        {
+            Icon: Filter,
+            colors: ['#3b82f6', '#6366f1', '#8b5cf6', '#3b82f6'],
+            duration: 3.7,
+            size: 6,
+        },
+        {
+            Icon: Eraser,
+            colors: ['#eab308', '#f59e0b', '#d97706', '#eab308'],
+            duration: 2.5,
+            size: 6,
+        },
+    ];
+
+    const innerOrbit = [
+        {
+            Icon: Expand,
+            colors: ['#8b5cf6', '#a855f7', '#9333ea', '#8b5cf6'],
+            duration: 2.2,
+            size: 5,
+        },
+        {
+            Icon: Layers,
+            colors: ['#06b6d4', '#0891b2', '#0e7490', '#06b6d4'],
+            duration: 2.7,
+            size: 5,
+        },
+        { Icon: Zap, colors: ['#14b8a6', '#0d9488', '#0f766e', '#14b8a6'], duration: 1.8, size: 5 },
+    ];
+
     return (
         <div className="min-h-screen text-white overflow-x-hidden relative">
             <HolographicHero />
@@ -968,7 +950,7 @@ export default function HeroSection() {
             {/* <Counter to={1000000} suffix="+" /> */}
 
             {/* <PricingSection /> */}
-            <LampContainer>
+            <div className="flex flex-col xl:flex-row">
                 <motion.div
                     initial={{ opacity: 0.5, y: 100 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -977,7 +959,7 @@ export default function HeroSection() {
                         duration: 0.8,
                         ease: 'easeInOut',
                     }}
-                    className='flex flex-col items-center px-4 max-w-4xl mx-auto mt-[13 rem]'
+                    className="flex flex-col items-center px-4 max-w-4xl mx-auto mt-[13 rem]"
                 >
                     <div className=" bg-gradient-to-br leading-[6rem] from-slate-300 to-slate-500 bg-clip-text text-center text-4xl md:text-7xl font-medium tracking-wide text-transparent">
                         Step into the Future of <br /> AI Image{' '}
@@ -1001,7 +983,27 @@ export default function HeroSection() {
                         ENTER THE MULTIVERSE <ChevronRight className="w-7 h-7" />
                     </Button>
                 </motion.div>
-            </LampContainer>
+
+                <div className="relative flex h-[40rem] w-full flex-col items-center justify-center overflow-hidden">
+                    <OrbitingCircles radius={280} speed={1.8}>
+                        {outerOrbit.map((icon, i) => (
+                            <OrbitingIcon key={i} {...icon} circleSize="h-14" />
+                        ))}
+                    </OrbitingCircles>
+
+                    <OrbitingCircles radius={190} reverse duration={35}>
+                        {middleOrbit.map((icon, i) => (
+                            <OrbitingIcon key={i} {...icon} circleSize="h-10" />
+                        ))}
+                    </OrbitingCircles>
+
+                    <OrbitingCircles radius={100} speed={2.5}>
+                        {innerOrbit.map((icon, i) => (
+                            <OrbitingIcon key={i} {...icon} circleSize="h-8" />
+                        ))}
+                    </OrbitingCircles>
+                </div>
+            </div>
 
             <BrandingSection />
         </div>

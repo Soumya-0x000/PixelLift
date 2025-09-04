@@ -24,7 +24,7 @@ export const LampContainer = ({ children, className }) => {
                 ></motion.div>
                 <motion.div
                     initial={{ width: 0, opacity: 0.7 }}
-                    whileInView={{ width: '60rem', opacity: 1 }}
+                    whileInView={{ width: '20rem', opacity: 1 }}
                     transition={{
                         delay: 0.3,
                         duration: 1.2,
@@ -34,7 +34,7 @@ export const LampContainer = ({ children, className }) => {
                 />
                 <motion.div
                     initial={{ width: 0, opacity: 0.7 }}
-                    whileInView={{ width: '60rem', opacity: 1 }}
+                    whileInView={{ width: '20rem', opacity: 1 }}
                     transition={{
                         delay: 0.3,
                         duration: 1.2,
@@ -42,6 +42,7 @@ export const LampContainer = ({ children, className }) => {
                     }}
                     className="absolute left-1/2 -translate-x-1/2 z-30 h-36 -translate-y-[12rem] rounded-full bg-indigo-400 blur-2xl"
                 />
+
                 {/* The glowing bar */}
                 <motion.div
                     initial={{ width: '15rem' }}
