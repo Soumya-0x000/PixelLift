@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from './ui/button';
 import { LayoutDashboard, LogIn } from 'lucide-react';
 import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs';
@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 const Header = () => {
     const path = usePathname();
     const { isLoading, isAuthenticated, userId, user } = useStoreUser();
+    const [isScrolled, setIsScrolled] = useState(false);
 
     const tabs = [
         { name: 'Features', href: '#features' },
@@ -24,6 +25,23 @@ const Header = () => {
     ];
 
     const [activeTab, setActiveTab] = useState('');
+
+    useEffect(() => {
+        const handleScroll = () => {
+            const scrollThreshold = 100;
+            const scrollY = window.scrollY;
+            console.log('Scroll Y:', scrollY);
+            setIsScrolled(scrollY > scrollThreshold);
+        };
+
+        handleScroll();
+
+        window.addEventListener('scroll', handleScroll, { passive: true });
+
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+        };
+    }, []);
 
     if (path.includes('editor')) {
         return null;
@@ -37,11 +55,14 @@ const Header = () => {
             section.scrollIntoView({ behavior: 'smooth' });
         }
     };
-
+console.log(isScrolled)
     return (
         <motion.header
             layout
-            className="bg-slate-700/50 backdrop-blur-3xl rounded-full px-6 py-2.5 fixed top-6 left-1/2 -translate-x-1/2 text-nowrap flex items-center justify-between gap-24 z-40 overflow-hidden"
+            className={cn(
+                'bg-slate-700/50 backdrop-blur-3xl px-6 py-2.5 fixed left-1/2 -translate-x-1/2 text-nowrap flex items-center justify-between gap-24 z-40 overflow-hidden transition-all duration-300',
+                isScrolled ? 'top-2 w-[90%] rounded-lg' : 'top-6 rounded-full'
+            )}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
         >
             <div className=" uppercase text-lg font-semibold tracking-[0.1rem] bg-gradient-to-r from-blue-400 to-indigo-300 bg-clip-text text-transparent">
@@ -51,7 +72,7 @@ const Header = () => {
             <nav className="flex gap-x-2">
                 {tabs.map((tab, idx) => (
                     <button
-                        key={tab.name}
+                        key={tab.name + idx}
                         onClick={e => scrollToSection(e, tab)}
                         className={cn(
                             'relative px-3 py-1 rounded-xl border-none outline-none text-slate-200 hover:text-slate-300 transition-colors ring-1 ring-transparent hover:ring-slate-600 hover:bg-slate-700',

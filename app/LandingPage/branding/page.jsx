@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { CometCard } from '@/components/ui/comet-card';
@@ -48,8 +50,8 @@ const BrandingSection = () => {
                     className="max-w-6xl mx-auto text-center relative z-10"
                     style={{ willChange: 'transform, opacity' }}
                 >
-                    <div className="backdrop-blur-2xl bg-gradient-to-br from-white/10 to-white/5 border border-white/20 rounded-3xl p-16 relative overflow-hidden">
-                        <div className="text-5xl md:text-7xl font-black mb-8 bg-gradient-to-r from-blue-400 via-purple-500 to-cyan-400 bg-clip-text text-transparent relative z-10 flex flex-col justify-center items-center leading-[5rem] text-center gap-5">
+                    <div className="backdrop-blur-2xl bg-gradient-to-br from-slate-300/10 to-white/5 border border-white/20 rounded-3xl p-16 relative overflow-hidden">
+                        <div className="text-5xl md:text-7xl font-black mb-8 bg-gradient-to-r from-blue-400 via-purple-500 to-cyan-400 bg-clip-text text-transparent relative z-10 flex flex-col justify-center items-center leading-[6rem] text-center gap-5">
                             READY TO BECOME OMNIPOTENT ?
                         </div>
 
@@ -67,6 +69,7 @@ const BrandingSection = () => {
                                 <span className="relative z-10 px-1 ml-1">digital deities</span>
                             )}
                             who have transcended the boundaries of
+                            <br />
                             {showHighlight ? (
                                 <PointerHighlight
                                     rectangleClassName="bg-pink-100 dark:bg-pink-900 border-pink-300 dark:border-pink-700 leading-loose"
