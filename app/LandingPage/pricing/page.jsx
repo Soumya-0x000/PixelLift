@@ -66,14 +66,15 @@ const PricingSection = React.memo(() => {
         <section id="pricing" className="py-32 px-4 relative overflow-hidden">
             <div className="max-w-7xl mx-auto relative z-10">
                 {/* Header */}
-                <motion.div
-                    initial={{ opacity: 0, y: 50 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 1 }}
-                    viewport={{ once: true }}
-                    className="text-center mb-10"
-                >
-                    <ColorChangingText text="PRICING MATRIX" />
+                <div className="text-center mb-10">
+                    <motion.p
+                        initial={{ opacity: 0, y: 40 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.8 }}
+                        className="text-xl md:text-2xl text-gray-300 font-light"
+                    >
+                        <ColorChangingText text="PRICING MATRIX" />
+                    </motion.p>
 
                     <motion.p
                         initial={{ opacity: 0, y: 20 }}
@@ -108,14 +109,13 @@ const PricingSection = React.memo(() => {
                             PRICING MATRIX LOADED
                         </span>
                     </motion.div>
-                </motion.div>
+                </div>
 
                 {/* Pricing tabs */}
                 <motion.div
-                    initial={{ opacity: 0, y: 50 }}
+                    initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 1 }}
-                    viewport={{ once: true }}
+                    transition={{ duration: 0.8, delay: 0.3 }}
                     className="mb-12 flex items-center justify-center gap-6 ring-1 w-fit mx-auto ring-slate-700/80 rounded-lg p-2 backdrop-blur-sm overflow-hidden"
                 >
                     {pricingPlans.map(({ plan }) => (
@@ -161,9 +161,8 @@ const PricingSection = React.memo(() => {
                                         animate={{
                                             boxShadow: [
                                                 '0 0 0 1px rgb(236 72 153)',
-                                                '0 0 0 1px rgb(16 185 129)',
-                                                '0 0 0 1px #ffaa40', 
-                                                '0 0 0 1px rgb(236 72 153)', 
+                                                '0 0 0 1px #ffaa40',
+                                                '0 0 0 1px rgb(236 72 153)',
                                             ],
                                         }}
                                         transition={{
