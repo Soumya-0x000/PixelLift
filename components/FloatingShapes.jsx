@@ -11,14 +11,14 @@ const FloatingShapes = () => {
             id: 1,
             size: 'w-72 h-72',
             position: 'top-20 left-10',
-            gradient: 'from-blue-500 to-purple-600',
+            gradient: 'from-blue-700 to-purple-700',
             translateY: scrollY * 0.9,
         },
         {
             id: 2,
             size: 'w-96 h-96',
             position: 'top-1/3 right-10',
-            gradient: 'from-cyan-400 to-blue-500',
+            gradient: 'from-cyan-5  00 to-blue-600',
             translateY: scrollY * 0.3,
         },
         {
@@ -32,7 +32,7 @@ const FloatingShapes = () => {
             id: 4,
             size: 'w-80 h-80',
             position: 'bottom-1/4 right-1/4',
-            gradient: 'from-yellow-400 to-orange-500',
+            gradient: 'from-yellow-800 to-orange-500',
             translateY: scrollY * 0.7,
         },
     ];

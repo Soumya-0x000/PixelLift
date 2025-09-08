@@ -2,9 +2,10 @@ import { Geist, Geist_Mono, Inter, Poppins, Roboto } from 'next/font/google';
 import './globals.css';
 import { Toaster } from '@/components/ui/sonner';
 import { ThemeProvider } from '@/components/ThemeProvider';
-import FloatingShapes from '@/components/FloatingShapes';
-import Header from '@/components/Header';
 import { ConvexClientProvider } from './ConvexClientProvider';
+import { ClerkProvider } from '@clerk/nextjs';
+import { shadcn } from '@clerk/themes';
+import ScrollToTop from '@/components/ScrollToTop';
 
 const geistSans = Geist({
     variable: '--font-geist-sans',
@@ -15,11 +16,6 @@ const geistMono = Geist_Mono({
     variable: '--font-geist-mono',
     subsets: ['latin'],
 });
-
-export const metadata = {
-    title: 'PixelLift',
-    description: 'Created for doing AI stuffs on an image',
-};
 
 const inter = Inter({
     variable: '--font-inter',
@@ -38,11 +34,19 @@ const poppins = Poppins({
     weight: ['300', '400', '500', '600', '700'],
 });
 
+export const metadata = {
+    title: 'PixelLift',
+    description: 'Created for doing AI stuffs on an image',
+};
+
 export default function RootLayout({ children }) {
     return (
         <html lang="en" suppressHydrationWarning>
+            <head>
+                <link rel="icon" href="/app/favicon.ico" />
+            </head>
             <body
-                className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${roboto.variable} ${poppins.variable} antialiased`}
+                className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${roboto.variable} ${poppins.variable} antialiased h-screen`}
             >
                 <ThemeProvider
                     attribute="class"
@@ -52,14 +56,26 @@ export default function RootLayout({ children }) {
                     storageKey="theme"
                     className={`${inter.variable} ${roboto.variable} ${poppins.variable}`}
                 >
-                    <ConvexClientProvider>
-                        <Header />
-                        <main className=" bg-slate-900 min-h-[100rem] text-slate-50 overflow-x-hidden">
-                            <FloatingShapes />
-                            <Toaster richColors />
-                            {children}
-                        </main>
-                    </ConvexClientProvider>
+                    <ClerkProvider
+                        appearance={{
+                            cssLayerName: 'clerk',
+                            layout: {
+                                socialButtonsPlacement: 'bottom',
+                                socialButtonsVariant: 'iconButton',
+                                termsPageUrl: 'https://clerk.com/terms',
+                            },
+                            baseTheme: shadcn,
+                        }}
+                    >
+                        <ConvexClientProvider>
+                            <main className=" h-full text-slate-50 overflow-x-hidden">
+                                <div className="absolute top-0 z-[-2] h-screen w-screen bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.3),rgba(255,255,255,0))] bg-neutral-950"></div>
+                                <Toaster richColors />
+                                {children}
+                                <ScrollToTop/>
+                            </main>
+                        </ConvexClientProvider>
+                    </ClerkProvider>
                 </ThemeProvider>
             </body>
         </html>
