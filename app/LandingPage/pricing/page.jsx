@@ -6,8 +6,11 @@ import ColorChangingText from '@/components/ui/color-changing-text';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { AnimatedGradientText } from '@/components/magicui/animated-gradient-text';
+import { useAuth } from '@clerk/nextjs';
 
 const PricingSection = React.memo(() => {
+    const { has } = useAuth();
+    console.log(has)
     const pricingPlans = [
         {
             plan: 'Apprentice',
@@ -40,6 +43,7 @@ const PricingSection = React.memo(() => {
             featured: true,
             buttonText: 'CLAIM DOMINION',
             note: 'Invoices and receipts available for easy company reimbursement',
+            planId: 'cplan_32QixVCEdiOSJYuhsXoPJ9D2C4X',
         },
         {
             plan: 'Deity',
@@ -56,6 +60,7 @@ const PricingSection = React.memo(() => {
             ],
             buttonText: 'TRANSCEND REALITY',
             note: 'Invoices and receipts available for easy company reimbursement',
+            planId: 'cplan_32QjKxZGqLwXCdqz2s4urBP6Nvs',
         },
     ];
 
