@@ -9,7 +9,7 @@ import { AnimatedGradientText } from '@/components/magicui/animated-gradient-tex
 import { useAuth, useUser } from '@clerk/nextjs';
 
 const PricingSection = React.memo(() => {
-    const { has } = useAuth();
+    const { userId } = useAuth();
     const { user } = useUser();
 
     const pricingPlans = [
@@ -74,9 +74,10 @@ const PricingSection = React.memo(() => {
     const userPlanId = user?.publicMetadata?.planId || user?.privateMetadata?.planId;
     const activePlanId = currentPlan?.planId === userPlanId;
 
-    console.log('Current plan from user:', userPlanId);
-    console.log('Selected plan ID:', currentPlan?.planId);
-    console.log('Is active plan:', activePlanId);
+    console.log('Current plan from user:', userId);
+    console.log('Current plan from user:', user);
+    // console.log('Selected plan ID:', currentPlan?.planId);
+    // console.log('Is active plan:', activePlanId);
 
     return (
         <section id="pricing" className="py-32 px-4 relative overflow-hidden">
