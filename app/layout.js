@@ -54,7 +54,7 @@ export default function RootLayout({ children }) {
                     disableTransitionOnChange
                     storageKey="theme"
                     className={`${inter.variable} ${roboto.variable} ${poppins.variable}`}
-                >
+                >  
                     <ClerkProvider
                         appearance={{
                             cssLayerName: 'clerk',
