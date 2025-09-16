@@ -8,6 +8,7 @@ import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import Footer from '@/components/Footer';
 import ParticleBackground from '@/components/ParticleBackground';
+import ScrollToTop from '@/components/ScrollToTop';
 
 const TitleComponent = ({ title, avatar }) => (
     <div className="flex items-center space-x-2">
@@ -60,6 +61,7 @@ export default function Home() {
                 <Header />
                 <HeroSection />
                 <Footer />
+                <ScrollToTop />
             </FollowerPointerCard>
         </div>
     );

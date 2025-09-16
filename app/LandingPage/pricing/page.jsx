@@ -6,11 +6,16 @@ import ColorChangingText from '@/components/ui/color-changing-text';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { AnimatedGradientText } from '@/components/magicui/animated-gradient-text';
+import { useAuth, useUser } from '@clerk/nextjs';
 
 const PricingSection = React.memo(() => {
+    const { userId } = useAuth();
+    const { user } = useUser();
+
     const pricingPlans = [
         {
             plan: 'Apprentice',
+            id: 'apprentice_user',
             title: 'Apprentice Membership',
             subtitle: 'Begin your journey into the quantum realm',
             price: 1600,
@@ -26,6 +31,7 @@ const PricingSection = React.memo(() => {
         },
         {
             plan: 'Master',
+            id: 'master_user',
             title: 'Master Membership',
             subtitle: 'Command advanced multiverse powers',
             price: 4300,
@@ -40,9 +46,11 @@ const PricingSection = React.memo(() => {
             featured: true,
             buttonText: 'CLAIM DOMINION',
             note: 'Invoices and receipts available for easy company reimbursement',
+            planId: 'cplan_32QixVCEdiOSJYuhsXoPJ9D2C4X',
         },
         {
             plan: 'Deity',
+            id: 'deity_user',
             title: 'Deity Membership',
             subtitle: 'Transcend limits, reshape existence',
             price: 13100,
@@ -56,11 +64,20 @@ const PricingSection = React.memo(() => {
             ],
             buttonText: 'TRANSCEND REALITY',
             note: 'Invoices and receipts available for easy company reimbursement',
+            planId: 'cplan_32QjKxZGqLwXCdqz2s4urBP6Nvs',
         },
     ];
 
     const [selectedTab, setSelectedTab] = useState(pricingPlans[0].plan);
     const currentPlan = pricingPlans.find(p => p.plan === selectedTab);
+
+    const userPlanId = user?.publicMetadata?.planId || user?.privateMetadata?.planId;
+    const activePlanId = currentPlan?.planId === userPlanId;
+
+    console.log('Current plan from user:', userId);
+    console.log('Current plan from user:', user);
+    // console.log('Selected plan ID:', currentPlan?.planId);
+    // console.log('Is active plan:', activePlanId);
 
     return (
         <section id="pricing" className="py-32 px-4 relative overflow-hidden">
