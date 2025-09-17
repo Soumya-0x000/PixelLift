@@ -55,7 +55,7 @@ const Header = () => {
             section.scrollIntoView({ behavior: 'smooth' });
         }
     };
-console.log(isScrolled)
+// console.log(isScrolled)
     return (
         <motion.header
             layout
