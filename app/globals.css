@@ -157,7 +157,7 @@ body,
 button,
 a,
 [role='button'] .custom-cursor-area {
-    cursor: none !important;
+    /* cursor: none !important; */
 }
 
 body {

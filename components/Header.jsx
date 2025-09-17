@@ -55,13 +55,13 @@ const Header = () => {
             section.scrollIntoView({ behavior: 'smooth' });
         }
     };
-console.log(isScrolled)
+
     return (
         <motion.header
             layout
             className={cn(
                 'bg-slate-700/50 backdrop-blur-3xl px-6 py-2.5 fixed left-1/2 -translate-x-1/2 text-nowrap flex items-center justify-between gap-24 z-40 overflow-hidden transition-all duration-300',
-                isScrolled ? 'top-2 w-[90%] rounded-lg' : 'top-6 rounded-full'
+                isScrolled ? 'top-2 w-[60%] rounded-xl bg-slate-700/30' : 'top-6 rounded-full'
             )}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
         >

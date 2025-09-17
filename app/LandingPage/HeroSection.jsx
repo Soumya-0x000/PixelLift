@@ -8,7 +8,7 @@ import BrandingSection from './branding/page';
 
 const HeroSection = () => {
     return (
-        <div className="min-h-screen text-white overflow-x-hidden relative">
+        <div className=" text-white overflow-x-hidden relative">
             <Hero />
 
             <Features />

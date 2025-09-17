@@ -5,10 +5,11 @@ import HeroSection from '@/app/LandingPage/HeroSection';
 import { FollowerPointerCard } from '@/components/ui/following-pointer';
 import useStoreUser from '@/hooks/useStoreUser';
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Footer from '@/components/Footer';
 import ParticleBackground from '@/components/ParticleBackground';
 import ScrollToTop from '@/components/ScrollToTop';
+import { useScroll, motion, useTransform, useMotionValueEvent } from 'motion/react';
 
 const TitleComponent = ({ title, avatar }) => (
     <div className="flex items-center space-x-2">
@@ -30,6 +31,7 @@ const TitleComponent = ({ title, avatar }) => (
 );
 
 export default function Home() {
+    const mainRef = useRef(null);
     const [isMobile, setIsMobile] = useState(false);
     const [loadParticles, setLoadParticles] = useState(false);
     const { user } = useStoreUser();
@@ -42,7 +44,7 @@ export default function Home() {
 
     useEffect(() => {
         const checkMobile = () => {
-            setIsMobile(window.matchMedia('(max-width: 768px)').matches);
+            setIsMobile(window.matchMedia('(max-width: 600px)').matches);
         };
 
         checkMobile();
@@ -51,7 +53,7 @@ export default function Home() {
     }, []);
 
     return (
-        <div>
+        <div ref={mainRef} className="relative">
             {loadParticles && <ParticleBackground count={50} />}
 
             <FollowerPointerCard
@@ -60,8 +62,8 @@ export default function Home() {
             >
                 <Header />
                 <HeroSection />
+                <ScrollToTop containerRef={mainRef} />
                 <Footer />
-                <ScrollToTop />
             </FollowerPointerCard>
         </div>
     );
