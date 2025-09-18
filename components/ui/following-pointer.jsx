@@ -46,13 +46,9 @@ export const FollowerPointerCard = ({ children, className, title, isMobile }) =>
         e => {
             const now = Date.now();
 
-            // Update position (always smooth)
-            if (rect) {
-                const scrollX = window.scrollX;
-                const scrollY = window.scrollY;
-                x.set(e.clientX - rect.left + scrollX);
-                y.set(e.clientY - rect.top + scrollY);
-            }
+            // Update position (always smooth) - use viewport coordinates for fixed positioning
+            x.set(e.clientX);
+            y.set(e.clientY);
 
             // Throttle pointer detection (less critical for UX)
             if (now - pointerCheckTime.current > 50) {
@@ -111,7 +107,7 @@ export const FollowerPointerCard = ({ children, className, title, isMobile }) =>
 export const FollowPointer = ({ x, y, title, color, isPointer }) => {
     return (
         <motion.div
-            className="fixed z-50 h-4 w-4 rounded-full"
+            className="fixed z-[9999] h-4 w-4 rounded-full"
             style={{
                 top: y,
                 left: x,

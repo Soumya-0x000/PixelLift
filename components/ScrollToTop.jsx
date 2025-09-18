@@ -1,34 +1,23 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { easeInOut, motion, useScroll, useTransform } from 'motion/react';
-import { ChevronUp } from 'lucide-react';
+import React, { useState } from 'react';
+import { motion, useScroll, useTransform, useMotionValueEvent } from 'motion/react';
 
 const ScrollToTop = () => {
-    const { scrollYProgress } = useScroll();
+    const { scrollY, scrollYProgress } = useScroll();
     const [isVisible, setIsVisible] = useState(false);
+console.log(scrollY)
+    // Drive visibility from Motion's scroll value (in px)
+    useMotionValueEvent(scrollY, 'change', latest => {
+        const scrollThreshold = 100;
+        setIsVisible(latest > scrollThreshold);
+    });
 
-    useEffect(() => {
-        const handleScroll = () => {
-            const scrollThreshold = 100;
-            const scrollY = window.scrollY;
-            console.log('Scroll Y:', scrollY);
-            setIsVisible(scrollY > scrollThreshold);
-        };
-
-        handleScroll();
-        window.addEventListener('scroll', handleScroll, { passive: true });
-
-        return () => {
-            window.removeEventListener('scroll', handleScroll);
-        };
-    }, []);
-console.log(isVisible)
     const scrollToTop = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    const circumference = 2 * Math.PI * 22; // radius of 22
+    const circumference = 2 * Math.PI * 22;
     const strokeDashoffset = useTransform(scrollYProgress, [0, 1], [circumference, 0]);
 
     const pathVariants = {
@@ -48,13 +37,13 @@ console.log(isVisible)
 
     return (
         <motion.div
-            className="fixed right-10 bottom-10 z-50"
-            // initial={{ opacity: 0, scale: 0.8 }}
-            // animate={{
-            //     opacity: isVisible ? 1 : 0,
-            //     scale: isVisible ? 1 : 0.8,
-            // }}
-            transition={{ duration: 0.3 }}
+            className="fixed right-10 bottom-10 rounded-full z-10 cursor-pointer"
+            onClick={scrollToTop}
+            whileHover={{ scale: 1.05 }}
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: isVisible ? 0 : 100, opacity: isVisible ? 1 : 0 }}
+            style={{ pointerEvents: isVisible ? 'auto' : 'none' }}
+            transition={{ type: 'spring', stiffness: 300, damping: 20, duration: 0.3 }}
         >
             <div className="relative">
                 {/* Animated border circle */}
@@ -77,9 +66,8 @@ console.log(isVisible)
                         stroke="url(#gradient)"
                         strokeWidth="2"
                         strokeLinecap="round"
-                        // strokeDasharray={circumference}
-                        // style={{ strokeDashoffset }}
-                        variants={pathVariants}
+                        strokeDasharray={circumference}
+                        style={{ strokeDashoffset }}
                     />
                     {/* Gradient definition */}
                     <defs>
@@ -93,7 +81,8 @@ console.log(isVisible)
 
                 <motion.button
                     className="cursor-pointer bg-black/90 rounded-full p-3"
-                    onClick={scrollToTop}
+                    aria-label="Scroll to top"
+                    type="button"
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                     transition={{ type: 'spring', stiffness: 300, damping: 20 }}
