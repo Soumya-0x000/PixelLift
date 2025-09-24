@@ -6,11 +6,11 @@ import ColorChangingText from '@/components/ui/color-changing-text';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { AnimatedGradientText } from '@/components/magicui/animated-gradient-text';
-import { useAuth, useUser } from '@clerk/nextjs';
+import { PricingTable, useAuth, useUser } from '@clerk/nextjs';
+import { BorderBeam } from '@/components/ui/border-beam';
 
 const PricingSection = React.memo(() => {
-    const { userId } = useAuth();
-    const { user } = useUser();
+    const { has } = useAuth();
 
     const pricingPlans = [
         {
@@ -71,16 +71,11 @@ const PricingSection = React.memo(() => {
     const [selectedTab, setSelectedTab] = useState(pricingPlans[0].plan);
     const currentPlan = pricingPlans.find(p => p.plan === selectedTab);
 
-    const userPlanId = user?.publicMetadata?.planId || user?.privateMetadata?.planId;
-    const activePlanId = currentPlan?.planId === userPlanId;
-
-    console.log('Current plan from user:', userId);
-    console.log('Current plan from user:', user);
-    // console.log('Selected plan ID:', currentPlan?.planId);
-    // console.log('Is active plan:', activePlanId);
+    const isCurrentPlanActive = currentPlan.id ? has?.({ plan: currentPlan.id }) : false;
 
     return (
         <section id="pricing" className="py-32 px-4 relative overflow-hidden">
+            <PricingTable />
             <div className="max-w-7xl mx-auto relative z-10">
                 {/* Header */}
                 <div className="text-center mb-10">
@@ -286,7 +281,7 @@ const PricingSection = React.memo(() => {
 
                             <Button
                                 variant={'badge'}
-                                className={`w-4/5 mx-auto mt-4 h-12 text-[1rem] flex items-center justify-center font-semibold`}
+                                className={`w-4/5 mx-auto mt-4 h-12 text-[1rem] flex items-center justify-center font-semibold ${isCurrentPlanActive && ' cursor-not-allowed pointer-events-none'}`}
                             >
                                 <motion.span
                                     key={currentPlan.plan + '-button'}
@@ -295,7 +290,7 @@ const PricingSection = React.memo(() => {
                                     exit={{ opacity: 0, y: -40 }}
                                     transition={{ duration: 0.3 }}
                                 >
-                                    {currentPlan.buttonText}
+                                    {isCurrentPlanActive ? 'Current Plan' : currentPlan.buttonText}
                                 </motion.span>
                             </Button>
 
@@ -311,6 +306,23 @@ const PricingSection = React.memo(() => {
                             </motion.p>
                         </motion.div>
                     </AnimatePresence>
+
+                    {isCurrentPlanActive && (
+                        <>
+                            <BorderBeam
+                                duration={6}
+                                size={400}
+                                className="from-transparent via-amber-300 to-transparent"
+                            />
+                            <BorderBeam
+                                duration={6}
+                                delay={3}
+                                size={400}
+                                borderWidth={2}
+                                className="from-transparent via-orange-500 to-transparent"
+                            />
+                        </>
+                    )}
                 </div>
             </div>
         </section>
