@@ -6,7 +6,7 @@ import { motion, useScroll, useTransform, useMotionValueEvent } from 'motion/rea
 const ScrollToTop = () => {
     const { scrollY, scrollYProgress } = useScroll();
     const [isVisible, setIsVisible] = useState(false);
-console.log(scrollY)
+
     // Drive visibility from Motion's scroll value (in px)
     useMotionValueEvent(scrollY, 'change', latest => {
         const scrollThreshold = 100;
