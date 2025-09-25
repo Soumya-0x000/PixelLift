@@ -163,3 +163,7 @@ a,
 body {
   font-family: var(--font-poppins), sans-serif;
 }
+
+[role="dialog"].cl-drawerRoot {
+  /* z-index: 99999 !important; */
+}

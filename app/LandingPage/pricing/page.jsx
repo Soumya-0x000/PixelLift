@@ -1,13 +1,18 @@
 'use client';
 
 import React, { useState } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
+import { AnimatePresence, motion, time } from 'motion/react';
 import ColorChangingText from '@/components/ui/color-changing-text';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { AnimatedGradientText } from '@/components/magicui/animated-gradient-text';
-import { PricingTable, useAuth, useUser } from '@clerk/nextjs';
+import { PricingTable, SignedIn, useAuth, useUser } from '@clerk/nextjs';
 import { BorderBeam } from '@/components/ui/border-beam';
+import {
+    CheckoutButton,
+    PlanDetailsButton,
+    SubscriptionDetailsButton,
+} from '@clerk/nextjs/experimental';
 
 const PricingSection = React.memo(() => {
     const { has } = useAuth();
@@ -18,30 +23,32 @@ const PricingSection = React.memo(() => {
             id: 'apprentice_user',
             title: 'Apprentice Membership',
             subtitle: 'Begin your journey into the quantum realm',
-            price: 1600,
+            price: '0',
             billing: 'per month',
             features: [
-                '500 Quantum Edits each month',
-                'Access to basic Reality Filters',
-                'Export dimensions in crisp 4K',
-                'Neural support from our team',
+                '3 projects maximum',
+                '5 exports per month',
+                'Basic crop & resize',
+                'Color adjustments',
+                'Standard quality exports',
             ],
             buttonText: 'BEGIN ASCENSION',
             note: 'Invoices and receipts available for easy company reimbursement',
+            planId: 'cplan_32QhQ98KSbfwLZYr53kse70Il1x',
         },
         {
             plan: 'Master',
             id: 'master_user',
             title: 'Master Membership',
             subtitle: 'Command advanced multiverse powers',
-            price: 4300,
+            price: '4,300',
             billing: 'per month',
             features: [
-                'Unlimited Quantum Power',
-                'Bend advanced layers of reality',
-                'Export universes in stunning 8K',
-                'Priority access to the Nexus',
-                'API-level omnipotence',
+                'Unlimited exports',
+                'Unlimited projects',
+                'All editing tools',
+                'AI background removal',
+                'All Apprentice features',
             ],
             featured: true,
             buttonText: 'CLAIM DOMINION',
@@ -53,14 +60,14 @@ const PricingSection = React.memo(() => {
             id: 'deity_user',
             title: 'Deity Membership',
             subtitle: 'Transcend limits, reshape existence',
-            price: 13100,
+            price: '13,100',
             billing: 'per month',
             features: [
-                'Custom-crafted Reality Models',
-                'Infinite batch processing power',
-                'Godmode export in 16K resolution',
-                'Direct hotline to the Creators',
-                'Full universe white-label rights',
+                'Color adjustments',
+                'Standard quality exports',
+                'AI Extender',
+                'Retouch, Upscaler & more',
+                'All Master features',
             ],
             buttonText: 'TRANSCEND REALITY',
             note: 'Invoices and receipts available for easy company reimbursement',
@@ -68,14 +75,18 @@ const PricingSection = React.memo(() => {
         },
     ];
 
-    const [selectedTab, setSelectedTab] = useState(pricingPlans[0].plan);
-    const currentPlan = pricingPlans.find(p => p.plan === selectedTab);
+    const pricingTimes = ['Monthly', 'Yearly'];
+
+    const [selectedTab, setSelectedTab] = useState({
+        price: pricingPlans[0].plan,
+        time: pricingTimes[0],
+    });
+    const currentPlan = pricingPlans.find(p => p.plan === selectedTab?.price);
 
     const isCurrentPlanActive = currentPlan.id ? has?.({ plan: currentPlan.id }) : false;
 
     return (
         <section id="pricing" className="py-32 px-4 relative overflow-hidden">
-            <PricingTable />
             <div className="max-w-7xl mx-auto relative z-10 ">
                 {/* Header */}
                 <div className="text-center mb-10">
@@ -128,19 +139,19 @@ const PricingSection = React.memo(() => {
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, delay: 0.3 }}
-                    className="mb-12 flex items-center justify-center gap-6 ring-1 w-fit mx-auto ring-slate-700/80 rounded-lg p-2 backdrop-blur-sm overflow-hidden"
+                    className="mb-24 flex items-center justify-center gap-6 ring-1 w-fit mx-auto ring-slate-700/80 rounded-lg p-2 backdrop-blur-sm overflow-hidden"
                 >
                     {pricingPlans.map(({ plan }) => (
                         <button
                             key={plan}
-                            onClick={() => setSelectedTab(plan)}
+                            onClick={() => setSelectedTab(prev => ({ ...prev, price: plan }))}
                             className={cn(
                                 'relative px-3 py-1 rounded-md border-none outline-none text-slate-200 hover:text-slate-300 transition-colors ring-1 ring-transparent hover:ring-slate-700',
-                                selectedTab === plan && 'text-slate-300 ring-0 bg-slate-700'
+                                selectedTab?.price === plan && 'text-slate-300 ring-0 bg-slate-700'
                             )}
                             style={{ transformStyle: 'preserve-3d' }}
                         >
-                            {selectedTab === plan && (
+                            {selectedTab?.price === plan && (
                                 <motion.div
                                     layoutId="pilltab"
                                     transition={{ type: 'spring', bounce: 0.3, duration: 0.6 }}
@@ -155,7 +166,7 @@ const PricingSection = React.memo(() => {
                 </motion.div>
 
                 {/* Pricing content */}
-                <div className="max-w-6xl h-[25rem] mx-auto flex justify-between gap-10 ring-1 ring-slate-800 rounded-2xl bg-slate-900/70 backdrop-blur-sm p-8">
+                <div className="max-w-6xl h-[25rem] mx-auto flex justify-between gap-10 ring-1 ring-slate-800 rounded-2xl bg-slate-900/70 backdrop-blur-sm p-8 relative">
                     {/* Left: Features */}
                     <div className="flex flex-col gap-6 flex-1">
                         <AnimatePresence mode="wait">
@@ -240,7 +251,7 @@ const PricingSection = React.memo(() => {
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -30 }}
                             transition={{ duration: 0.4 }}
-                            className="bg-slate-950 ring ring-slate-700 rounded-xl p-8 w-[25rem] flex flex-col justify-between"
+                            className="bg-slate-950 ring ring-slate-700 rounded-xl p-8 w-[25rem] flex flex-col justify-between relative z-20"
                         >
                             <div className="h-[45%] pt-3">
                                 <motion.p
@@ -279,20 +290,24 @@ const PricingSection = React.memo(() => {
                                 </motion.div>
                             </div>
 
-                            <Button
-                                variant={'badge'}
-                                className={`w-4/5 mx-auto mt-4 h-12 text-[1rem] flex items-center justify-center font-semibold ${isCurrentPlanActive && ' cursor-not-allowed pointer-events-none'}`}
-                            >
-                                <motion.span
-                                    key={currentPlan.plan + '-button'}
-                                    initial={{ opacity: 0, y: 40 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -40 }}
-                                    transition={{ duration: 0.3 }}
+                            <CheckoutButton planId={currentPlan.planId} planPeriod="month">
+                                <Button
+                                    variant={'badge'}
+                                    className={`w-4/5 mx-auto mt-4 h-12 text-[1rem] flex items-center justify-center font-semibold ${isCurrentPlanActive && ' '}`}
                                 >
-                                    {isCurrentPlanActive ? 'Current Plan' : currentPlan.buttonText}
-                                </motion.span>
-                            </Button>
+                                    <motion.span
+                                        key={currentPlan.plan + '-button'}
+                                        initial={{ opacity: 0, y: 40 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -40 }}
+                                        transition={{ duration: 0.3 }}
+                                    >
+                                        {isCurrentPlanActive
+                                            ? 'Current Plan'
+                                            : currentPlan.buttonText}
+                                    </motion.span>
+                                </Button>
+                            </CheckoutButton>
 
                             <motion.p
                                 key={currentPlan.plan + '-note'}
@@ -304,6 +319,29 @@ const PricingSection = React.memo(() => {
                             >
                                 {currentPlan.note}
                             </motion.p>
+
+                            {currentPlan.plan === 'Apprentice' && currentPlan.price === '0' && (
+                                <motion.div
+                                    className={cn(
+                                        'uppercase absolute -top-4 left-8 tracking-wider bg-slate-800/40 text-slate-200 backdrop-blur-xl ring-1 ring-slate-700 text-xs px-2 py-1 rounded-md'
+                                    )}
+                                >
+                                    Always Free
+                                </motion.div>
+                            )}
+
+                            {isCurrentPlanActive && (
+                                <motion.div
+                                    initial={{ y: 20, opacity: 0 }}
+                                    animate={{ y: 0, opacity: 1 }}
+                                    exit={{ y: 20, opacity: 0 }}
+                                    className={cn(
+                                        'uppercase absolute -top-4 right-6 tracking-widest bg-slate-950 ring ring-slate-700 text-slate-200 backdrop-blur-xl text-[0.7rem] px-2.5 py-1 rounded-md -z-10'
+                                    )}
+                                >
+                                    Active
+                                </motion.div>
+                            )}
                         </motion.div>
                     </AnimatePresence>
 
@@ -324,18 +362,18 @@ const PricingSection = React.memo(() => {
                         </>
                     )}
 
-                    {isCurrentPlanActive && (
-                        <motion.div
-                            initial={{ y: 20, opacity: 20 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            exit={{ y: 20, opacity: 20 }}
-                            className={cn(
-                                'uppercase absolute -top-5 right-8 tracking-wider bg-amber-900/40 text-amber-200 backdrop-blur-xl ring-1 ring-amber-400 text-xs px-2 py-1 rounded-md'
-                            )}
-                        >
-                            Active
-                        </motion.div>
-                    )}
+                    <SignedIn>
+                        {/* <SubscriptionDetailsButton>
+                            <Button variant="outline" className="absolute bottom-6 right-6 text-sm">
+                                Manage Subscription
+                            </Button>
+                        </SubscriptionDetailsButton> */}
+                        {/* <PlanDetailsButton>
+                            <Button variant="outline" className="absolute bottom-6 right-6 text-sm">
+                                Manage Subscription
+                            </Button>
+                        </PlanDetailsButton> */}
+                    </SignedIn>
                 </div>
             </div>
         </section>
