@@ -76,7 +76,7 @@ const PricingSection = React.memo(() => {
     return (
         <section id="pricing" className="py-32 px-4 relative overflow-hidden">
             <PricingTable />
-            <div className="max-w-7xl mx-auto relative z-10">
+            <div className="max-w-7xl mx-auto relative z-10 ">
                 {/* Header */}
                 <div className="text-center mb-10">
                     <motion.p
@@ -319,9 +319,22 @@ const PricingSection = React.memo(() => {
                                 delay={3}
                                 size={400}
                                 borderWidth={2}
-                                className="from-transparent via-orange-500 to-transparent"
+                                className="from-transparent via-orange-400 to-transparent"
                             />
                         </>
+                    )}
+
+                    {isCurrentPlanActive && (
+                        <motion.div
+                            initial={{ y: 20, opacity: 20 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            exit={{ y: 20, opacity: 20 }}
+                            className={cn(
+                                'uppercase absolute -top-5 right-8 tracking-wider bg-amber-900/40 text-amber-200 backdrop-blur-xl ring-1 ring-amber-400 text-xs px-2 py-1 rounded-md'
+                            )}
+                        >
+                            Active
+                        </motion.div>
                     )}
                 </div>
             </div>
