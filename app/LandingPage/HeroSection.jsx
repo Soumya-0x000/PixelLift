@@ -9,15 +9,15 @@ import BrandingSection from './branding/page';
 const HeroSection = () => {
     return (
         <div className=" text-white overflow-x-hidden relative">
-            {/* <Hero />
+            <Hero />
 
             <Features />
 
-            <AiBgMagic /> */}
+            <AiBgMagic />
 
             <PricingSection />
 
-            {/* <BrandingSection /> */}
+            <BrandingSection />
         </div>
     );
 };

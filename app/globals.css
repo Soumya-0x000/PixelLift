@@ -165,5 +165,5 @@ body {
 }
 
 [role="dialog"].cl-drawerRoot {
-  /* z-index: 99999 !important; */
+  z-index: 99999 !important;
 }

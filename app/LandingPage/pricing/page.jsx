@@ -109,7 +109,6 @@ const PricingSection = React.memo(() => {
                         <span className="text-cyan-400 font-medium">digital pantheon</span>
                     </motion.p>
 
-                    {/* Status Indicator */}
                     <motion.div
                         initial={{ opacity: 0 }}
                         whileInView={{ opacity: 1 }}
@@ -363,18 +362,51 @@ const PricingSection = React.memo(() => {
                     )}
 
                     <SignedIn>
-                        {/* <SubscriptionDetailsButton>
-                            <Button variant="outline" className="absolute bottom-6 right-6 text-sm">
+                        <SubscriptionDetailsButton>
+                            <Button
+                                variant="outline"
+                                className="a bsolute bottom-6 right-6 text-sm"
+                            >
                                 Manage Subscription
                             </Button>
-                        </SubscriptionDetailsButton> */}
+                        </SubscriptionDetailsButton>
                         {/* <PlanDetailsButton>
-                            <Button variant="outline" className="absolute bottom-6 right-6 text-sm">
+                            <Button variant="outline" className="abs olute bottom-6 right-6 text-sm">
                                 Manage Subscription
                             </Button>
                         </PlanDetailsButton> */}
                     </SignedIn>
                 </div>
+
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, delay: 0.3 }}
+                    className="mb-24 flex items-center justify-center gap-6 ring-1 w-fit mx-auto ring-slate-700/80 rounded-lg p-2 backdrop-blur-sm overflow-hidden"
+                >
+                    {pricingPlans.map(({ plan }) => (
+                        <button
+                            key={plan}
+                            onClick={() => setSelectedTab(prev => ({ ...prev, price: plan }))}
+                            className={cn(
+                                'relative px-3 py-1 rounded-md border-none outline-none text-slate-200 hover:text-slate-300 transition-colors ring-1 ring-transparent hover:ring-slate-700',
+                                selectedTab?.price === plan && 'text-slate-300 ring-0 bg-slate-700'
+                            )}
+                            style={{ transformStyle: 'preserve-3d' }}
+                        >
+                            {selectedTab?.price === plan && (
+                                <motion.div
+                                    layoutId="pilltab"
+                                    transition={{ type: 'spring', bounce: 0.3, duration: 0.6 }}
+                                    className="absolute inset-0 bg-gradient-to-r from-slate-800/80 via-slate-700/60 to-black/30 rounded-md z-0"
+                                />
+                            )}
+                            <span className="relative block z-10">
+                                {plan.featured ? <AnimatePresence>{plan} </AnimatePresence> : plan}
+                            </span>
+                        </button>
+                    ))}
+                </motion.div>
             </div>
         </section>
     );
