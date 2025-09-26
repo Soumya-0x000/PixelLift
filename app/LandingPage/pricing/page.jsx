@@ -289,24 +289,26 @@ const PricingSection = React.memo(() => {
                                 </motion.div>
                             </div>
 
-                            <CheckoutButton planId={currentPlan.planId} planPeriod="month">
-                                <Button
-                                    variant={'badge'}
-                                    className={`w-4/5 mx-auto mt-4 h-12 text-[1rem] flex items-center justify-center font-semibold ${isCurrentPlanActive && ' '}`}
-                                >
-                                    <motion.span
-                                        key={currentPlan.plan + '-button'}
-                                        initial={{ opacity: 0, y: 40 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -40 }}
-                                        transition={{ duration: 0.3 }}
+                            <SignedIn>
+                                <CheckoutButton planId={currentPlan.planId} planPeriod="month">
+                                    <Button
+                                        variant={'badge'}
+                                        className={`w-4/5 mx-auto mt-4 h-12 text-[1rem] flex items-center justify-center font-semibold ${isCurrentPlanActive && ' '}`}
                                     >
-                                        {isCurrentPlanActive
-                                            ? 'Current Plan'
-                                            : currentPlan.buttonText}
-                                    </motion.span>
-                                </Button>
-                            </CheckoutButton>
+                                        <motion.span
+                                            key={currentPlan.plan + '-button'}
+                                            initial={{ opacity: 0, y: 40 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -40 }}
+                                            transition={{ duration: 0.3 }}
+                                        >
+                                            {isCurrentPlanActive
+                                                ? 'Current Plan'
+                                                : currentPlan.buttonText}
+                                        </motion.span>
+                                    </Button>
+                                </CheckoutButton>
+                            </SignedIn>
 
                             <motion.p
                                 key={currentPlan.plan + '-note'}
