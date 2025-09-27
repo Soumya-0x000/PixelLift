@@ -89,7 +89,7 @@ const PricingSection = React.memo(() => {
         <section id="pricing" className="py-32 px-4 relative overflow-hidden">
             <div className="max-w-7xl mx-auto relative z-10 ">
                 {/* Header */}
-                <div className="text-center mb-10">
+                {/* <div className="text-center mb-10">
                     <motion.p
                         initial={{ opacity: 0, y: 40 }}
                         whileInView={{ opacity: 1, y: 0 }}
@@ -131,7 +131,7 @@ const PricingSection = React.memo(() => {
                             PRICING MATRIX LOADED
                         </span>
                     </motion.div>
-                </div>
+                </div> */}
 
                 {/* Pricing tabs */}
                 <motion.div
@@ -152,7 +152,7 @@ const PricingSection = React.memo(() => {
                         >
                             {selectedTab?.price === plan && (
                                 <motion.div
-                                    layoutId="pilltab"
+                                    layoutId="pilltab1"
                                     transition={{ type: 'spring', bounce: 0.3, duration: 0.6 }}
                                     className="absolute inset-0 bg-gradient-to-r from-slate-800/80 via-slate-700/60 to-black/30 rounded-md z-0"
                                 />
@@ -164,8 +164,48 @@ const PricingSection = React.memo(() => {
                     ))}
                 </motion.div>
 
+                {/* Time tabs */}
+                <AnimatePresence>
+                    {selectedTab?.price !== 'Apprentice' && selectedTab?.price !== 0 && (
+                        <motion.div
+                            initial={{ opacity: 0, scaleY: 0 }}
+                            animate={{ opacity: 1, scaleY: 1 }}
+                            exit={{ opacity: 0, scaleY: 0 }}
+                            transition={{ duration: 0.6, ease: 'easeInOut' }}
+                            style={{ originY: 1 }}
+                            className="flex items-center justify-center gap-6 z-0 w-fit mx-auto border-2 border-slate-800 border-b-transparent rounded-t-2xl bg-slate-900/70 backdrop-blur-sm p-2 overflow-hidden absolute left-[8rem] -translate-y-[3.2rem]"
+                        >
+                            {pricingTimes.map(time => (
+                                <button
+                                    key={time}
+                                    onClick={() => setSelectedTab(prev => ({ ...prev, time }))}
+                                    className={cn(
+                                        'relative px-3 py-1 rounded-md border-none outline-none text-slate-200 hover:text-slate-300 transition-colors ring-1 ring-transparent hover:ring-slate-700',
+                                        selectedTab?.time === time &&
+                                            'text-slate-300 ring-0 bg-slate-700'
+                                    )}
+                                    style={{ transformStyle: 'preserve-3d' }}
+                                >
+                                    {selectedTab?.time === time && (
+                                        <motion.div
+                                            layoutId="pilltab2"
+                                            transition={{
+                                                type: 'spring',
+                                                bounce: 0.3,
+                                                duration: 0.6,
+                                            }}
+                                            className="absolute inset-0 bg-gradient-to-r from-slate-800/80 via-slate-700/60 to-black/30 rounded-md z-0"
+                                        />
+                                    )}
+                                    <span className="relative block z-10">{time}</span>
+                                </button>
+                            ))}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
                 {/* Pricing content */}
-                <div className="max-w-6xl h-[25rem] mx-auto flex justify-between gap-10 ring-1 ring-slate-800 rounded-2xl bg-slate-900/70 backdrop-blur-sm p-8 relative">
+                <div className="max-w-6xl h-[25rem] mx-auto flex justify-between gap-10 ring-1 ring-slate-800 rounded-2xl bg-slate-900/70 backdrop-blur-sm p-8 relative -z-10">
                     {/* Left: Features */}
                     <div className="flex flex-col gap-6 flex-1">
                         <AnimatePresence mode="wait">
@@ -379,36 +419,6 @@ const PricingSection = React.memo(() => {
                         </PlanDetailsButton> */}
                     </SignedIn>
                 </div>
-
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, delay: 0.3 }}
-                    className="mb-24 flex items-center justify-center gap-6 ring-1 w-fit mx-auto ring-slate-700/80 rounded-lg p-2 backdrop-blur-sm overflow-hidden"
-                >
-                    {pricingPlans.map(({ plan }) => (
-                        <button
-                            key={plan}
-                            onClick={() => setSelectedTab(prev => ({ ...prev, price: plan }))}
-                            className={cn(
-                                'relative px-3 py-1 rounded-md border-none outline-none text-slate-200 hover:text-slate-300 transition-colors ring-1 ring-transparent hover:ring-slate-700',
-                                selectedTab?.price === plan && 'text-slate-300 ring-0 bg-slate-700'
-                            )}
-                            style={{ transformStyle: 'preserve-3d' }}
-                        >
-                            {selectedTab?.price === plan && (
-                                <motion.div
-                                    layoutId="pilltab"
-                                    transition={{ type: 'spring', bounce: 0.3, duration: 0.6 }}
-                                    className="absolute inset-0 bg-gradient-to-r from-slate-800/80 via-slate-700/60 to-black/30 rounded-md z-0"
-                                />
-                            )}
-                            <span className="relative block z-10">
-                                {plan.featured ? <AnimatePresence>{plan} </AnimatePresence> : plan}
-                            </span>
-                        </button>
-                    ))}
-                </motion.div>
             </div>
         </section>
     );
