@@ -1,33 +1,39 @@
 'use client';
 
-import React, { useState } from 'react';
-import { AnimatePresence, motion, time } from 'motion/react';
+import React, { useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import ColorChangingText from '@/components/ui/color-changing-text';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { AnimatedGradientText } from '@/components/magicui/animated-gradient-text';
-import { PricingTable, SignedIn, useAuth, useUser } from '@clerk/nextjs';
+import { PricingTable, SignedIn, SignedOut, SignInButton, useAuth, useUser } from '@clerk/nextjs';
 import { BorderBeam } from '@/components/ui/border-beam';
-import {
-    CheckoutButton,
-    PlanDetailsButton,
-    SubscriptionDetailsButton,
-} from '@clerk/nextjs/experimental';
+import { CheckoutButton, usePlans, useSubscription } from '@clerk/nextjs/experimental';
+
+function formatDate(inputDate) {
+    const date = new Date(inputDate);
+    const options = { year: 'numeric', month: 'short', day: 'numeric' };
+    return date.toLocaleDateString('en-US', options);
+}
 
 const PricingSection = React.memo(() => {
+    const { data: pricingData = [] } = usePlans();
     const { has } = useAuth();
+    const { user } = useUser();
+    const { data: subscriptionData, isLoading, error, revalidate } = useSubscription();
+    const [mergedPlans, setMergedPlans] = useState([]);
 
-    const pricingPlans = [
+    // Base plan structure
+    const basePricingPlans = [
         {
             plan: 'Apprentice',
             id: 'apprentice_user',
             title: 'Apprentice Membership',
             subtitle: 'Begin your journey into the quantum realm',
-            price: '0',
-            billing: 'per month',
+            billing: '/month',
             features: [
                 '3 projects maximum',
-                '5 exports per month',
+                '5 exports /month',
                 'Basic crop & resize',
                 'Color adjustments',
                 'Standard quality exports',
@@ -41,8 +47,7 @@ const PricingSection = React.memo(() => {
             id: 'master_user',
             title: 'Master Membership',
             subtitle: 'Command advanced multiverse powers',
-            price: '4,300',
-            billing: 'per month',
+            billing: '/month',
             features: [
                 'Unlimited exports',
                 'Unlimited projects',
@@ -60,8 +65,7 @@ const PricingSection = React.memo(() => {
             id: 'deity_user',
             title: 'Deity Membership',
             subtitle: 'Transcend limits, reshape existence',
-            price: '13,100',
-            billing: 'per month',
+            billing: '/month',
             features: [
                 'Color adjustments',
                 'Standard quality exports',
@@ -78,18 +82,125 @@ const PricingSection = React.memo(() => {
     const pricingTimes = ['Monthly', 'Yearly'];
 
     const [selectedTab, setSelectedTab] = useState({
-        price: pricingPlans[0].plan,
+        price: basePricingPlans[0].plan,
         time: pricingTimes[0],
     });
-    const currentPlan = pricingPlans.find(p => p.plan === selectedTab?.price);
 
-    const isCurrentPlanActive = currentPlan.id ? has?.({ plan: currentPlan.id }) : false;
+    // Merge base plans with API data
+    useEffect(() => {
+        if (pricingData && pricingData.length > 0) {
+            const updatedPlans = basePricingPlans.map(basePlan => {
+                const apiPlan = pricingData.find(p => p?.id === basePlan?.planId);
+
+                if (apiPlan) {
+                    return {
+                        ...basePlan,
+                        ...apiPlan,
+                        // Keep base plan structure but use API data for pricing
+                        features: basePlan.features, // Keep original feature descriptions
+                        price: apiPlan.fee?.amountFormatted || '0.00',
+                        priceAmount: apiPlan.fee?.amount || 0,
+                        annualPrice: apiPlan.annualFee?.amountFormatted || '0.00',
+                        annualPriceAmount: apiPlan.annualFee?.amount || 0,
+                        annualMonthlyPrice: apiPlan.annualMonthlyFee?.amountFormatted || '0.00',
+                        annualMonthlyPriceAmount: apiPlan.annualMonthlyFee?.amount || 0,
+                        currencySymbol: apiPlan.fee?.currencySymbol || '$',
+                        isFree: apiPlan.fee?.amount === 0,
+                        hasFreeTrial: apiPlan.freeTrialEnabled,
+                        freeTrialDays: apiPlan.freeTrialDays,
+                    };
+                }
+                return basePlan;
+            });
+            setMergedPlans(updatedPlans);
+        } else {
+            setMergedPlans(basePricingPlans);
+        }
+    }, [pricingData]);
+
+    const currentPlan = mergedPlans.find(p => p.plan === selectedTab?.price) || mergedPlans[0];
+    const isCurrentPlanActive = currentPlan?.id ? has?.({ plan: currentPlan.slug }) : false;
+    const upcomingPlan =
+        subscriptionData?.subscriptionItems?.find(s => s.status === 'upcoming') || null;
+    const planWithFreeTrial = mergedPlans.find(p => p.hasFreeTrial);
+
+    // Check if free trial has been used/expired
+    const hasTrialExpired = plan => {
+        if (!user || !plan?.hasFreeTrial) return false;
+        // Replace this with your backend logic for checking trial status
+        return localStorage.getItem(`trial_used_${plan.planId}`) === 'true';
+    };
+
+    // Get the correct price based on selected time period
+    const getCurrentPrice = plan => {
+        if (!plan) return { price: '0.00', symbol: '$', billing: '/month' };
+
+        if (plan.isFree) {
+            return {
+                price: '0',
+                symbol: '',
+                billing: 'Always Free',
+            };
+        }
+
+        if (selectedTab.time === 'Yearly' && plan.annualMonthlyPrice) {
+            return {
+                price: plan.annualMonthlyPrice,
+                symbol: plan.currencySymbol || '$',
+                billing: '/month (billed yearly)',
+                savings: `Save ${plan.currencySymbol}${(((plan.priceAmount - plan.annualMonthlyPriceAmount) * 12) / 100).toFixed(0)}/year`,
+            };
+        }
+
+        return {
+            price: plan.price || '0.00',
+            symbol: plan.currencySymbol || '$',
+            billing: '/month',
+        };
+    };
+
+    const currentPricing = getCurrentPrice(currentPlan);
+
+    // Get the correct button text and state with trial logic
+    const getButtonState = plan => {
+        if (!plan) return { text: 'SELECT PLAN', disabled: false };
+
+        if (isCurrentPlanActive) {
+            return { text: 'CURRENT PLAN', disabled: true };
+        }
+
+        if (upcomingPlan?.plan?.id === plan?.id) {
+            return { text: `STARTS ${formatDate(upcomingPlan?.periodStart)}`, disabled: true };
+        }
+
+        // Handle free trial logic
+        if (plan.hasFreeTrial && !plan.isFree) {
+            const trialExpired = hasTrialExpired(plan);
+
+            if (trialExpired) {
+                // Trial has been used - show regular plan button
+                return { text: plan.buttonText, disabled: false };
+            } else {
+                // Trial is available - show trial button
+                return { text: `START FREE TRIAL`, disabled: false };
+            }
+        }
+
+        return { text: plan.buttonText, disabled: false };
+    };
+
+    const buttonState = getButtonState(currentPlan);
+    const trialExpired = hasTrialExpired(currentPlan);
+    upcomingPlan && console.log(upcomingPlan);
+    console.log(subscriptionData?.subscriptionItems);
+    console.log(planWithFreeTrial);
+    console.log(pricingData);
 
     return (
         <section id="pricing" className="py-32 px-4 relative overflow-hidden">
-            <div className="max-w-7xl mx-auto relative z-10 ">
+            <div className="max-w-7xl mx-auto relative z-10">
                 {/* Header */}
-                {/* <div className="text-center mb-10">
+                <div className="text-center mb-10">
                     <motion.p
                         initial={{ opacity: 0, y: 40 }}
                         whileInView={{ opacity: 1, y: 0 }}
@@ -131,16 +242,16 @@ const PricingSection = React.memo(() => {
                             PRICING MATRIX LOADED
                         </span>
                     </motion.div>
-                </div> */}
+                </div>
 
-                {/* Pricing tabs */}
+                {/* Pricing plan tabs */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, delay: 0.3 }}
                     className="mb-24 flex items-center justify-center gap-6 ring-1 w-fit mx-auto ring-slate-700/80 rounded-lg p-2 backdrop-blur-sm overflow-hidden"
                 >
-                    {pricingPlans.map(({ plan }) => (
+                    {mergedPlans.map(({ plan }) => (
                         <button
                             key={plan}
                             onClick={() => setSelectedTab(prev => ({ ...prev, price: plan }))}
@@ -157,16 +268,14 @@ const PricingSection = React.memo(() => {
                                     className="absolute inset-0 bg-gradient-to-r from-slate-800/80 via-slate-700/60 to-black/30 rounded-md z-0"
                                 />
                             )}
-                            <span className="relative block z-10">
-                                {plan.featured ? <AnimatePresence>{plan} </AnimatePresence> : plan}
-                            </span>
+                            <span className="relative block z-10">{plan}</span>
                         </button>
                     ))}
                 </motion.div>
 
-                {/* Time tabs */}
+                {/* Time period tabs - only show for paid plans */}
                 <AnimatePresence>
-                    {selectedTab?.price !== 'Apprentice' && selectedTab?.price !== 0 && (
+                    {currentPlan && !currentPlan.isFree && (
                         <motion.div
                             initial={{ opacity: 0, scaleY: 0 }}
                             animate={{ opacity: 1, scaleY: 1 }}
@@ -197,7 +306,16 @@ const PricingSection = React.memo(() => {
                                             className="absolute inset-0 bg-gradient-to-r from-slate-800/80 via-slate-700/60 to-black/30 rounded-md z-0"
                                         />
                                     )}
-                                    <span className="relative block z-10">{time}</span>
+                                    <span className="relative block z-10">
+                                        {time}
+                                        {time === 'Yearly' &&
+                                            currentPlan?.annualMonthlyPriceAmount <
+                                                currentPlan?.priceAmount && (
+                                                <span className="ml-1 text-xs text-green-400">
+                                                    Save
+                                                </span>
+                                            )}
+                                    </span>
                                 </button>
                             ))}
                         </motion.div>
@@ -210,14 +328,14 @@ const PricingSection = React.memo(() => {
                     <div className="flex flex-col gap-6 flex-1">
                         <AnimatePresence mode="wait">
                             <motion.div
-                                key={currentPlan.plan + '-title'}
+                                key={currentPlan?.plan + '-title'}
                                 initial={{ opacity: 0, y: 30 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -30 }}
                                 transition={{ duration: 0.4 }}
                                 className="w-full h-1/2 pt-4 relative"
                             >
-                                {currentPlan.featured && (
+                                {currentPlan?.featured && (
                                     <motion.div
                                         className="absolute ring rounded-lg text-sm h-fit flex items-start py-1 px-3 justify-center right-0"
                                         animate={{
@@ -242,12 +360,12 @@ const PricingSection = React.memo(() => {
                                             {currentPlan.title}
                                         </AnimatedGradientText>
                                     ) : (
-                                        <span>{currentPlan.title}</span>
+                                        <span>{currentPlan?.title}</span>
                                     )}
                                 </h2>
                                 <p className="text-gray-400 max-w-full pt-6">
-                                    Unlock powerful tools and ascend higher with the{' '}
-                                    {currentPlan.plan} tier.
+                                    {currentPlan?.description ||
+                                        `Unlock powerful tools and ascend higher with the ${currentPlan?.plan} tier.`}
                                 </p>
                             </motion.div>
                         </AnimatePresence>
@@ -260,20 +378,20 @@ const PricingSection = React.memo(() => {
                                 initial={{ width: 0 }}
                                 whileInView={{ width: '100%' }}
                                 transition={{ duration: 1 }}
-                                className=" h-0.5 bg-slate-700"
+                                className="h-0.5 bg-slate-700"
                             />
                         </div>
 
                         <AnimatePresence mode="wait">
                             <motion.ul
-                                key={currentPlan.plan + '-features'}
+                                key={currentPlan?.plan + '-features'}
                                 initial={{ opacity: 0, y: 30 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -30 }}
                                 transition={{ duration: 0.4, delay: 0.1 }}
                                 className="h-1/2 grid grid-cols-1 sm:grid-cols-2 gap-3 text-gray-300 mt-2"
                             >
-                                {currentPlan.features.map((feature, idx) => (
+                                {currentPlan?.features?.map((feature, idx) => (
                                     <li key={feature} className="flex items-center gap-2">
                                         <span className="text-indigo-400">✓</span> {feature}
                                     </li>
@@ -285,7 +403,7 @@ const PricingSection = React.memo(() => {
                     {/* Right: Pricing card */}
                     <AnimatePresence mode="wait">
                         <motion.div
-                            key={currentPlan.plan + '-card'}
+                            key={currentPlan?.plan + '-card'}
                             initial={{ opacity: 0, y: 30 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -30 }}
@@ -294,98 +412,168 @@ const PricingSection = React.memo(() => {
                         >
                             <div className="h-[45%] pt-3">
                                 <motion.p
-                                    key={currentPlan.plan + '-subtitle'}
+                                    key={currentPlan?.plan + '-subtitle'}
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: -20 }}
                                     transition={{ duration: 0.3 }}
                                     className="text-gray-400 text-sm text-center"
                                 >
-                                    {currentPlan.subtitle}
+                                    {currentPlan?.subtitle}
                                 </motion.p>
+
                                 <motion.div
-                                    key={currentPlan.plan + '-price'}
+                                    key={currentPlan?.plan + '-price'}
                                     initial={{ opacity: 0, scale: 0.8 }}
                                     animate={{ opacity: 1, scale: 1 }}
                                     exit={{ opacity: 0, scale: 0.8 }}
                                     transition={{ duration: 0.3, delay: 0.1 }}
-                                    className="text-4xl flex items-end justify-center font-bold text-white mt-4 text-center"
+                                    className="text-4xl flex flex-col items-center justify-center font-bold text-white mt-4 text-center"
                                 >
-                                    {currentPlan?.featured ? (
-                                        <AnimatedGradientText>
-                                            ₹{currentPlan.price}
-                                            <span className="text-lg font-normal ml-2 mb-1">
-                                                {currentPlan.billing}
+                                    <AnimatePresence mode="wait">
+                                        {currentPlan?.featured && !currentPlan?.isFree ? (
+                                            <AnimatedGradientText>
+                                                <span className="flex items-end">
+                                                    {currentPricing.symbol}
+                                                    {currentPricing.price}
+                                                    <span className="text-lg font-normal ml-2 mb-1">
+                                                        {currentPricing.billing}
+                                                    </span>
+                                                </span>
+                                            </AnimatedGradientText>
+                                        ) : currentPlan?.isFree ? (
+                                            <span className="text-green-400">Free</span>
+                                        ) : (
+                                            <span className="flex items-end">
+                                                {currentPricing.symbol}
+                                                {currentPricing.price}
+                                                <span className="text-lg font-normal text-gray-400 ml-2 mb-1">
+                                                    {currentPricing.billing}
+                                                </span>
                                             </span>
-                                        </AnimatedGradientText>
-                                    ) : (
-                                        <>
-                                            <span>₹{currentPlan.price}</span>
-                                            <span className="text-lg font-normal text-gray-400 ml-2 mb-1">
-                                                {currentPlan.billing}
-                                            </span>
-                                        </>
+                                        )}
+                                    </AnimatePresence>
+
+                                    {/* Show savings for yearly plans */}
+                                    {currentPricing.savings && (
+                                        <motion.span
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            className="text-sm text-green-400 font-normal mt-2"
+                                        >
+                                            {currentPricing.savings}
+                                        </motion.span>
                                     )}
                                 </motion.div>
                             </div>
 
                             <SignedIn>
-                                <CheckoutButton planId={currentPlan.planId} planPeriod="month">
+                                <CheckoutButton
+                                    planId={currentPlan?.planId}
+                                    planPeriod={selectedTab.time === 'Yearly' ? 'annual' : 'month'}
+                                >
                                     <Button
                                         variant={'badge'}
-                                        className={`w-4/5 mx-auto mt-4 h-12 text-[1rem] flex items-center justify-center font-semibold ${isCurrentPlanActive && ' '}`}
+                                        className={`w-4/5 mx-auto mt-4 h-12 text-[1rem] flex items-center justify-center font-semibold ${buttonState.disabled ? 'opacity-50' : ''}`}
+                                        disabled={buttonState.disabled}
                                     >
                                         <motion.span
-                                            key={currentPlan.plan + '-button'}
+                                            key={currentPlan?.plan + '-button'}
                                             initial={{ opacity: 0, y: 40 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             exit={{ opacity: 0, y: -40 }}
                                             transition={{ duration: 0.3 }}
                                         >
-                                            {isCurrentPlanActive
-                                                ? 'Current Plan'
-                                                : currentPlan.buttonText}
+                                            {buttonState.text}
                                         </motion.span>
                                     </Button>
                                 </CheckoutButton>
                             </SignedIn>
 
+                            <SignedOut>
+                                <SignInButton mode="modal">
+                                    <Button
+                                        variant={'badge'}
+                                        className="w-4/5 mx-auto mt-4 h-12 text-[1rem] flex items-center justify-center font-semibold"
+                                    >
+                                        {buttonState.text}
+                                    </Button>
+                                </SignInButton>
+                            </SignedOut>
+
                             <motion.p
-                                key={currentPlan.plan + '-note'}
+                                key={currentPlan?.plan + '-note'}
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -20 }}
                                 transition={{ duration: 0.3, delay: 0.1 }}
                                 className="text-gray-500 text-sm mt-4 text-center"
                             >
-                                {currentPlan.note}
+                                {currentPlan?.note}
                             </motion.p>
 
-                            {currentPlan.plan === 'Apprentice' && currentPlan.price === '0' && (
-                                <motion.div
-                                    className={cn(
-                                        'uppercase absolute -top-4 left-8 tracking-wider bg-slate-800/40 text-slate-200 backdrop-blur-xl ring-1 ring-slate-700 text-xs px-2 py-1 rounded-md'
-                                    )}
-                                >
+                            {/* Free plan badge */}
+                            {currentPlan?.isFree && (
+                                <motion.div className="uppercase absolute -top-4 left-8 tracking-wider bg-slate-800/40 text-slate-200 backdrop-blur-xl ring-1 ring-slate-700 text-xs px-2 py-1 rounded-md">
                                     Always Free
                                 </motion.div>
                             )}
 
+                            {/* Free trial badge - only show if trial available and not expired */}
+                            {currentPlan?.hasFreeTrial &&
+                                !currentPlan?.isFree &&
+                                !isCurrentPlanActive &&
+                                !trialExpired && (
+                                    <motion.div
+                                        initial={{ y: 20, opacity: 0 }}
+                                        animate={{ y: 0, opacity: 1 }}
+                                        className="uppercase absolute -top-4 left-8 tracking-wider bg-blue-600/40 text-blue-200 backdrop-blur-xl ring-1 ring-blue-500 text-xs px-2 py-1 rounded-md"
+                                    >
+                                        {currentPlan.freeTrialDays} Day Free Trial
+                                    </motion.div>
+                                )}
+
+                            {/* Trial expired badge */}
+                            {currentPlan?.hasFreeTrial &&
+                                !currentPlan?.isFree &&
+                                !isCurrentPlanActive &&
+                                trialExpired && (
+                                    <motion.div
+                                        initial={{ y: 20, opacity: 0 }}
+                                        animate={{ y: 0, opacity: 1 }}
+                                        className="uppercase absolute -top-4 left-8 tracking-wider bg-amber-600/40 text-amber-200 backdrop-blur-xl ring-1 ring-amber-500 text-xs px-2 py-1 rounded-md"
+                                    >
+                                        Trial Used
+                                    </motion.div>
+                                )}
+
+                            {/* Active plan badge */}
                             {isCurrentPlanActive && (
                                 <motion.div
                                     initial={{ y: 20, opacity: 0 }}
                                     animate={{ y: 0, opacity: 1 }}
                                     exit={{ y: 20, opacity: 0 }}
-                                    className={cn(
-                                        'uppercase absolute -top-4 right-6 tracking-widest bg-slate-950 ring ring-slate-700 text-slate-200 backdrop-blur-xl text-[0.7rem] px-2.5 py-1 rounded-md -z-10'
-                                    )}
+                                    className="uppercase absolute -top-4 right-6 tracking-widest bg-slate-950 ring ring-slate-700 text-slate-200 backdrop-blur-xl text-[0.7rem] px-2.5 py-1 rounded-md -z-10"
                                 >
                                     Active
+                                </motion.div>
+                            )}
+
+                            {/* Active plan badge */}
+                            {upcomingPlan?.plan?.id === currentPlan?.id && (
+                                <motion.div
+                                    initial={{ y: 20, opacity: 0 }}
+                                    animate={{ y: 0, opacity: 1 }}
+                                    exit={{ y: 20, opacity: 0 }}
+                                    className="uppercase absolute -top-4 right-6 tracking-widest bg-slate-950 ring ring-slate-700 text-slate-200 backdrop-blur-xl text-[0.7rem] px-2.5 py-1 rounded-md -z-10"
+                                >
+                                    Upcoming
                                 </motion.div>
                             )}
                         </motion.div>
                     </AnimatePresence>
 
+                    {/* Border beam for active plans */}
                     {isCurrentPlanActive && (
                         <>
                             <BorderBeam
@@ -402,26 +590,12 @@ const PricingSection = React.memo(() => {
                             />
                         </>
                     )}
-
-                    <SignedIn>
-                        <SubscriptionDetailsButton>
-                            <Button
-                                variant="outline"
-                                className="a bsolute bottom-6 right-6 text-sm"
-                            >
-                                Manage Subscription
-                            </Button>
-                        </SubscriptionDetailsButton>
-                        {/* <PlanDetailsButton>
-                            <Button variant="outline" className="abs olute bottom-6 right-6 text-sm">
-                                Manage Subscription
-                            </Button>
-                        </PlanDetailsButton> */}
-                    </SignedIn>
                 </div>
             </div>
         </section>
     );
 });
+
+PricingSection.displayName = 'PricingSection';
 
 export default PricingSection;
