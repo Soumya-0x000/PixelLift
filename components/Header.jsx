@@ -141,36 +141,38 @@ const Header = () => {
                     ) : (
                         <>
                             <Authenticated>
-                                <motion.div
-                                    initial={{ opacity: 0, x: 20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ duration: 0.4, delay: 0.1 }}
-                                >
-                                    <Button
-                                        variant={'glass'}
-                                        onClick={() =>
-                                            toast('Event has been created', {
-                                                description: new Date().toLocaleString(),
-                                                action: {
-                                                    label: 'Undo',
-                                                    onClick: () => console.log('Undo'),
-                                                },
-                                            })
-                                        }
+                                <div className="min-w-[11rem] flex items-center justify-end gap-x-3">
+                                    <motion.div
+                                        initial={{ opacity: 0, x: 20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ duration: 0.4, delay: 0.1 }}
                                     >
-                                        <LayoutDashboard size={28} strokeWidth={1.5} />
-                                        <span className="hidden sm:flex">Dashboard</span>
-                                    </Button>
-                                </motion.div>
+                                        <Button
+                                            variant={'glass'}
+                                            onClick={() =>
+                                                toast('Event has been created', {
+                                                    description: new Date().toLocaleString(),
+                                                    action: {
+                                                        label: 'Undo',
+                                                        onClick: () => console.log('Undo'),
+                                                    },
+                                                })
+                                            }
+                                        >
+                                            <LayoutDashboard size={28} strokeWidth={1.5} />
+                                            <span className="hidden sm:flex">Dashboard</span>
+                                        </Button>
+                                    </motion.div>
 
-                                <motion.div
-                                    className="w-8 h-8 flex items-center justify-center bg-slate-700 rounded-full"
-                                    initial={{ opacity: 0, scale: 0.8 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    transition={{ duration: 0.4, delay: 0.2 }}
-                                >
-                                    <UserButton appearance={{ elements: { avatarBox: ' ' } }} />
-                                </motion.div>
+                                    <motion.div
+                                        className="w-8 h-8 flex items-center justify-center bg-slate-700 rounded-full"
+                                        initial={{ opacity: 0, scale: 0.8 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        transition={{ duration: 0.4, delay: 0.2 }}
+                                    >
+                                        <UserButton appearance={{ elements: { avatarBox: ' ' } }} />
+                                    </motion.div>
+                                </div>
                             </Authenticated>
                             <Unauthenticated>
                                 <motion.div
