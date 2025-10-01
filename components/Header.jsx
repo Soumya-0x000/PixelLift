@@ -77,14 +77,16 @@ const Header = () => {
                     mass: 0.6,
                 }}
             >
-                <motion.div
-                    className="uppercase text-lg font-semibold tracking-[0.1rem] bg-gradient-to-r from-blue-400 to-indigo-300 bg-clip-text text-transparent"
-                    layout
-                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                >
-                    PixelLift
-                </motion.div>
-
+                <Link href="/" passHref legacyBehavior>
+                    <motion.a
+                        className="uppercase text-lg font-semibold tracking-[0.1rem] bg-gradient-to-r from-blue-400 to-indigo-300 bg-clip-text text-transparent cursor-pointer"
+                        layout
+                        transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                    >
+                        PixelLift
+                    </motion.a>
+                </Link>
+                
                 <motion.nav
                     className="flex gap-x-2"
                     layout
