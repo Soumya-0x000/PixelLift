@@ -6,7 +6,7 @@ import { Button } from './ui/button';
 import { LayoutDashboard, LogIn } from 'lucide-react';
 import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs';
 import { toast } from 'sonner';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import useStoreUser from '@/hooks/useStoreUser';
 import { BarLoader } from 'react-spinners';
 import { Authenticated, Unauthenticated } from 'convex/react';
@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils';
 
 const Header = () => {
     const { scrollY } = useScroll();
+    const router = useRouter();
     const path = usePathname();
     const { isLoading, isAuthenticated, userId, user } = useStoreUser();
     const [isScrolled, setIsScrolled] = useState(false);
@@ -150,13 +151,9 @@ const Header = () => {
                                         <Button
                                             variant={'glass'}
                                             onClick={() =>
-                                                toast('Event has been created', {
-                                                    description: new Date().toLocaleString(),
-                                                    action: {
-                                                        label: 'Undo',
-                                                        onClick: () => console.log('Undo'),
-                                                    },
-                                                })
+                                                router.push(
+                                                    isAuthenticated ? '/dashboard' : '/sign-in'
+                                                )
                                             }
                                         >
                                             <LayoutDashboard size={28} strokeWidth={1.5} />
