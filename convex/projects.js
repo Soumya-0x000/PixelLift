@@ -1,12 +1,12 @@
 import { v } from 'convex/values';
-import { mutation } from './_generated/server';
+import { mutation, query } from './_generated/server';
 import { internal } from './_generated/api';
 
 export const create = mutation({
     args: {
         title: v.string(),
-        originalImgUrl: v.optional(v.string()),
-        currentImgUrl: v.optional(v.string()),
+        originalImageUrl: v.optional(v.string()),
+        currentImageUrl: v.optional(v.string()),
         thumbnailUrl: v.optional(v.string()),
         width: v.number(),
         height: v.number(),
@@ -14,7 +14,7 @@ export const create = mutation({
     },
     handler: async (ctx, args) => {
         // get current user
-        const user = await ctx.runQuery(internal.users.getCurrentUser);
+        const user = await ctx.runQuery(internal.user.getCurrentUser);
 
         // ensure user is authenticated
         if (!user) {
@@ -38,8 +38,8 @@ export const create = mutation({
         // create new project
         await ctx.db.insert('projects', {
             title: args.title,
-            originalImgUrl: args.originalImgUrl,
-            currentImgUrl: args.currentImgUrl,
+            originalImageUrl: args.originalImageUrl,
+            currentImageUrl: args.currentImageUrl,
             thumbnailUrl: args.thumbnailUrl,
             width: args.width,
             height: args.height,
@@ -54,5 +54,54 @@ export const create = mutation({
             projectsUsed: user.projectsUsed + 1,
             lastActiveAt: Date.now(),
         });
+    },
+});
+
+export const getUserProjects = query({
+    handler: async ctx => {
+        const user = await ctx.runQuery(internal.user.getCurrentUser);
+
+        const projects = await ctx.db
+            .query('projects')
+            .withIndex('by_user_updated', q => q.eq('userId', user?._id ?? ''))
+            .order('desc')
+            .collect();
+
+        return projects;
+    },
+});
+
+export const deleteProject = mutation({
+    args: {
+        projectId: v.id('projects'),
+    },
+    handler: async (ctx, args) => {
+        const user = await ctx.runQuery(internal.user.getCurrentUser);
+
+        if (!user) {
+            throw new Error('Not authenticated');
+        }
+
+        if (!args.projectId) {
+            throw new Error('Project ID is required');
+        }
+
+        const project = await ctx.db.get(args.projectId);
+
+        if (!project) {
+            throw new Error('Project not found');
+        }
+
+        if (project.userId._id !== user._id) {
+            throw new Error('Not authorized to delete this project');
+        }
+
+        await ctx.db.delete(args.projectId);
+        await ctx.db.patch(user._id, {
+            projectsUsed: Math.max(0, user.projectsUsed - 1),
+            lastActiveAt: Date.now(),
+        });
+
+        return { success: true };
     },
 });

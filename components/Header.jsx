@@ -77,14 +77,14 @@ const Header = () => {
                     mass: 0.6,
                 }}
             >
-                <Link href="/" passHref legacyBehavior>
-                    <motion.a
+                <Link href="/">
+                    <motion.span
                         className="uppercase text-lg font-semibold tracking-[0.1rem] bg-gradient-to-r from-blue-400 to-indigo-300 bg-clip-text text-transparent cursor-pointer"
                         layout
                         transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                     >
                         PixelLift
-                    </motion.a>
+                    </motion.span>
                 </Link>
                 
                 <motion.nav
