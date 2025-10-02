@@ -9,7 +9,6 @@ import { useEffect, useRef, useState } from 'react';
 import Footer from '@/components/Footer';
 import ParticleBackground from '@/components/ParticleBackground';
 import ScrollToTop from '@/components/ScrollToTop';
-import { useScroll, motion, useTransform, useMotionValueEvent } from 'motion/react';
 
 const TitleComponent = ({ title, avatar }) => (
     <div className="flex items-center space-x-2">
@@ -60,7 +59,6 @@ export default function Home() {
                 title={<TitleComponent title={user?.username} avatar={user?.imageUrl} />}
                 isMobile={isMobile}
             >
-                <Header />
                 <HeroSection />
                 <ScrollToTop containerRef={mainRef} />
                 <Footer />

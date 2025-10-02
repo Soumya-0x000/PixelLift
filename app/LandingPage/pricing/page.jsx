@@ -6,9 +6,14 @@ import ColorChangingText from '@/components/ui/color-changing-text';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { AnimatedGradientText } from '@/components/magicui/animated-gradient-text';
-import { PricingTable, SignedIn, SignedOut, SignInButton, useAuth, useUser } from '@clerk/nextjs';
+import { SignedIn, SignedOut, SignInButton, useUser } from '@clerk/nextjs';
 import { BorderBeam } from '@/components/ui/border-beam';
-import { CheckoutButton, usePlans, useSubscription } from '@clerk/nextjs/experimental';
+import {
+    CheckoutButton,
+    PlanDetailsButton,
+    usePlans,
+    useSubscription,
+} from '@clerk/nextjs/experimental';
 
 function formatDate(inputDate) {
     const date = new Date(inputDate);
@@ -18,9 +23,8 @@ function formatDate(inputDate) {
 
 const PricingSection = React.memo(() => {
     const { data: pricingData = [] } = usePlans();
-    const { has } = useAuth();
     const { user } = useUser();
-    const { data: subscriptionData, isLoading, error, revalidate } = useSubscription();
+    const { data: subscriptionData } = useSubscription();
     const [mergedPlans, setMergedPlans] = useState([]);
 
     // Base plan structure
@@ -86,6 +90,169 @@ const PricingSection = React.memo(() => {
         time: pricingTimes[0],
     });
 
+    const getSubscriptionInfo = plan => {
+        if (!subscriptionData?.subscriptionItems || !plan) return null;
+
+        return subscriptionData.subscriptionItems.find(item => item.plan?.id === plan.planId);
+    };
+
+    const getSubscriptionStatus = plan => {
+        const subscription = getSubscriptionInfo(plan);
+        if (!subscription) return 'none';
+
+        if (subscription.status === 'active') {
+            if (subscription.canceledAt) return 'canceled';
+            if (subscription.isFreeTrial) return 'trial';
+            return 'active';
+        }
+
+        if (subscription.status === 'upcoming') return 'upcoming';
+        return 'none';
+    };
+
+    const getTrialInfo = plan => {
+        const subscription = getSubscriptionInfo(plan);
+        if (!subscription || !subscription.isFreeTrial) return null;
+
+        const startDate = new Date(subscription.periodStart);
+        const endDate = new Date(startDate.getTime() + plan.freeTrialDays * 24 * 60 * 60 * 1000);
+        const now = new Date();
+        const daysLeft = Math.max(0, Math.ceil((endDate - now) / (24 * 60 * 60 * 1000)));
+
+        return {
+            startDate,
+            endDate,
+            daysLeft,
+            isActive: daysLeft > 0,
+        };
+    };
+
+    const hasActiveSubscription = () => {
+        return subscriptionData?.subscriptionItems?.some(
+            item => item.status === 'active' && !item.canceledAt
+        );
+    };
+
+    const hasUsedTrial = plan => {
+        if (!user || !plan?.hasFreeTrial) return false;
+
+        // Check if user previously had a trial for this plan
+        const hadTrial = subscriptionData?.subscriptionItems?.some(
+            item => item.plan?.id === plan.planId && item.isFreeTrial
+        );
+
+        // Also check localStorage as fallback
+        const localStorageUsed = localStorage.getItem(`trial_used_${plan.planId}`) === 'true';
+
+        return hadTrial || localStorageUsed;
+    };
+
+    const getButtonState = plan => {
+        if (!plan) return { text: 'SELECT PLAN', disabled: false };
+
+        const status = getSubscriptionStatus(plan);
+        const trialInfo = getTrialInfo(plan);
+        const subscription = getSubscriptionInfo(plan);
+        const hasActiveSub = hasActiveSubscription();
+        const trialUsed = hasUsedTrial(plan);
+
+        switch (status) {
+            case 'trial':
+                if (trialInfo?.isActive) {
+                    return {
+                        text: `${trialInfo.daysLeft} DAYS LEFT`,
+                        disabled: true,
+                    };
+                }
+                break;
+
+            case 'active':
+                return { text: 'CURRENT PLAN', disabled: true };
+
+            case 'canceled':
+                return { text: 'REACTIVATE', disabled: false };
+
+            case 'upcoming':
+                return {
+                    text: `STARTS ${formatDate(subscription.periodStart)}`,
+                    disabled: true,
+                };
+
+            case 'none':
+                // If user has active subscription, show switch option
+                if (hasActiveSub && !plan.isFree) {
+                    return { text: `SWITCH TO ${plan.plan.toUpperCase()}`, disabled: false };
+                }
+
+                // Handle trial logic for new subscriptions
+                if (plan.hasFreeTrial && !plan.isFree) {
+                    if (trialUsed) {
+                        return { text: plan.buttonText, disabled: false };
+                    } else {
+                        return {
+                            text: `START FREE TRIAL`,
+                            disabled: false,
+                        };
+                    }
+                }
+
+                return { text: plan.buttonText, disabled: false };
+        }
+
+        return { text: plan.buttonText, disabled: false };
+    };
+
+    const getBadgeInfo = plan => {
+        if (!plan) return null;
+
+        const status = getSubscriptionStatus(plan);
+        const trialInfo = getTrialInfo(plan);
+        const subscription = getSubscriptionInfo(plan);
+        const trialUsed = hasUsedTrial(plan);
+        console.log(status);
+
+        // Free plan badge
+        if (plan.isFree) {
+            return { type: 'free', text: 'Always Free', color: 'slate' };
+        }
+
+        switch (status) {
+            case 'trial':
+                if (trialInfo?.isActive) {
+                    return {
+                        type: 'trial-active',
+                        text: `Trial Active (${trialInfo.daysLeft} days left)`,
+                        color: 'blue',
+                    };
+                }
+                break;
+
+            case 'canceled':
+                return {
+                    type: 'ending',
+                    text: `Ends ${formatDate(subscription.periodEnd)}`,
+                    color: 'amber',
+                };
+
+            case 'none':
+                // Trial badges for non-subscribed plans
+                if (plan.hasFreeTrial && !plan.isFree) {
+                    if (trialUsed) {
+                        return { type: 'trial-used', text: 'Trial Used', color: 'amber' };
+                    } else {
+                        return {
+                            type: 'trial-available',
+                            text: `${plan.freeTrialDays} Day Free Trial`,
+                            color: 'blue',
+                        };
+                    }
+                }
+                break;
+        }
+
+        return null;
+    };
+
     // Merge base plans with API data
     useEffect(() => {
         if (pricingData && pricingData.length > 0) {
@@ -96,8 +263,7 @@ const PricingSection = React.memo(() => {
                     return {
                         ...basePlan,
                         ...apiPlan,
-                        // Keep base plan structure but use API data for pricing
-                        features: basePlan.features, // Keep original feature descriptions
+                        features: basePlan.features,
                         price: apiPlan.fee?.amountFormatted || '0.00',
                         priceAmount: apiPlan.fee?.amount || 0,
                         annualPrice: apiPlan.annualFee?.amountFormatted || '0.00',
@@ -119,17 +285,9 @@ const PricingSection = React.memo(() => {
     }, [pricingData]);
 
     const currentPlan = mergedPlans.find(p => p.plan === selectedTab?.price) || mergedPlans[0];
-    const isCurrentPlanActive = currentPlan?.id ? has?.({ plan: currentPlan.slug }) : false;
-    const upcomingPlan =
-        subscriptionData?.subscriptionItems?.find(s => s.status === 'upcoming') || null;
-    const planWithFreeTrial = mergedPlans.find(p => p.hasFreeTrial);
-
-    // Check if free trial has been used/expired
-    const hasTrialExpired = plan => {
-        if (!user || !plan?.hasFreeTrial) return false;
-        // Replace this with your backend logic for checking trial status
-        return localStorage.getItem(`trial_used_${plan.planId}`) === 'true';
-    };
+    const currentStatus = getSubscriptionInfo(currentPlan)?.status || 'none';
+    const currentBadge = getBadgeInfo(currentPlan);
+    const buttonState = getButtonState(currentPlan);
 
     // Get the correct price based on selected time period
     const getCurrentPrice = plan => {
@@ -161,40 +319,14 @@ const PricingSection = React.memo(() => {
 
     const currentPricing = getCurrentPrice(currentPlan);
 
-    // Get the correct button text and state with trial logic
-    const getButtonState = plan => {
-        if (!plan) return { text: 'SELECT PLAN', disabled: false };
-
-        if (isCurrentPlanActive) {
-            return { text: 'CURRENT PLAN', disabled: true };
-        }
-
-        if (upcomingPlan?.plan?.id === plan?.id) {
-            return { text: `STARTS ${formatDate(upcomingPlan?.periodStart)}`, disabled: true };
-        }
-
-        // Handle free trial logic
-        if (plan.hasFreeTrial && !plan.isFree) {
-            const trialExpired = hasTrialExpired(plan);
-
-            if (trialExpired) {
-                // Trial has been used - show regular plan button
-                return { text: plan.buttonText, disabled: false };
-            } else {
-                // Trial is available - show trial button
-                return { text: `START FREE TRIAL`, disabled: false };
-            }
-        }
-
-        return { text: plan.buttonText, disabled: false };
+    const getBadgeStyles = color => {
+        const styles = {
+            slate: 'bg-slate-800/40 text-slate-200 ring-slate-700',
+            blue: 'bg-blue-600/40 text-blue-200 ring-blue-500',
+            amber: 'bg-amber-600/20 text-amber-200 ring-amber-500',
+        };
+        return styles[color] || styles.slate;
     };
-
-    const buttonState = getButtonState(currentPlan);
-    const trialExpired = hasTrialExpired(currentPlan);
-    upcomingPlan && console.log(upcomingPlan);
-    console.log(subscriptionData?.subscriptionItems);
-    console.log(planWithFreeTrial);
-    console.log(pricingData);
 
     return (
         <section id="pricing" className="py-32 px-4 relative overflow-hidden">
@@ -354,15 +486,30 @@ const PricingSection = React.memo(() => {
                                         <AnimatedGradientText>Featured</AnimatedGradientText>
                                     </motion.div>
                                 )}
-                                <h2 className="text-2xl font-semibold text-white">
-                                    {currentPlan?.featured ? (
-                                        <AnimatedGradientText>
-                                            {currentPlan.title}
-                                        </AnimatedGradientText>
-                                    ) : (
-                                        <span>{currentPlan?.title}</span>
-                                    )}
-                                </h2>
+                                <div className="text-2xl font-semibold text-white">
+                                    <div className="text-2xl font-semibold text-white">
+                                        <SignedIn>
+                                            <PlanDetailsButton planId={currentPlan?.planId}>
+                                                {currentPlan?.featured ? (
+                                                    <AnimatedGradientText>
+                                                        {currentPlan?.title}
+                                                    </AnimatedGradientText>
+                                                ) : (
+                                                    currentPlan?.title
+                                                )}
+                                            </PlanDetailsButton>
+                                        </SignedIn>
+                                        <SignedOut>
+                                            {currentPlan?.featured ? (
+                                                <AnimatedGradientText>
+                                                    {currentPlan?.title}
+                                                </AnimatedGradientText>
+                                            ) : (
+                                                <span>{currentPlan?.title}</span>
+                                            )}
+                                        </SignedOut>
+                                    </div>
+                                </div>
                                 <p className="text-gray-400 max-w-full pt-6">
                                     {currentPlan?.description ||
                                         `Unlock powerful tools and ascend higher with the ${currentPlan?.plan} tier.`}
@@ -442,28 +589,49 @@ const PricingSection = React.memo(() => {
                                                 </span>
                                             </AnimatedGradientText>
                                         ) : currentPlan?.isFree ? (
-                                            <span className="text-green-400">Free</span>
+                                            <motion.span
+                                                key="free-price"
+                                                initial={{ opacity: 0, scale: 0.8 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                                exit={{ opacity: 0, scale: 0.8 }}
+                                                transition={{ duration: 0.3 }}
+                                                className="text-green-400"
+                                            >
+                                                Free
+                                            </motion.span>
                                         ) : (
-                                            <span className="flex items-end">
+                                            <motion.span
+                                                key="regular-price"
+                                                initial={{ opacity: 0, scale: 0.8 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                                exit={{ opacity: 0, scale: 0.8 }}
+                                                transition={{ duration: 0.3 }}
+                                                className="flex items-end"
+                                            >
                                                 {currentPricing.symbol}
                                                 {currentPricing.price}
                                                 <span className="text-lg font-normal text-gray-400 ml-2 mb-1">
                                                     {currentPricing.billing}
                                                 </span>
-                                            </span>
+                                            </motion.span>
                                         )}
                                     </AnimatePresence>
 
                                     {/* Show savings for yearly plans */}
-                                    {currentPricing.savings && (
-                                        <motion.span
-                                            initial={{ opacity: 0, y: 10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            className="text-sm text-green-400 font-normal mt-2"
-                                        >
-                                            {currentPricing.savings}
-                                        </motion.span>
-                                    )}
+                                    <AnimatePresence>
+                                        {currentPricing.savings && (
+                                            <motion.span
+                                                key="savings"
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: -10 }}
+                                                transition={{ duration: 0.3 }}
+                                                className="text-sm text-green-400 font-normal mt-2"
+                                            >
+                                                {currentPricing.savings}
+                                            </motion.span>
+                                        )}
+                                    </AnimatePresence>
                                 </motion.div>
                             </div>
 
@@ -512,69 +680,42 @@ const PricingSection = React.memo(() => {
                                 {currentPlan?.note}
                             </motion.p>
 
-                            {/* Free plan badge */}
-                            {currentPlan?.isFree && (
-                                <motion.div className="uppercase absolute -top-4 left-8 tracking-wider bg-slate-800/40 text-slate-200 backdrop-blur-xl ring-1 ring-slate-700 text-xs px-2 py-1 rounded-md">
-                                    Always Free
-                                </motion.div>
-                            )}
+                            {/* Dynamic badge system */}
+                            <AnimatePresence mode="wait">
+                                {currentBadge && (
+                                    <motion.div
+                                        key={currentBadge.type}
+                                        initial={{ y: 20, opacity: 0 }}
+                                        animate={{ y: 0, opacity: 1 }}
+                                        exit={{ y: 20, opacity: 0 }}
+                                        transition={{ duration: 0.3 }}
+                                        className={cn(
+                                            'uppercase absolute -top-4 left-8 tracking-wider backdrop-blur-xl ring-1 text-xs px-2 py-1 rounded-md',
+                                            getBadgeStyles(currentBadge.color)
+                                        )}
+                                    >
+                                        {currentBadge.text}
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
 
-                            {/* Free trial badge - only show if trial available and not expired */}
-                            {currentPlan?.hasFreeTrial &&
-                                !currentPlan?.isFree &&
-                                !isCurrentPlanActive &&
-                                !trialExpired && (
+                            {/* Secondary badge for active/upcoming plans (right side) */}
+                            {(currentStatus === 'active' || currentStatus === 'upcoming') &&
+                                currentStatus !== 'trial' && (
                                     <motion.div
                                         initial={{ y: 20, opacity: 0 }}
                                         animate={{ y: 0, opacity: 1 }}
-                                        className="uppercase absolute -top-4 left-8 tracking-wider bg-blue-600/40 text-blue-200 backdrop-blur-xl ring-1 ring-blue-500 text-xs px-2 py-1 rounded-md"
+                                        exit={{ y: 20, opacity: 0 }}
+                                        className="uppercase absolute -top-4 right-6 tracking-widest bg-slate-950 ring ring-slate-700 text-slate-200 backdrop-blur-xl text-[0.7rem] px-2.5 py-1 rounded-md -z-10"
                                     >
-                                        {currentPlan.freeTrialDays} Day Free Trial
+                                        {currentStatus === 'active' ? 'Active' : 'Upcoming'}
                                     </motion.div>
                                 )}
-
-                            {/* Trial expired badge */}
-                            {currentPlan?.hasFreeTrial &&
-                                !currentPlan?.isFree &&
-                                !isCurrentPlanActive &&
-                                trialExpired && (
-                                    <motion.div
-                                        initial={{ y: 20, opacity: 0 }}
-                                        animate={{ y: 0, opacity: 1 }}
-                                        className="uppercase absolute -top-4 left-8 tracking-wider bg-amber-600/40 text-amber-200 backdrop-blur-xl ring-1 ring-amber-500 text-xs px-2 py-1 rounded-md"
-                                    >
-                                        Trial Used
-                                    </motion.div>
-                                )}
-
-                            {/* Active plan badge */}
-                            {isCurrentPlanActive && (
-                                <motion.div
-                                    initial={{ y: 20, opacity: 0 }}
-                                    animate={{ y: 0, opacity: 1 }}
-                                    exit={{ y: 20, opacity: 0 }}
-                                    className="uppercase absolute -top-4 right-6 tracking-widest bg-slate-950 ring ring-slate-700 text-slate-200 backdrop-blur-xl text-[0.7rem] px-2.5 py-1 rounded-md -z-10"
-                                >
-                                    Active
-                                </motion.div>
-                            )}
-
-                            {/* Active plan badge */}
-                            {upcomingPlan?.plan?.id === currentPlan?.id && (
-                                <motion.div
-                                    initial={{ y: 20, opacity: 0 }}
-                                    animate={{ y: 0, opacity: 1 }}
-                                    exit={{ y: 20, opacity: 0 }}
-                                    className="uppercase absolute -top-4 right-6 tracking-widest bg-slate-950 ring ring-slate-700 text-slate-200 backdrop-blur-xl text-[0.7rem] px-2.5 py-1 rounded-md -z-10"
-                                >
-                                    Upcoming
-                                </motion.div>
-                            )}
                         </motion.div>
                     </AnimatePresence>
 
                     {/* Border beam for active plans */}
-                    {isCurrentPlanActive && (
+                    {(currentStatus === 'active' || currentStatus === 'trial') && (
                         <>
                             <BorderBeam
                                 duration={6}
