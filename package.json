@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "start cmd /k \"npm run dev:next\" && start cmd /k \"npm run dev:convex\"",
+    "dev:next": "next dev --turbopack",
+    "dev:convex": "npx convex dev",
+    "dev": "concurrently \"npm run dev:next\" \"npm run dev:convex\"",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"

@@ -8,7 +8,8 @@ import { usePlanAccess } from '@/hooks/usePlanAccess';
 const Dashboard = () => {
     const { data: projectData, loading } = useConvexQuery(api.projects.getUserProjects);
 
-    console.log(projectData, loading, usePlanAccess());
+    // console.log(projectData, loading);
+    usePlanAccess();
     return <div>Dashboard</div>;
 };
 
