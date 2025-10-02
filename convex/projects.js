@@ -59,11 +59,18 @@ export const create = mutation({
 
 export const getUserProjects = query({
     handler: async ctx => {
-        const user = await ctx.runQuery(internal.user.getCurrentUser);
+        const identity = ctx.auth.getUserIdentity();
+        if (!identity) return [];
+
+        const user = await ctx.db
+            .query('users')
+            .withIndex('by_token', q => q.eq('tokenIdentifier', identity.tokenIdentifier))
+            .unique();
+        if (!user) return [];
 
         const projects = await ctx.db
             .query('projects')
-            .withIndex('by_user_updated', q => q.eq('userId', user?._id ?? ''))
+            .withIndex('by_user_updated', q => q.eq('userId', user?._id))
             .order('desc')
             .collect();
 

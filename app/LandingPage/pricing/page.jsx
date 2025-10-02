@@ -6,12 +6,11 @@ import ColorChangingText from '@/components/ui/color-changing-text';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { AnimatedGradientText } from '@/components/magicui/animated-gradient-text';
-import { SignedIn, SignedOut, SignInButton, useAuth, useUser } from '@clerk/nextjs';
+import { SignedIn, SignedOut, SignInButton, useUser } from '@clerk/nextjs';
 import { BorderBeam } from '@/components/ui/border-beam';
 import {
     CheckoutButton,
     PlanDetailsButton,
-    SubscriptionDetailsButton,
     usePlans,
     useSubscription,
 } from '@clerk/nextjs/experimental';
@@ -24,9 +23,8 @@ function formatDate(inputDate) {
 
 const PricingSection = React.memo(() => {
     const { data: pricingData = [] } = usePlans();
-    const { has } = useAuth();
     const { user } = useUser();
-    const { data: subscriptionData, isLoading, error, revalidate } = useSubscription();
+    const { data: subscriptionData } = useSubscription();
     const [mergedPlans, setMergedPlans] = useState([]);
 
     // Base plan structure
@@ -211,6 +209,7 @@ const PricingSection = React.memo(() => {
         const trialInfo = getTrialInfo(plan);
         const subscription = getSubscriptionInfo(plan);
         const trialUsed = hasUsedTrial(plan);
+        console.log(status);
 
         // Free plan badge
         if (plan.isFree) {
@@ -228,18 +227,12 @@ const PricingSection = React.memo(() => {
                 }
                 break;
 
-            case 'active':
-                return { type: 'active', text: 'Active', color: 'slate' };
-
             case 'canceled':
                 return {
                     type: 'ending',
                     text: `Ends ${formatDate(subscription.periodEnd)}`,
                     color: 'amber',
                 };
-
-            case 'upcoming':
-                return { type: 'upcoming', text: 'Upcoming', color: 'slate' };
 
             case 'none':
                 // Trial badges for non-subscribed plans
