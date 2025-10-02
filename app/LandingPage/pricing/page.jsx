@@ -37,7 +37,7 @@ const PricingSection = React.memo(() => {
             billing: '/month',
             features: [
                 '3 projects maximum',
-                '5 exports /month',
+                '5 exports / month',
                 'Basic crop & resize',
                 'Color adjustments',
                 'Standard quality exports',
@@ -53,11 +53,11 @@ const PricingSection = React.memo(() => {
             subtitle: 'Command advanced multiverse powers',
             billing: '/month',
             features: [
-                'Unlimited exports',
+                'All Apprentice features',
+                '20 exports / month',
                 'Unlimited projects',
                 'All editing tools',
                 'AI background removal',
-                'All Apprentice features',
             ],
             featured: true,
             buttonText: 'CLAIM DOMINION',
@@ -71,11 +71,12 @@ const PricingSection = React.memo(() => {
             subtitle: 'Transcend limits, reshape existence',
             billing: '/month',
             features: [
+                'All Master features',
+                'Unlimited exports',
                 'Color adjustments',
                 'Standard quality exports',
                 'AI Extender',
                 'Retouch, Upscaler & more',
-                'All Master features',
             ],
             buttonText: 'TRANSCEND REALITY',
             note: 'Invoices and receipts available for easy company reimbursement',
@@ -209,7 +210,6 @@ const PricingSection = React.memo(() => {
         const trialInfo = getTrialInfo(plan);
         const subscription = getSubscriptionInfo(plan);
         const trialUsed = hasUsedTrial(plan);
-        console.log(status);
 
         // Free plan badge
         if (plan.isFree) {
