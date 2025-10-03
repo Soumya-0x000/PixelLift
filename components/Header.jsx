@@ -86,7 +86,7 @@ const Header = () => {
                         PixelLift
                     </motion.span>
                 </Link>
-                
+
                 <motion.nav
                     className="flex gap-x-2"
                     layout
@@ -195,15 +195,9 @@ const Header = () => {
                 </motion.div>
 
                 {isLoading && (
-                    <motion.div
-                        className="w-full flex justify-center fixed bottom-0 left-0"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 10 }}
-                        transition={{ duration: 0.3 }}
-                    >
+                    <div className="w-full flex justify-center fixed bottom-0 left-0">
                         <BarLoader color={'#e67c06'} width={'98%'} />
-                    </motion.div>
+                    </div>
                 )}
             </motion.header>
         </AnimatePresence>
