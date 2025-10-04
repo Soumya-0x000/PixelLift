@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from 'react';
 import Footer from '@/components/Footer';
 import ParticleBackground from '@/components/ParticleBackground';
 import ScrollToTop from '@/components/ScrollToTop';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 const TitleComponent = ({ title, avatar }) => (
     <div className="flex items-center space-x-2">
@@ -34,6 +35,10 @@ export default function Home() {
     const [isMobile, setIsMobile] = useState(false);
     const [loadParticles, setLoadParticles] = useState(false);
     const { user } = useStoreUser();
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const pathname = usePathname();
+    const scrollTo = searchParams.get('scrollto');
 
     useEffect(() => {
         setTimeout(() => {
@@ -50,6 +55,25 @@ export default function Home() {
         window.addEventListener('resize', checkMobile);
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
+
+    useEffect(() => {
+        if (scrollTo) {
+            const element = document.getElementById(scrollTo);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth' });
+
+                const newParams = new URLSearchParams(searchParams.toString());
+                newParams.delete('scrollto');
+
+                const newUrl =
+                    newParams.toString().length > 0
+                        ? `${pathname}?${newParams.toString()}`
+                        : pathname;
+
+                router.replace(newUrl, { scroll: false });
+            }
+        }
+    }, [scrollTo]);
 
     return (
         <div ref={mainRef} className="relative">
