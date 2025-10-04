@@ -51,12 +51,14 @@ export const usePlanAccess = () => {
         return restrictedTools;
     };
 
+    const planWiseLimit = limitsByPlan?.[plan];
+
     const checkLimit = (currentProjectCount, mode) => {
         if (!limitModes.includes(mode)) {
             throw new Error(`Invalid mode. Use one of: ${limitModes.join(', ')}`);
         }
 
-        return limitsByPlan?.[plan]?.[mode] > currentProjectCount;
+        return planWiseLimit?.[mode] > currentProjectCount;
     };
 
     return {
@@ -65,6 +67,7 @@ export const usePlanAccess = () => {
         subscriptionData,
         plan,
         planAccess,
+        planWiseLimit,
         checkLimit,
         isApprenticeUser,
         isMasterUser,

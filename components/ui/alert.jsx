@@ -8,9 +8,14 @@ const alertVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-card text-card-foreground",
+        default:
+          "bg-card text-card-foreground border-border",
+        success:
+          "bg-green-500/10 text-green-500 border-green-500/30 [&>svg]:text-green-500 *:data-[slot=alert-description]:text-green-600",
+        warning:
+          "bg-yellow-500/10 text-yellow-700 border-yellow-500/30 [&>svg]:text-yellow-500 *:data-[slot=alert-description]:text-yellow-600",
         destructive:
-          "text-destructive bg-card [&>svg]:text-current *:data-[slot=alert-description]:text-destructive/90",
+          "bg-red-500/10 text-red-700 border-red-500/30 [&>svg]:text-red-500 *:data-[slot=alert-description]:text-red-600",
       },
     },
     defaultVariants: {
@@ -29,7 +34,8 @@ function Alert({
       data-slot="alert"
       role="alert"
       className={cn(alertVariants({ variant }), className)}
-      {...props} />
+      {...props}
+    />
   );
 }
 
@@ -41,7 +47,8 @@ function AlertTitle({
     <div
       data-slot="alert-title"
       className={cn("col-start-2 line-clamp-1 min-h-4 font-medium tracking-tight", className)}
-      {...props} />
+      {...props}
+    />
   );
 }
 
@@ -53,10 +60,11 @@ function AlertDescription({
     <div
       data-slot="alert-description"
       className={cn(
-        "text-muted-foreground col-start-2 grid justify-items-start gap-1 text-sm [&_p]:leading-relaxed",
+        "col-start-2 grid justify-items-start gap-1 text-sm [&_p]:leading-relaxed",
         className
       )}
-      {...props} />
+      {...props}
+    />
   );
 }
 
