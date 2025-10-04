@@ -1,7 +1,7 @@
 'use client';
 
 import { api } from '@/convex/_generated/api';
-import React from 'react';
+import React, { useState } from 'react';
 import { useConvexQuery } from '@/hooks/useConvexQuery';
 import { usePlanAccess } from '@/hooks/usePlanAccess';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,7 @@ import { MoonLoader } from 'react-spinners';
 import { Sparkles } from 'lucide-react';
 import { AnimatedGradientText } from '@/components/magicui/animated-gradient-text';
 import { motion } from 'motion/react';
+import NewProjectModal from './_components/newProjectModal';
 
 const Dashboard = () => {
     const { data: projectData, loading } = useConvexQuery(api.projects.getUserProjects);
@@ -23,6 +24,9 @@ const Dashboard = () => {
         isMasterUser,
         isDeityUser,
     } = usePlanAccess();
+    const [isModalOpen, setIsModalOpen] = useState({
+        projectCreate: false,
+    });
 
     return (
         <div className="pt-24 px-4 pb-4 flex flex-col gap-4 h-screen overflow-hidden">
@@ -51,8 +55,16 @@ const Dashboard = () => {
                         {projectData?.length < 1 ? (
                             <div className=" w-fit h-fit flex flex-col items-center justify-center ring-1 p-10 m-auto bg-slate-700/10 ring-slate-700/50 rounded-md">
                                 <span>No projects found. Create a new project to get started!</span>
-                                <span className='mt-1 mb-6 text-[0.85rem] text-slate-500'>Upload an image to start editing with our AI tool.</span>
-                                <Button variant="outline" className=" text-slate-500">
+                                <span className="mt-1 mb-6 text-[0.85rem] text-slate-500">
+                                    Upload an image to start editing with our AI tool.
+                                </span>
+                                <Button
+                                    variant="outline"
+                                    className=" text-slate-500"
+                                    onClick={() =>
+                                        setIsModalOpen({ ...isModalOpen, projectCreate: true })
+                                    }
+                                >
                                     <AnimatedGradientText className={`flex items-center`}>
                                         No projects yet. Create one!{' '}
                                         <motion.div
@@ -76,6 +88,11 @@ const Dashboard = () => {
                     </>
                 )}
             </div>
+
+            <NewProjectModal
+                isOpen={isModalOpen.projectCreate}
+                onClose={() => setIsModalOpen({ ...isModalOpen, projectCreate: false })}
+            />
         </div>
     );
 };
