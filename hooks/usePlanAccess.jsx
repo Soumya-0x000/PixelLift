@@ -59,5 +59,15 @@ export const usePlanAccess = () => {
         return limitsByPlan?.[plan]?.[mode] > currentProjectCount;
     };
 
-    return { hasAccess, getRestrictedTools, subscriptionData, plan, planAccess, checkLimit };
+    return {
+        hasAccess,
+        getRestrictedTools,
+        subscriptionData,
+        plan,
+        planAccess,
+        checkLimit,
+        isApprenticeUser,
+        isMasterUser,
+        isDeityUser,
+    };
 };
