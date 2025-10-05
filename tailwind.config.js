@@ -34,5 +34,32 @@ module.exports = {
             },
         },
     },
-    plugins: [],
+    plugins: [
+        function ({ addUtilities }) {
+            addUtilities({
+                /* Thin scrollbar style */
+                '.scrollbar-thin': {
+                    scrollbarWidth: 'thin', // Firefox
+                    '&::-webkit-scrollbar': {
+                        width: '6px',
+                        height: '6px',
+                    },
+                    '&::-webkit-scrollbar-thumb': {
+                        backgroundColor: 'rgba(100, 100, 100, 0.5)',
+                        borderRadius: '10px',
+                    },
+                    '&::-webkit-scrollbar-thumb:hover': {
+                        backgroundColor: 'rgba(80, 80, 80, 0.7)',
+                    },
+                    '&::-webkit-scrollbar-track': {
+                        background: 'transparent',
+                    },
+                },
+                /* Dark mode variant */
+                '.dark .scrollbar-thin::-webkit-scrollbar-thumb': {
+                    backgroundColor: 'rgba(160,160,160,0.4)',
+                },
+            });
+        },
+    ],
 };

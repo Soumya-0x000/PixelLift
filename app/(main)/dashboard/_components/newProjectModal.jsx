@@ -19,8 +19,11 @@ import { usePlanAccess } from '@/hooks/usePlanAccess';
 import useStoreUser from '@/hooks/useStoreUser';
 import { formatNumberPrefix } from '@/utils/formatNumberPrefix';
 import { BadgeInfo, Loader2 } from 'lucide-react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import React, { useCallback, useMemo, useState } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
+import DraggableImage from './draggableImage';
 
 const NewProjectModal = ({ isOpen, onClose }) => {
     const { isApprenticeUser, isMasterUser, isDeityUser, planWiseLimit, checkLimit } =
@@ -88,13 +91,13 @@ const NewProjectModal = ({ isOpen, onClose }) => {
     const handleFileUpload = file => {
         setSelectedFile(file);
         const reader = new FileReader();
-    }
+    };
 
     return (
         <>
             {/* project create modal */}
             <Dialog open={isOpen} onOpenChange={onClose} className=" backdrop-blur-xs">
-                <DialogContent>
+                <DialogContent className={` w-fit sm:max-w-[70vw]  h-fit max-h-[90vh]`}>
                     <DialogHeader>
                         <DialogTitle>Create your first project</DialogTitle>
 
@@ -134,14 +137,32 @@ const NewProjectModal = ({ isOpen, onClose }) => {
                         <DialogDescription></DialogDescription>
                     </DialogHeader>
 
-                    <div className="w-full max-w-4xl mx-auto min-h-36 max-h-36 border border-dashed bg-white dark:bg-black border-neutral-200 dark:border-neutral-800 rounded-lg">
-                        <FileUpload onChange={handleFileUpload} fileType={'image'} allowedFormats={['image/*']} />
-                    </div>
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            layout
+                            className="w-full h-full mx-auto border border-dashed bg-white dark:bg-black border-neutral-200 dark:border-neutral-700 rounded-lg flex flex-col md:flex-row overflow-hidden"
+                        >
+                            <FileUpload
+                                onChange={handleFileUpload}
+                                allowedFormats={['image/*']}
+                                maxFiles={1}
+                                maxFileSize={5 * 1024 * 1024} // 5MB
+                                setSelectedFile={setSelectedFile}
+                                setPreviewUrl={setPreviewUrl}
+                                className={`h-[23rem]`}
+                            />
+                            {selectedFile && previewUrl && (
+                                <div className="w-[40rem] flex items-center justify-center border border-neutral-200 dark:border-neutral-700 overflow-hidden relative">
+                                    <DraggableImage imageUrl={previewUrl} />
+                                </div>
+                            )}
+                        </motion.div>
+                    </AnimatePresence>
 
                     <DialogFooter>
                         <Button
                             disabled={isUploading || !projectTitle.trim() || !selectedFile}
-                            className={`${!canCreateProject && 'cursor-not-allowed pointer-events-none opacity-50'}`}
+                            className={`${!canCreateProject && 'cursor-not-allowed pointer-event s-none opacity-50'}`}
                             variant={'secondary'}
                             onClick={() =>
                                 !canCreateProject
