@@ -5,6 +5,7 @@ import { IconUpload } from '@tabler/icons-react';
 import { useDropzone } from 'react-dropzone';
 import { X } from 'lucide-react';
 import { toast } from 'sonner';
+import { Input } from './input';
 
 const mainVariant = {
     initial: {
@@ -29,12 +30,12 @@ const secondaryVariant = {
 
 export const FileUpload = ({
     className,
-    onChange,
-    allowedFormats,
-    maxFiles,
-    maxFileSize,
-    setSelectedFile,
-    setPreviewUrl,
+    onChange = () => {},
+    allowedFormats = ['image/png', 'image/jpg', 'image/jpeg', 'image/webp'],
+    maxFiles = 1,
+    maxFileSize = 5 * 1024 * 1024, // 5MB default
+    setSelectedFile = () => {},
+    setPreviewUrl = () => {},
 }) => {
     const [files, setFiles] = useState([]);
     const fileInputRef = useRef(null);
@@ -75,19 +76,19 @@ export const FileUpload = ({
         }
 
         if (files.length > 0) {
-            setSelectedFile(files[0]);
-            setPreviewUrl(URL.createObjectURL(files[0]));
+            setSelectedFile?.(files[0]);
+            setPreviewUrl?.(URL.createObjectURL(files[0]));
         } else if (files.length <= 0) {
-            setSelectedFile(null);
-            setPreviewUrl(null);
+            setSelectedFile?.(null);
+            setPreviewUrl?.(null);
         }
     }, [files, maxFiles]);
 
     const handleFileClick = (e, file) => {
         e.stopPropagation();
 
-        setSelectedFile(file);
-        setPreviewUrl(URL.createObjectURL(file));
+        setSelectedFile?.(file);
+        setPreviewUrl?.(URL.createObjectURL(file));
     }
 
     return (
@@ -95,9 +96,9 @@ export const FileUpload = ({
             <motion.div
                 onClick={handleClick}
                 whileHover="animate"
-                className={` pt-10 group/file block rounded-lg ${files.length >= maxFiles ? ' cursor-auto' : 'cursor-pointer'} w-full h-full relative overflow-hidden`}
+                className={` pt-5 group/file block rounded-lg ${files.length >= maxFiles ? ' cursor-auto' : 'cursor-pointer'} w-full h-full relative overflow-hidden`}
             >
-                <input
+                <Input
                     ref={fileInputRef}
                     id="file-upload-handle"
                     type="file"
@@ -118,7 +119,14 @@ export const FileUpload = ({
                     <p className="relative z-20 font-sans font-normal text-neutral-400 dark:text-neutral-400 text-base mt-2">
                         Drag or drop your files here or click to upload
                     </p>
-                    <div className="relative w-full h-[68%] max-w-xl mx-auto mt-10 ">
+
+                    <span className=" text-sm text-neutral-400 dark:text-neutral-400 mt-1">
+                        Supports PNG, JPG, JPEG, WEBP (up to {maxFileSize / (1024 * 1024)} MB)
+                    </span>
+
+                    <div
+                        className={`relative w-full h-[65%] max-w-xl mx-auto ${files?.length > 0 ? 'mt-5' : 'mt-10'} `}
+                    >
                         <div
                             className={`space-y-3 max-h-full overflow-y-auto overflow-x-hidden px-6 ${files.length > 0 ? 'pt-3' : ''}`}
                         >
