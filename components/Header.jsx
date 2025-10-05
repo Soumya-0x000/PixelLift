@@ -1,17 +1,16 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Button } from './ui/button';
 import { LayoutDashboard, LogIn } from 'lucide-react';
-import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs';
-import { toast } from 'sonner';
+import { SignInButton, UserButton } from '@clerk/nextjs';
 import { usePathname, useRouter } from 'next/navigation';
-import useStoreUser from '@/hooks/useStoreUser';
 import { BarLoader } from 'react-spinners';
 import { Authenticated, Unauthenticated } from 'convex/react';
 import { AnimatePresence, motion, useMotionValueEvent, useScroll } from 'motion/react';
 import { cn } from '@/lib/utils';
+import useStoreUser from '@/hooks/useStoreUser';
 
 const Header = () => {
     const { scrollY } = useScroll();
