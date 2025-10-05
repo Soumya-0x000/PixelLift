@@ -1,11 +1,10 @@
 'use client';
 
-import Header from '@/components/Header';
 import HeroSection from '@/app/LandingPage/HeroSection';
 import { FollowerPointerCard } from '@/components/ui/following-pointer';
 import useStoreUser from '@/hooks/useStoreUser';
 import Image from 'next/image';
-import { useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import Footer from '@/components/Footer';
 import ParticleBackground from '@/components/ParticleBackground';
 import ScrollToTop from '@/components/ScrollToTop';
@@ -30,7 +29,7 @@ const TitleComponent = ({ title, avatar }) => (
     </div>
 );
 
-export default function Home() {
+function HomeContent() {
     const mainRef = useRef(null);
     const [isMobile, setIsMobile] = useState(false);
     const [loadParticles, setLoadParticles] = useState(false);
@@ -88,5 +87,13 @@ export default function Home() {
                 <Footer />
             </FollowerPointerCard>
         </div>
+    );
+}
+
+export default function Home() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <HomeContent />
+        </Suspense>
     );
 }
