@@ -5,6 +5,7 @@ import { internal } from './_generated/api';
 export const create = mutation({
     args: {
         title: v.string(),
+        description: v.optional(v.string()),
         originalImageUrl: v.optional(v.string()),
         currentImageUrl: v.optional(v.string()),
         thumbnailUrl: v.optional(v.string()),

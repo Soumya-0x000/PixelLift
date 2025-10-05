@@ -23,6 +23,7 @@ export default defineSchema({
 
     projects: defineTable({
         title: v.string(),
+        description: v.optional(v.string()),
         userId: v.id('users'),
 
         canvasState: v.any(),

@@ -19,11 +19,14 @@ import { usePlanAccess } from '@/hooks/usePlanAccess';
 import useStoreUser from '@/hooks/useStoreUser';
 import { formatNumberPrefix } from '@/utils/formatNumberPrefix';
 import { BadgeInfo, Loader2 } from 'lucide-react';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import React, { useCallback, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import DraggableImage from './draggableImage';
+import { Input } from '@/components/ui/input';
+import { toast } from 'sonner';
+
+const allowedImageFormats = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
 const NewProjectModal = ({ isOpen, onClose }) => {
     const { isApprenticeUser, isMasterUser, isDeityUser, planWiseLimit, checkLimit } =
@@ -33,7 +36,8 @@ const NewProjectModal = ({ isOpen, onClose }) => {
     const router = useRouter();
 
     const [isUploading, setIsUploading] = useState(false);
-    const [projectTitle, setProjectTitle] = useState('');
+    const initialProjectInfo = { title: '', description: '', error: '' };
+    const [projectInfo, setProjectInfo] = useState(initialProjectInfo);
     const [selectedFile, setSelectedFile] = useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
     const [openPlanUpgradeModal, setOpenPlanUpgradeModal] = useState(false);
@@ -42,7 +46,6 @@ const NewProjectModal = ({ isOpen, onClose }) => {
     const canCreateProject = useMemo(() => {
         return checkLimit(currentProjectCount, 'projects');
     }, [currentProjectCount, checkLimit]);
-    console.log(canCreateProject, planWiseLimit);
 
     const planWiseAlert = useCallback(() => {
         if (isApprenticeUser) {
@@ -81,23 +84,68 @@ const NewProjectModal = ({ isOpen, onClose }) => {
     const planWiseAlertText = () => planWiseAlert().text;
     const planWiseAlertVariant = () => planWiseAlert().variant;
 
-    const handleProjectCreate = async () => {};
+    const handleProjectCreate = async () => {
+        if (!canCreateProject) {
+            setOpenPlanUpgradeModal(true);
+            return;
+        }
+
+        if (!selectedFile) {
+            setProjectInfo({
+                ...projectInfo,
+                error: 'Project title is required',
+            });
+            toast.error('Please select an image.');
+            return;
+        }
+
+        if (!projectInfo?.title.trim()) {
+            setProjectInfo({
+                ...projectInfo,
+                error: 'Project title is required',
+            });
+            toast.error('Project title is required');
+            return;
+        }
+
+        try {
+            setIsUploading(true);
+
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+            formData.append('fileName', selectedFile?.name);
+            throw new Error('Not implemented yet');
+        } catch (error) {
+            toast.info(error?.message || 'Error creating project');
+        } finally {
+            setIsUploading(false);
+        }
+    };
 
     const upgradePlan = () => {
         router.push('/?scrollto=pricing');
         setOpenPlanUpgradeModal(false);
     };
 
-    const handleFileUpload = file => {
-        setSelectedFile(file);
-        const reader = new FileReader();
+    const handleDialogCLose = () => {
+        if (isUploading) return;
+        setIsUploading(false);
+        setProjectInfo(initialProjectInfo);
+        setSelectedFile(null);
+        setPreviewUrl(null);
+        onClose();
+    };
+
+    const handleProjectInfoChange = e => {
+        const { name, value } = e.target;
+        setProjectInfo({ ...projectInfo, [name]: value });
     };
 
     return (
         <>
             {/* project create modal */}
-            <Dialog open={isOpen} onOpenChange={onClose} className=" backdrop-blur-xs">
-                <DialogContent className={` w-fit sm:max-w-[70vw]  h-fit max-h-[90vh]`}>
+            <Dialog open={isOpen} onOpenChange={handleDialogCLose} className=" backdrop-blur-xs">
+                <DialogContent className={` w-fit sm:max-w-[70vw] h-fit max-h-[90vh]`}>
                     <DialogHeader>
                         <DialogTitle>Create your first project</DialogTitle>
 
@@ -140,35 +188,47 @@ const NewProjectModal = ({ isOpen, onClose }) => {
                     <AnimatePresence mode="wait">
                         <motion.div
                             layout
-                            className="w-full h-full mx-auto border border-dashed bg-white dark:bg-black border-neutral-200 dark:border-neutral-700 rounded-lg flex flex-col md:flex-row overflow-hidden"
+                            className="w-full h-[calc(90vh*0.5)] mx-auto border border-dashed bg-white dark:bg-black border-neutral-200 dark:border-neutral-700 rounded-lg flex flex-col md:flex-row overflow-hidden"
                         >
                             <FileUpload
-                                onChange={handleFileUpload}
-                                allowedFormats={['image/*']}
+                                allowedFormats={allowedImageFormats}
                                 maxFiles={1}
-                                maxFileSize={5 * 1024 * 1024} // 5MB
+                                maxFileSize={15 * 1024 * 1024} // 5MB
                                 setSelectedFile={setSelectedFile}
                                 setPreviewUrl={setPreviewUrl}
-                                className={`h-[23rem]`}
+                                className={`h-full `}
                             />
                             {selectedFile && previewUrl && (
-                                <div className="w-[40rem] flex items-center justify-center border border-neutral-200 dark:border-neutral-700 overflow-hidden relative">
+                                <div className="hidden w-[40rem] md:flex items-center justify-center border border-neutral-200 dark:border-neutral-700 overflow-hidden relative">
                                     <DraggableImage imageUrl={previewUrl} />
                                 </div>
                             )}
                         </motion.div>
                     </AnimatePresence>
 
+                    <div className=" w-full flex flex-col md:flex-row justify-center items-center gap-4">
+                        <Input
+                            type="text"
+                            value={projectInfo.title}
+                            onChange={handleProjectInfoChange}
+                            placeholder="Project Title"
+                            name="title"
+                        />
+                        <Input
+                            type="text"
+                            value={projectInfo.description}
+                            onChange={handleProjectInfoChange}
+                            placeholder="Project Description (optional)"
+                            name="description"
+                        />
+                    </div>
+
                     <DialogFooter>
                         <Button
-                            disabled={isUploading || !projectTitle.trim() || !selectedFile}
+                            disabled={isUploading || !projectInfo?.title.trim() || !selectedFile}
                             className={`${!canCreateProject && 'cursor-not-allowed pointer-event s-none opacity-50'}`}
                             variant={'secondary'}
-                            onClick={() =>
-                                !canCreateProject
-                                    ? handleProjectCreate
-                                    : setOpenPlanUpgradeModal(true)
-                            }
+                            onClick={handleProjectCreate}
                         >
                             {canCreateProject ? (
                                 isUploading ? (
@@ -183,7 +243,11 @@ const NewProjectModal = ({ isOpen, onClose }) => {
                             )}
                         </Button>
 
-                        <Button onClick={onClose} variant="destructive" disabled={isUploading}>
+                        <Button
+                            onClick={handleDialogCLose}
+                            variant="destructive"
+                            disabled={isUploading}
+                        >
                             Cancel
                         </Button>
                     </DialogFooter>
