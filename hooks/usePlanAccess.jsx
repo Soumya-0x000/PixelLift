@@ -67,6 +67,7 @@ export const usePlanAccess = () => {
         subscriptionData,
         plan,
         planAccess,
+        featuresByPlan,
         planWiseLimit,
         checkLimit,
         isApprenticeUser,
