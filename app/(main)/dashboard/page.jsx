@@ -40,7 +40,11 @@ const Dashboard = () => {
                     </span>
                 </div>
 
-                <Button variant="outline" className={`text-slate-300`}>
+                <Button
+                    variant="outline"
+                    className={`text-slate-300`}
+                    onClick={() => setIsModalOpen({ ...isModalOpen, projectCreate: true })}
+                >
                     New Project
                 </Button>
             </div>
