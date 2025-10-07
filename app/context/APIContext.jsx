@@ -61,23 +61,6 @@ export const APIProvider = ({ children }) => {
         return { data, status };
     };
 
-    const downloadExcel = async (endpoint, id) => {
-        try {
-            const { data } = await axiosInstance.get(`${endpoint}/${id || ''}`, {
-                responseType: 'blob',
-            });
-            const url = window.URL.createObjectURL(new Blob([data]));
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', 'data.xlsx');
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-        } catch (error) {
-            console.error('Download failed', error);
-        }
-    };
-
     const getFormData = data => {
         const formData = new FormData();
         Object.entries(data).forEach(([key, value]) => {
