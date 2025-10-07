@@ -341,7 +341,7 @@ const NewProjectModal = ({ isOpen, onClose }) => {
                             onClick={() => setOpenPlanUpgradeModal(false)}
                             variant="destructive"
                         >
-                            Cancel
+                            Maybe Later
                         </Button>
                     </DialogFooter>
                 </DialogContent>
