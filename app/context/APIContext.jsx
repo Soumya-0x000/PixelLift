@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useMemo } from 'react';
+import { createContext, useMemo } from 'react';
 import axios from 'axios';
 import { useAuth } from '@clerk/nextjs';
 
@@ -14,7 +14,7 @@ export const APIProvider = ({ children }) => {
     const axiosInstance = axios.create({
         baseURL: '/api', // point to your Next.js API routes
         headers: {
-            'Content-Type': 'application/json',
+            Accept: 'application/json',
         },
     });
 
@@ -37,17 +37,15 @@ export const APIProvider = ({ children }) => {
 
     const post = async (endpoint, inputData) => {
         const formData = getFormData(inputData);
-        const { data, status } = await axiosInstance.post(endpoint, formData, {
-            headers: { 'Content-Type': 'multipart/form-data' },
-        });
+
+        const { data, status } = await axiosInstance.post(endpoint, formData);
         return { data, status };
     };
 
     const put = async (endpoint, id = '', inputData) => {
         const formData = getFormData(inputData);
-        const { data, status } = await axiosInstance.put(`${endpoint}/${id}`, formData, {
-            headers: { 'Content-Type': 'multipart/form-data' },
-        });
+        
+        const { data, status } = await axiosInstance.put(`${endpoint}/${id}`, formData);
         return { data, status };
     };
 
@@ -83,7 +81,6 @@ export const APIProvider = ({ children }) => {
             put,
             jsonPut,
             del,
-            downloadExcel,
         }),
         []
     );
