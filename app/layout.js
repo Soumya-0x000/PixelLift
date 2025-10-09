@@ -6,7 +6,7 @@ import { ConvexClientProvider } from './ConvexClientProvider';
 import { ClerkProvider } from '@clerk/nextjs';
 import { shadcn } from '@clerk/themes';
 import Header from '@/components/Header';
-import { APIProvider } from './context/APIContext';
+import { APIProvider } from './context/APIcontext/APIContext';
 
 const geistSans = Geist({
     variable: '--font-geist-sans',

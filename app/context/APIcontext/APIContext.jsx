@@ -36,16 +36,26 @@ export const APIProvider = ({ children }) => {
     };
 
     const post = async (endpoint, inputData) => {
-        const formData = getFormData(inputData);
+        let postData = {};
+        if (inputData instanceof FormData) {
+            postData = inputData;
+        } else {
+            postData = getFormData(inputData);
+        }
 
-        const { data, status } = await axiosInstance.post(endpoint, formData);
+        const { data, status } = await axiosInstance.post(endpoint, postData);
         return { data, status };
     };
 
     const put = async (endpoint, id = '', inputData) => {
-        const formData = getFormData(inputData);
-        
-        const { data, status } = await axiosInstance.put(`${endpoint}/${id}`, formData);
+        let postData = {};
+        if (inputData instanceof FormData) {
+            postData = inputData;
+        } else {
+            postData = getFormData(inputData);
+        }
+
+        const { data, status } = await axiosInstance.put(`${endpoint}/${id}`, postData);
         return { data, status };
     };
 

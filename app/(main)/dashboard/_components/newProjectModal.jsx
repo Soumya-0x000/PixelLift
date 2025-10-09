@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/dialog';
 import { FileUpload } from '@/components/ui/file-upload';
 import { api } from '@/convex/_generated/api';
-import { useConvexQuery } from '@/hooks/useConvexQuery';
+import { useConvexMutation, useConvexQuery } from '@/hooks/useConvexQuery';
 import { usePlanAccess } from '@/hooks/usePlanAccess';
 import useStoreUser from '@/hooks/useStoreUser';
 import { formatNumberPrefix } from '@/utils/formatNumberPrefix';
@@ -25,6 +25,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import DraggableImage from './draggableImage';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
+import useAPIContext from '@/app/context/APIcontext/useApiContext';
 
 const allowedImageFormats = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
@@ -33,6 +34,7 @@ const NewProjectModal = ({ isOpen, onClose }) => {
         usePlanAccess();
     const { data: projectData, loading } = useConvexQuery(api.projects.getUserProjects);
     const { user } = useStoreUser();
+    const { mutate: createProject } = useConvexMutation(api.projects.create);
     const router = useRouter();
 
     const [isUploading, setIsUploading] = useState(false);
@@ -41,6 +43,7 @@ const NewProjectModal = ({ isOpen, onClose }) => {
     const [selectedFile, setSelectedFile] = useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
     const [openPlanUpgradeModal, setOpenPlanUpgradeModal] = useState(false);
+    const { post } = useAPIContext();
 
     const currentProjectCount = projectData?.length || 0;
     const canCreateProject = useMemo(() => {
@@ -85,7 +88,7 @@ const NewProjectModal = ({ isOpen, onClose }) => {
     const planWiseAlertVariant = () => planWiseAlert().variant;
 
     const handleProjectCreate = async () => {
-        if (canCreateProject) {
+        if (!canCreateProject) {
             setOpenPlanUpgradeModal(true);
             return;
         }
@@ -114,7 +117,33 @@ const NewProjectModal = ({ isOpen, onClose }) => {
             const formData = new FormData();
             formData.append('file', selectedFile);
             formData.append('fileName', selectedFile?.name);
-            throw new Error('Not implemented yet');
+
+            const { data: { success = false, ...response } = {}, status = 0 } = await post(
+                '/imagekit/upload',
+                formData
+            );
+
+            if (!success || status !== 200) {
+                throw new Error(response?.error || 'Image upload failed');
+            }
+
+            if (success && status === 200) {
+                toast.success('Project created successfully');
+                handleDialogCLose();
+
+                const projectId = await createProject({
+                    title: projectInfo?.title?.trim() || '',
+                    description: projectInfo?.description?.trim() || '',
+                    originalImageUrl: response?.url || '',
+                    currentImageUrl: response?.url || '',
+                    thumbnailUrl: response?.thumbnailUrl || '',
+                    width: response?.width || 800,
+                    height: response?.height || 600,
+                    canvasState: null,
+                });
+
+                router.push(`/editor/${projectId}`);
+            }
         } catch (error) {
             toast.info(error?.message || 'Error creating project');
         } finally {
