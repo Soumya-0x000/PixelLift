@@ -23,7 +23,7 @@ export const create = mutation({
         }
 
         // enforce free plan limits
-        if (user?.plan === 'free') {
+        if (user?.plan === 'apprentice') {
             const projectCount = await ctx.db
                 .query('projects')
                 .withIndex('by_user', q => q.eq('userId', user._id))
@@ -62,15 +62,14 @@ export const create = mutation({
 
 export const getUserProjects = query({
     handler: async ctx => {
-        const identity = ctx.auth.getUserIdentity();
+        const identity = await ctx.auth.getUserIdentity();
         if (!identity) return [];
 
         const user = await ctx.db
             .query('users')
             .withIndex('by_token', q => q.eq('tokenIdentifier', identity.tokenIdentifier))
             .unique();
-        console.log(user)
-        // if (!user) return [];
+        if (!user) return [];
 
         const projects = await ctx.db
             .query('projects')

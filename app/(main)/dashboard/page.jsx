@@ -9,6 +9,7 @@ import { MoonLoader } from 'react-spinners';
 import { Sparkles } from 'lucide-react';
 import { AnimatedGradientText } from '@/components/magicui/animated-gradient-text';
 import { motion } from 'motion/react';
+import ProjectGrid from './_components/projectGrid';
 import NewProjectModal from './_components/newProjectModal';
 
 const Dashboard = () => {
@@ -56,7 +57,7 @@ const Dashboard = () => {
                         <MoonLoader color="#77c2e7" size={80} speedMultiplier={0.9} />
                     </div>
                 ) : projectData && projectData?.length > 0 ? (
-                    <>ji</>
+                    <ProjectGrid projects={projectData} />
                 ) : (
                     <div className=" w-fit h-fit flex flex-col items-center justify-center ring-1 p-10 m-auto bg-slate-700/10 ring-slate-700/50 rounded-md">
                         <span>No projects found. Create a new project to get started!</span>

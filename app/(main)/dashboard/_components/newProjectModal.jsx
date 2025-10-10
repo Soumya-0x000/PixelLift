@@ -128,9 +128,6 @@ const NewProjectModal = ({ isOpen, onClose }) => {
             }
 
             if (success && status === 200) {
-                toast.success('Project created successfully');
-                handleDialogCLose();
-
                 const projectId = await createProject({
                     title: projectInfo?.title?.trim() || '',
                     description: projectInfo?.description?.trim() || '',
@@ -143,6 +140,7 @@ const NewProjectModal = ({ isOpen, onClose }) => {
                 });
 
                 router.push(`/editor/${projectId}`);
+                toast.success('Project created successfully');
             }
         } catch (error) {
             toast.info(error?.message || 'Error creating project');
