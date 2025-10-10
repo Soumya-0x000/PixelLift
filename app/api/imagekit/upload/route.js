@@ -50,12 +50,13 @@ export async function POST(req) {
         return NextResponse.json({
             success: true,
             url: uploadResponse.url,
-            fileId: uploadResponse.fileId,
             thumbnailUrl,
+            fileId: uploadResponse.fileId,
             width: uploadResponse.width,
             height: uploadResponse.height,
             size: uploadResponse.size,
             name: uploadResponse.name,
+            
         });
     } catch (error) {
         console.error('Upload error:', error);

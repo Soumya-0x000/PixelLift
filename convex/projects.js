@@ -37,7 +37,7 @@ export const create = mutation({
         }
 
         // create new project
-        await ctx.db.insert('projects', {
+        const projectId = await ctx.db.insert('projects', {
             title: args.title,
             originalImageUrl: args.originalImageUrl,
             currentImageUrl: args.currentImageUrl,
@@ -55,6 +55,8 @@ export const create = mutation({
             projectsUsed: user.projectsUsed + 1,
             lastActiveAt: Date.now(),
         });
+
+        return projectId;
     },
 });
 
@@ -67,7 +69,8 @@ export const getUserProjects = query({
             .query('users')
             .withIndex('by_token', q => q.eq('tokenIdentifier', identity.tokenIdentifier))
             .unique();
-        if (!user) return [];
+        console.log(user)
+        // if (!user) return [];
 
         const projects = await ctx.db
             .query('projects')
