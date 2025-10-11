@@ -1,3 +1,4 @@
+import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 
 export const store = mutation({
@@ -9,14 +10,11 @@ export const store = mutation({
         }
 
         // Check if we've already stored this identity before.
-        // Note: If you don't want to define an index right away, you can use
-        // ctx.db.query("users")
-        //  .filter(q => q.eq(q.field("tokenIdentifier"), identity.tokenIdentifier))
-        //  .unique();
         const user = await ctx.db
             .query('users')
             .withIndex('by_token', q => q.eq('tokenIdentifier', identity.tokenIdentifier))
             .unique();
+
         if (user !== null) {
             // If we've seen this identity before but the name has changed, patch the value.
             if (user.name !== identity.name) {
@@ -30,7 +28,7 @@ export const store = mutation({
             email: identity.email ?? '',
             imageUrl: identity.pictureUrl ?? '',
             tokenIdentifier: identity.tokenIdentifier,
-            plan: 'free',
+            plan: 'apprentice_user',
             projectsUsed: 0,
             exportsThisMonth: 0,
             createdAt: Date.now(),
@@ -57,5 +55,33 @@ export const getCurrentUser = query({
         }
 
         return user;
+    },
+});
+
+export const updateUserPlan = mutation({
+    args: {
+        tokenIdentifier: v.string(),
+        plan: v.union(
+            v.literal('apprentice_user'),
+            v.literal('master_user'),
+            v.literal('deity_user')
+        ),
+    },
+    handler: async (ctx, args) => {
+        const { tokenIdentifier, plan } = args;
+
+        const user = await ctx.db
+            .query('users')
+            .withIndex('by_token', q => q.eq('tokenIdentifier', tokenIdentifier))
+            .unique();
+
+        if (!user) {
+            throw new Error('User not found in Convex');
+        }
+
+        return await ctx.db.patch(user._id, {
+            plan,
+            lastActiveAt: Date.now(),
+        });
     },
 });

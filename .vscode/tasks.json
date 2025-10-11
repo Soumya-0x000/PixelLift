@@ -16,8 +16,15 @@
       "group": "build"
     },
     {
-      "label": "Dev (Next + Convex)",
-      "dependsOn": ["Next.js Dev", "Convex Dev"],
+      "label": "ngrok start",
+      "type": "shell",
+      "command": "ngrok start clerk-webhook",
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
+      "label": "Dev (Next + Convex + ngrok)",
+      "dependsOn": ["Next.js Dev", "Convex Dev", "ngrok start"],
       "dependsOrder": "parallel",
       "problemMatcher": [],
       "group": {
