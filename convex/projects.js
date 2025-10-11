@@ -23,7 +23,7 @@ export const create = mutation({
         }
 
         // enforce free plan limits
-        if (user?.plan === 'apprentice') {
+        if (user?.plan === 'apprentice_user') {
             const projectCount = await ctx.db
                 .query('projects')
                 .withIndex('by_user', q => q.eq('userId', user._id))

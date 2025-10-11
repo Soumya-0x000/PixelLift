@@ -28,7 +28,7 @@ export const store = mutation({
             email: identity.email ?? '',
             imageUrl: identity.pictureUrl ?? '',
             tokenIdentifier: identity.tokenIdentifier,
-            plan: 'apprentice',
+            plan: 'apprentice_user',
             projectsUsed: 0,
             exportsThisMonth: 0,
             createdAt: Date.now(),
@@ -61,7 +61,11 @@ export const getCurrentUser = query({
 export const updateUserPlan = mutation({
     args: {
         tokenIdentifier: v.string(),
-        plan: v.union(v.literal('apprentice'), v.literal('master'), v.literal('deity')),
+        plan: v.union(
+            v.literal('apprentice_user'),
+            v.literal('master_user'),
+            v.literal('deity_user')
+        ),
     },
     handler: async (ctx, args) => {
         const { tokenIdentifier, plan } = args;

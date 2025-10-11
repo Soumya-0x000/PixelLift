@@ -140,7 +140,7 @@ body::-webkit-scrollbar {
 
 .cl-navbar [class^='cl-internal-'] [class^='cl-internal-']:last-child,
 .cl-footer [class^='cl-internal-']:last-child {
-    display: none !important;
+    /* display: none !important; */
 }
 
 @keyframes effect {
