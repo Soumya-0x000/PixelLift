@@ -460,7 +460,7 @@ const PricingSection = React.memo(() => {
                     <div className="flex flex-col gap-6 flex-1">
                         <AnimatePresence mode="wait">
                             <motion.div
-                                key={currentPlan?.plan + '-title'}
+                                key={`${currentPlan?.plan}-title`}
                                 initial={{ opacity: 0, y: 30 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -30 }}
@@ -531,7 +531,7 @@ const PricingSection = React.memo(() => {
 
                         <AnimatePresence mode="wait">
                             <motion.ul
-                                key={currentPlan?.plan + '-features'}
+                                key={`${currentPlan?.plan}-features`}
                                 initial={{ opacity: 0, y: 30 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -30 }}
@@ -550,7 +550,7 @@ const PricingSection = React.memo(() => {
                     {/* Right: Pricing card */}
                     <AnimatePresence mode="wait">
                         <motion.div
-                            key={currentPlan?.plan + '-card'}
+                            key={currentPlan?.plan}
                             initial={{ opacity: 0, y: 30 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -30 }}
@@ -558,81 +558,40 @@ const PricingSection = React.memo(() => {
                             className="bg-slate-950 ring ring-slate-700 rounded-xl p-8 w-[25rem] flex flex-col justify-between relative z-20"
                         >
                             <div className="h-[45%] pt-3">
-                                <motion.p
-                                    key={currentPlan?.plan + '-subtitle'}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -20 }}
-                                    transition={{ duration: 0.3 }}
-                                    className="text-gray-400 text-sm text-center"
-                                >
+                                <p className="text-gray-400 text-sm text-center">
                                     {currentPlan?.subtitle}
-                                </motion.p>
+                                </p>
 
-                                <motion.div
-                                    key={currentPlan?.plan + '-price'}
-                                    initial={{ opacity: 0, scale: 0.8 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    exit={{ opacity: 0, scale: 0.8 }}
-                                    transition={{ duration: 0.3, delay: 0.1 }}
-                                    className="text-4xl flex flex-col items-center justify-center font-bold text-white mt-4 text-center"
-                                >
-                                    <AnimatePresence mode="wait">
-                                        {currentPlan?.featured && !currentPlan?.isFree ? (
-                                            <AnimatedGradientText>
-                                                <span className="flex items-end">
-                                                    {currentPricing.symbol}
-                                                    {currentPricing.price}
-                                                    <span className="text-lg font-normal ml-2 mb-1">
-                                                        {currentPricing.billing}
-                                                    </span>
-                                                </span>
-                                            </AnimatedGradientText>
-                                        ) : currentPlan?.isFree ? (
-                                            <motion.span
-                                                key="free-price"
-                                                initial={{ opacity: 0, scale: 0.8 }}
-                                                animate={{ opacity: 1, scale: 1 }}
-                                                exit={{ opacity: 0, scale: 0.8 }}
-                                                transition={{ duration: 0.3 }}
-                                                className="text-green-400"
-                                            >
-                                                Free
-                                            </motion.span>
-                                        ) : (
-                                            <motion.span
-                                                key="regular-price"
-                                                initial={{ opacity: 0, scale: 0.8 }}
-                                                animate={{ opacity: 1, scale: 1 }}
-                                                exit={{ opacity: 0, scale: 0.8 }}
-                                                transition={{ duration: 0.3 }}
-                                                className="flex items-end"
-                                            >
+                                <div className="text-4xl flex flex-col items-center justify-center font-bold text-white mt-4 text-center">
+                                    {currentPlan?.featured && !currentPlan?.isFree ? (
+                                        <AnimatedGradientText>
+                                            <span className="flex items-end">
                                                 {currentPricing.symbol}
                                                 {currentPricing.price}
-                                                <span className="text-lg font-normal text-gray-400 ml-2 mb-1">
+                                                <span className="text-lg font-normal ml-2 mb-1">
                                                     {currentPricing.billing}
                                                 </span>
-                                            </motion.span>
-                                        )}
-                                    </AnimatePresence>
+                                            </span>
+                                        </AnimatedGradientText>
+                                    ) : currentPlan?.isFree ? (
+                                        <span className="text-green-400">Free</span>
+                                    ) : (
+                                        <span className="flex items-end">
+                                            {currentPricing.symbol}
+                                            {currentPricing.price}
+                                            <span className="text-lg font-normal text-gray-400 ml-2 mb-1">
+                                                {currentPricing.billing}
+                                            </span>
+                                        </span>
+                                    )}
 
                                     {/* Show savings for yearly plans */}
-                                    <AnimatePresence>
-                                        {currentPricing.savings && (
-                                            <motion.span
-                                                key="savings"
-                                                initial={{ opacity: 0, y: 10 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                exit={{ opacity: 0, y: -10 }}
-                                                transition={{ duration: 0.3 }}
-                                                className="text-sm text-green-400 font-normal mt-2"
-                                            >
-                                                {currentPricing.savings}
-                                            </motion.span>
-                                        )}
-                                    </AnimatePresence>
-                                </motion.div>
+                                    {currentPricing.savings && (
+                                        <span className="text-sm text-green-400 font-normal mt-2">
+                                            {currentPricing.savings}
+                                        </span>
+                                    )}
+                                </div>
                             </div>
 
                             <SignedIn>
@@ -645,15 +604,7 @@ const PricingSection = React.memo(() => {
                                         className={`w-4/5 mx-auto mt-4 h-12 text-[1rem] flex items-center justify-center font-semibold ${buttonState.disabled ? 'opacity-50' : ''}`}
                                         disabled={buttonState.disabled}
                                     >
-                                        <motion.span
-                                            key={currentPlan?.plan + '-button'}
-                                            initial={{ opacity: 0, y: 40 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            exit={{ opacity: 0, y: -40 }}
-                                            transition={{ duration: 0.3 }}
-                                        >
-                                            {buttonState.text}
-                                        </motion.span>
+                                        {buttonState.text}
                                     </Button>
                                 </CheckoutButton>
                             </SignedIn>
@@ -669,47 +620,33 @@ const PricingSection = React.memo(() => {
                                 </SignInButton>
                             </SignedOut>
 
-                            <motion.p
-                                key={currentPlan?.plan + '-note'}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -20 }}
-                                transition={{ duration: 0.3, delay: 0.1 }}
-                                className="text-gray-500 text-sm mt-4 text-center"
-                            >
+                            <p className="text-gray-500 text-sm mt-4 text-center">
                                 {currentPlan?.note}
-                            </motion.p>
+                            </p>
 
                             {/* Dynamic badge system */}
-                            <AnimatePresence mode="wait">
-                                {currentBadge && (
-                                    <motion.div
-                                        key={currentBadge.type}
-                                        initial={{ y: 20, opacity: 0 }}
-                                        animate={{ y: 0, opacity: 1 }}
-                                        exit={{ y: 20, opacity: 0 }}
-                                        transition={{ duration: 0.3 }}
-                                        className={cn(
-                                            'uppercase absolute -top-4 left-8 tracking-wider backdrop-blur-xl ring-1 text-xs px-2 py-1 rounded-md',
-                                            getBadgeStyles(currentBadge.color)
-                                        )}
-                                    >
-                                        {currentBadge.text}
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
+                            {currentBadge && (
+                                <motion.div
+                                    key={currentBadge.type}
+                                    initial={{ y: 20, opacity: 0 }}
+                                    animate={{ y: 0, opacity: 1 }}
+                                    exit={{ y: 20, opacity: 0 }}
+                                    transition={{ duration: 0.3 }}
+                                    className={cn(
+                                        'uppercase absolute -top-4 left-8 tracking-wider backdrop-blur-xl ring-1 text-xs px-2 py-1 rounded-md',
+                                        getBadgeStyles(currentBadge.color)
+                                    )}
+                                >
+                                    {currentBadge.text}
+                                </motion.div>
+                            )}
 
                             {/* Secondary badge for active/upcoming plans (right side) */}
                             {(currentStatus === 'active' || currentStatus === 'upcoming') &&
                                 currentStatus !== 'trial' && (
-                                    <motion.div
-                                        initial={{ y: 20, opacity: 0 }}
-                                        animate={{ y: 0, opacity: 1 }}
-                                        exit={{ y: 20, opacity: 0 }}
-                                        className="uppercase absolute -top-4 right-6 tracking-widest bg-slate-950 ring ring-slate-700 text-slate-200 backdrop-blur-xl text-[0.7rem] px-2.5 py-1 rounded-md -z-10"
-                                    >
+                                    <div className="uppercase absolute -top-4 right-6 tracking-widest bg-slate-950 ring ring-slate-700 text-slate-200 backdrop-blur-xl text-[0.7rem] px-2.5 py-1 rounded-md -z-10">
                                         {currentStatus === 'active' ? 'Active' : 'Upcoming'}
-                                    </motion.div>
+                                    </div>
                                 )}
                         </motion.div>
                     </AnimatePresence>

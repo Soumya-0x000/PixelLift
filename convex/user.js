@@ -2,8 +2,15 @@ import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 
 export const store = mutation({
-    args: {},
-    handler: async ctx => {
+    args: {
+        plan: v.union(
+            v.literal('apprentice_user'),
+            v.literal('master_user'),
+            v.literal('deity_user')
+        ),
+    },
+    handler: async (ctx, { plan }) => {
+        console.log(plan);
         const identity = await ctx.auth.getUserIdentity();
         if (!identity) {
             throw new Error('Called storeUser without authentication present');
@@ -28,7 +35,7 @@ export const store = mutation({
             email: identity.email ?? '',
             imageUrl: identity.pictureUrl ?? '',
             tokenIdentifier: identity.tokenIdentifier,
-            plan: 'apprentice_user',
+            plan: plan || 'apprentice_user',
             projectsUsed: 0,
             exportsThisMonth: 0,
             createdAt: Date.now(),
