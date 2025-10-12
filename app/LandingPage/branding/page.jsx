@@ -7,10 +7,12 @@ import { PointerHighlight } from '@/components/ui/pointer-highlight';
 import { ChevronRight } from 'lucide-react';
 import { AnimatedGradientText } from '@/components/magicui/animated-gradient-text';
 import { cn } from '@/lib/utils';
+import { useRouter } from 'next/navigation';
 
 const BrandingSection = () => {
     const [showHighlight, setShowHighlight] = useState(false);
     const [sectionInView, setSectionInView] = useState(false);
+    const router = useRouter();
 
     // Intersection observer for section
     useEffect(() => {
@@ -86,7 +88,8 @@ const BrandingSection = () => {
 
                         <button
                             type="button"
-                            className="relative z-10 hover:scale-[1.05] active:scale-[0.95] transition-transform duration-200"
+                            className="relative z-10 hover:scale-[1.05] active:scale-[0.95] transition-transform duration-200 cursor-pointer"
+                            onClick={() => router.push('/dashboard')}
                         >
                             <div className="group w-fit relative mx-auto flex items-center justify-center rounded-full px-7 py-3.5 shadow-[inset_0_-8px_10px_#8fdfff1f] transition-shadow duration-500 ease-out hover:shadow-[inset_0_-5px_10px_#8fdfff3f] ">
                                 <span

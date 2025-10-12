@@ -10,7 +10,7 @@ export const store = mutation({
         ),
     },
     handler: async (ctx, { plan }) => {
-        console.log(plan)
+        console.log(plan);
         const identity = await ctx.auth.getUserIdentity();
         if (!identity) {
             throw new Error('Called storeUser without authentication present');
@@ -24,16 +24,6 @@ export const store = mutation({
 
         if (user !== null) {
             // If we've seen this identity before but the name has changed, patch the value.
-            let patches = {};
-            if (plan && user.plan !== plan) {
-                patches.plan = plan;
-            }
-
-            if (Object.keys(patches).length > 0) {
-                patches.lastActiveAt = Date.now();
-                await ctx.db.patch(user._id, patches);
-            }
-            
             if (user.name !== identity.name) {
                 await ctx.db.patch(user._id, { name: identity.name });
             }
