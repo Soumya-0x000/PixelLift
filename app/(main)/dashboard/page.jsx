@@ -32,15 +32,15 @@ const Dashboard = () => {
     console.log(projectData);
     return (
         <div className="pt-24 px-4 pb-4 flex flex-col gap-4 h-screen overflow-hidden">
-            <div className="flex justify-between items-center ring-1 ring-slate-700/50 rounded-md px-2 py-1.5">
-                <div className="flex flex-col">
+            <div className="flex justify-between items-center ring-1 ring-slate-700/50 rounded-md px-2 py-1.5 w-full">
+                <span className="flex flex-col">
                     <span className="text-slate-100 font-thin tracking-wide text-[1.1rem]">
                         Your Projects
                     </span>
-                    <span className="block text-slate-400 text-[0.7rem]">
+                    <span className="block text-slate-400 text-[0.7rem] line-clamp-1 w-[20%]">
                         Create and manage your AI-powered image projects
                     </span>
-                </div>
+                </span>
 
                 <Button
                     variant="outline"

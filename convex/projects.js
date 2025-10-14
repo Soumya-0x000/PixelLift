@@ -39,6 +39,7 @@ export const create = mutation({
         // create new project
         const projectId = await ctx.db.insert('projects', {
             title: args.title,
+            description: args.description,
             originalImageUrl: args.originalImageUrl,
             currentImageUrl: args.currentImageUrl,
             thumbnailUrl: args.thumbnailUrl,
