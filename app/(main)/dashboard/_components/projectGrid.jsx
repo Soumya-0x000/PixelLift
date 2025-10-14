@@ -10,7 +10,7 @@ const ProjectGrid = ({ projects }) => {
     };
 
     return (
-        <div className="grid grid-cols-1 xs:grid-cols-2 gap-4 overflow-auto w-full">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 overflow-auto w-full">
             {projects.map(project => (
                 <ProjectCard
                     key={project?._id}

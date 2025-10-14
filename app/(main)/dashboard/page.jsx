@@ -37,7 +37,7 @@ const Dashboard = () => {
                     <span className="text-slate-100 font-thin tracking-wide text-[1.1rem]">
                         Your Projects
                     </span>
-                    <span className="block text-slate-400 text-[0.7rem] line-clamp-1 w-[20%]">
+                    <span className=" text-slate-400 text-[0.7rem] line-clamp-1 w-[95%]">
                         Create and manage your AI-powered image projects
                     </span>
                 </span>
