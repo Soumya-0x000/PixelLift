@@ -1,10 +1,11 @@
 import React from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Edit2, Calendar } from 'lucide-react';
+import { Edit2, Calendar, LucideEdit2, ArrowRight } from 'lucide-react';
 import Image from 'next/image';
 
 const ProjectCard = ({ project, onEditProject }) => {
-    const { title, thumbnailUrl, updatedAt } = project;
+    const { title, description, thumbnailUrl, updatedAt } = project;
+    console.log(project);
 
     const formatDate = ts => {
         const date = new Date(ts);
@@ -16,44 +17,71 @@ const ProjectCard = ({ project, onEditProject }) => {
     };
 
     return (
-        <Card className="group overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer h-fit py-0 w-full">
-            <div className="relative w-full h-36 overflow-hidden">
+        <div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-slate-900 to-slate-800 shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer w-full max-w-sm h-fit">
+            {/* Image Container - Compact */}
+            <div className="relative w-full h-40 overflow-hidden">
                 <Image
-                    src={thumbnailUrl}
+                    src={thumbnailUrl || '/api/placeholder/400/320'}
+                    width={400}
+                    height={320}
                     alt={title}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/20 to-transparent" />
+
+                {/* Edit Button - Floating */}
                 <button
-                    onClick={onEditProject}
-                    className="absolute top-3 right-3 bg-white/40 hover:bg-white/60 text-gray-800 rounded-full p-2 shadow-sm transition cursor-pointer"
-                    title="Edit project"
+                    onClick={e => {
+                        e.stopPropagation();
+                        onEditProject();
+                    }}
+                    className="absolute top-3 right-3 bg-white/10 backdrop-blur-md hover:bg-white/20 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110"
+                    aria-label="Edit"
                 >
-                    <Edit2 size={16} />
+                    <LucideEdit2 size={14} strokeWidth={2.5} />
                 </button>
             </div>
 
-            <CardHeader className="p- pb-1">
-                <CardTitle className="text-lg font-semibold text-slate-700 line-clamp-1">
+            {/* Content - Ultra Compact */}
+            <div className="p-4 h-28">
+                {/* Title */}
+                <span className="text-base font-semibold tracking-wide text-white line-clamp-1">
                     {title}
-                </CardTitle>
-            </CardHeader>
+                </span>
 
-            <CardContent className="px-4 pb-2 text-sm text-slate-500 flex items-center gap-2">
-                <Calendar size={14} className="text-slate-400" />
-                <span>Updated on {formatDate(updatedAt)}</span>
-            </CardContent>
+                {/* Description - Optional, compact */}
 
-            <CardFooter className="px-4 pb-4">
-                <button
-                    onClick={onEditProject}
-                    className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition"
-                >
-                    Open in Editor
-                </button>
-            </CardFooter>
-        </Card>
+                <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed h-9">{description}</p>
+
+                {/* Bottom Row - Date & Action */}
+                <div className="flex items-center justify-between gap-2 pt-3">
+                    {/* Date */}
+                    <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                        <Calendar size={12} className="flex-shrink-0" />
+                        <span>{formatDate(updatedAt)}</span>
+                    </div>
+
+                    {/* Action Button - Inline */}
+                    <button
+                        onClick={e => {
+                            e.stopPropagation();
+                            onEditProject();
+                        }}
+                        className="flex items-center gap-1.5 bg-white hover:bg-slate-100 text-slate-900 text-xs font-semibold py-1.5 px-3 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 group/btn"
+                    >
+                        <span>Open</span>
+                        <ArrowRight
+                            size={12}
+                            strokeWidth={2.5}
+                            className="group-hover/btn:translate-x-0.5 transition-transform"
+                        />
+                    </button>
+                </div>
+            </div>
+
+            {/* Accent Border */}
+            <div className="absolute inset-0 rounded-xl ring-1 ring-white/5 group-hover:ring-white/10 transition-all pointer-events-none" />
+        </div>
     );
 };
 
