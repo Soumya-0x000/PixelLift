@@ -16,8 +16,8 @@ const ProjectCard = ({ project, onEditProject }) => {
     };
 
     return (
-        <Card className="group overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer h-fit py-0 w-1/6">
-            <div className="relative w-full h-40 overflow-hidden">
+        <Card className="group overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer h-fit py-0 w-full">
+            <div className="relative w-full h-36 overflow-hidden">
                 <Image
                     src={thumbnailUrl}
                     alt={title}
@@ -34,7 +34,7 @@ const ProjectCard = ({ project, onEditProject }) => {
                 </button>
             </div>
 
-            <CardHeader className="p-4 pb-1">
+            <CardHeader className="p- pb-1">
                 <CardTitle className="text-lg font-semibold text-slate-700 line-clamp-1">
                     {title}
                 </CardTitle>

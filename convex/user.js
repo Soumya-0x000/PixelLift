@@ -65,17 +65,19 @@ export const getCurrentUser = query({
     },
 });
 
-export const updateUserPlan = mutation({
+export const updateUser = mutation({
     args: {
         tokenIdentifier: v.string(),
-        plan: v.union(
-            v.literal('apprentice_user'),
-            v.literal('master_user'),
-            v.literal('deity_user')
+        plan: v.optional(
+            v.union(v.literal('apprentice_user'), v.literal('master_user'), v.literal('deity_user'))
         ),
+        name: v.optional(v.string()),
+        email: v.optional(v.string()),
+        imageUrl: v.optional(v.string()),
     },
+
     handler: async (ctx, args) => {
-        const { tokenIdentifier, plan } = args;
+        const { tokenIdentifier, plan, name, email, imageUrl } = args;
 
         const user = await ctx.db
             .query('users')
@@ -86,9 +88,37 @@ export const updateUserPlan = mutation({
             throw new Error('User not found in Convex');
         }
 
-        return await ctx.db.patch(user._id, {
-            plan,
-            lastActiveAt: Date.now(),
-        });
+        // Build an update object dynamically
+        const updates = { lastActiveAt: Date.now() };
+
+        if (plan && plan !== user.plan) updates.plan = plan;
+        if (name && name !== user.name) updates.name = name;
+        if (email && email !== user.email) updates.email = email;
+        if (imageUrl && imageUrl !== user.imageUrl) updates.imageUrl = imageUrl;
+
+        // Skip patch if nothing changed
+        if (Object.keys(updates).length === 1) {
+            return user._id;
+        }
+
+        await ctx.db.patch(user._id, updates);
+        return user._id;
+    },
+});
+
+export const deleteUser = mutation({
+    args: { tokenIdentifier: v.string() },
+    handler: async (ctx, { tokenIdentifier }) => {
+        const user = await ctx.db
+            .query('users')
+            .withIndex('by_token', q => q.eq('tokenIdentifier', tokenIdentifier))
+            .unique();
+
+        if (user) {
+            await ctx.db.delete(user._id);
+            console.log(`🗑️ User deleted from Convex: ${tokenIdentifier}`);
+        } else {
+            console.log(`⚠️ User not found for deletion: ${tokenIdentifier}`);
+        }
     },
 });
