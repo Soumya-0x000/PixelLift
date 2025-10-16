@@ -51,7 +51,7 @@ const Dashboard = () => {
                 </Button>
             </div>
 
-            <div className=" flex grow ring-1 ring-slate-700/50 rounded-md p-2 relative overflow-auto">
+            <div className=" flex grow ring-1 ring-slate-700/50 rounded-md p-3 relative overflow-auto">
                 {loading ? (
                     <div className=" m-auto">
                         <MoonLoader color="#77c2e7" size={80} speedMultiplier={0.9} />
