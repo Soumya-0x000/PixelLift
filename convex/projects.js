@@ -2,6 +2,12 @@ import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import { internal } from './_generated/api';
 
+const imageKit = new ImageKit({
+    publicKey: process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY,
+    privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
+    urlEndpoint: process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT,
+});
+
 export const create = mutation({
     args: {
         title: v.string(),
@@ -11,6 +17,8 @@ export const create = mutation({
         thumbnailUrl: v.optional(v.string()),
         width: v.number(),
         height: v.number(),
+        imgKitFileId: v.string(),
+        size: v.number(),
         canvasState: v.optional(v.any()),
     },
     handler: async (ctx, args) => {
@@ -45,6 +53,8 @@ export const create = mutation({
             thumbnailUrl: args.thumbnailUrl,
             width: args.width,
             height: args.height,
+            imgKitFileId: args.imgKitFileId,
+            size: args.size,
             canvasState: args.canvasState,
             userId: user._id,
             createdAt: Date.now(),
@@ -98,13 +108,23 @@ export const deleteProject = mutation({
         }
 
         const project = await ctx.db.get(args.projectId);
+        console.log(project?.userId)
 
         if (!project) {
             throw new Error('Project not found');
         }
 
-        if (project.userId._id !== user._id) {
+        if (project.userId !== user._id) {
             throw new Error('Not authorized to delete this project');
+        }
+
+        if (project.imgKitFileId) {
+            // Delete the file from ImageKit
+            try {
+                await imageKit.deleteFile(project.imgKitFileId);
+            } catch (error) {
+                console.error('Error deleting file from ImageKit:', error);
+            }
         }
 
         await ctx.db.delete(args.projectId);

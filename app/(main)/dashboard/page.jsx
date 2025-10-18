@@ -28,8 +28,7 @@ const Dashboard = () => {
     const [isModalOpen, setIsModalOpen] = useState({
         projectCreate: false,
     });
-
-    console.log(projectData);
+;
     return (
         <div className="pt-24 px-4 pb-4 flex flex-col gap-4 h-screen overflow-hidden">
             <div className="flex justify-between items-center ring-1 ring-slate-700/50 rounded-md px-2 py-1.5 w-full">

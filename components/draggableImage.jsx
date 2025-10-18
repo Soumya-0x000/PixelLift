@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import Image from 'next/image';
 
-const DraggableImage = ({ imageUrl }) => {
+const DraggableImage = React.memo(({ imageUrl }) => {
     const [position, setPosition] = useState({ x: 0, y: 0 });
     const [isDragging, setIsDragging] = useState(false);
     const [start, setStart] = useState({ x: 0, y: 0 });
@@ -45,6 +45,8 @@ const DraggableImage = ({ imageUrl }) => {
             />
         </div>
     );
-};
+});
+
+DraggableImage.displayName = 'DraggableImage';
 
 export default DraggableImage;

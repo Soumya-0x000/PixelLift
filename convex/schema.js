@@ -33,6 +33,7 @@ export default defineSchema({
         canvasState: v.any(),
         width: v.number(),
         height: v.number(),
+        size: v.number(),
 
         originalImageUrl: v.optional(v.string()),
         currentImageUrl: v.optional(v.string()),
@@ -43,6 +44,7 @@ export default defineSchema({
         backgroundRemoved: v.optional(v.boolean()),
 
         folderId: v.optional(v.id('folders')),
+        imgKitFileId: v.string(),
 
         createdAt: v.number(),
         updatedAt: v.number(),

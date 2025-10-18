@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import { Edit2, Calendar, ChevronRight, Trash2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { formatDate } from '@/utils/formatDate';
+import { Button } from '@/components/ui/button';
 
-const ProjectCard = ({ project, onEditProject, onDeleteProject }) => {
+const ProjectCard = React.memo(({ project, onEditProject, onDeleteProject }) => {
     const { title, description, thumbnailUrl, updatedAt } = project;
     const [isHovered, setIsHovered] = useState(false);
-
     const containerVariants = {
         hidden: {
             transition: {
@@ -98,32 +98,40 @@ const ProjectCard = ({ project, onEditProject, onDeleteProject }) => {
             </div>
 
             {/* Bottom Content */}
-            <div className="p-4 pt-3 h-32">
+            <div className="py-2 px-2 h-fit">
                 {/* Title */}
                 <span className="text-base font-semibold tracking-wide text-white line-clamp-1">
                     {title}
                 </span>
 
                 {/* Description - Optional, compact */}
-                <p className="text-xs text-slate-400 line-clamp-2 leading-4.5 h-9 hyphens-auto">
+                <p className="text-xs text-slate-400 line-clamp-1 w-full hyphens-auto">
                     {description}
                 </p>
 
                 {/* Bottom Row - Date & Action */}
-                <div className="flex items-center justify-between gap-2 pt-3">
+                <div className="flex items-end justify-between gap-2 pt-2.5">
                     {/* Date */}
-                    <div className="flex items-center gap-1.5 text-[0.8rem] text-slate-500">
-                        <Calendar size={14} className="flex-shrink-0" />
-                        <span>{formatDate(updatedAt)}</span>
+                    <div className="">
+                        <div className="flex items-center gap-1.5 text-[0.8rem] text-slate-500">
+                            <Calendar size={14} className="flex-shrink-0" />
+                            <span>{formatDate(updatedAt)}</span>
+                        </div>
+
+                        <div className="text-[0.6rem] flex items-center gap-1.5 text-slate-500 mt-1">
+                            <span className='px-1 py-0.5 ring-[0.5px] bg-slate-900  ring-slate-600 rounded-sm' >{`${project.width} x ${project.height}px`}</span>
+                            <span className='px-1 py-0.5 ring-[0.5px] bg-slate-900  ring-slate-600 rounded-sm' >{`${(project.size / (1024 * 1024)).toFixed(2)} MB`}</span>
+                        </div>
                     </div>
 
                     {/* Action Button - Inline */}
-                    <button
+                    <Button
                         onClick={e => {
                             e.stopPropagation();
                             onEditProject();
                         }}
-                        className="flex items-center gap-1.5 bg-indigo-500 hover:bg-indigo-600 text-indigo-100 text-xs font-semibold py-1.5 px-3 rounded-lg transition-all duration-200 active:scale-95 group/btn cursor-pointer overflow-hidden"
+                        variant={'outline'}
+                        className="flex items-center gap-1.5 text-slate-200 text-xs font-semibold p-0 px-3 rounded-lg transition-all duration-200 active:scale-95 group/btn cursor-pointer overflow-hidden"
                     >
                         <span>Open</span>
                         <span className="relative inline-flex w-5 h-5">
@@ -141,7 +149,7 @@ const ProjectCard = ({ project, onEditProject, onDeleteProject }) => {
                                 className="absolute -left-3 top-1/2 -translate-y-1/2 opacity-0 transition-all duration-300 ease-in-out group-hover/btn:left-[12px] group-hover/btn:-translate-x-1/2 group-hover/btn:opacity-100"
                             />
                         </span>
-                    </button>
+                    </Button>
                 </div>
             </div>
 
@@ -149,6 +157,8 @@ const ProjectCard = ({ project, onEditProject, onDeleteProject }) => {
             <div className="absolute inset-0 rounded-xl ring-1 ring-white/5 group-hover:ring-white/10 transition-all pointer-events-none" />
         </motion.div>
     );
-};
+});
+
+ProjectCard.displayName = 'ProjectCard';
 
 export default ProjectCard;

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import ProjectCard from './ProjectCard';
 import { useRouter } from 'next/navigation';
 import {
@@ -14,6 +14,8 @@ import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { api } from '@/convex/_generated/api';
 import { useConvexMutation } from '@/hooks/useConvexQuery';
+import { formatDistanceToNow } from 'date-fns/formatDistanceToNow';
+import useAPIContext from '@/app/context/APIcontext/useApiContext';
 
 const ProjectGrid = ({ projects }) => {
     const router = useRouter();
@@ -26,7 +28,13 @@ const ProjectGrid = ({ projects }) => {
         delete: false,
     });
     const [isDeleting, setIsDeleting] = useState(false);
-    const { mutate: deleteProjectMutation } = useConvexMutation(api.projects.deleteProject);
+    const { mutate: deleteProject, loading } = useConvexMutation(api.projects.deleteProject);
+    const { del } = useAPIContext();
+
+    const lastUpdated = useCallback(
+        () => formatDistanceToNow(selectedProject?.delete?.updatedAt, { addSuffix: true }),
+        [selectedProject?.delete?.updatedAt]
+    );
 
     const handleEditProject = item => {
         router.push(`/editor/${item?._id}`);
@@ -48,10 +56,23 @@ const ProjectGrid = ({ projects }) => {
 
         try {
             setIsDeleting(true);
-            throw new Error('Delete project API not implemented');
+            // Step 1: Delete from DB (Convex)
+            const response = await deleteProject({ projectId: selectedProject.delete._id });
+            const { success = false } = response;
+            if (!success) throw new Error('Failed to delete project');
+
+            // Step 2: Delete from ImageKit
+            const res = await del('/imagekit/delete', {
+                fileId: selectedProject.delete.imgKitFileId,
+            });
+            const { success: imgDeleteSuccess = false } = res;
+            if (!imgDeleteSuccess) throw new Error('Failed to delete image');
+
+            toast.success('Project deleted successfully');
+            router.refresh();
         } catch (error) {
-            console.error(`Error in deleting ${selectedProject?.delete?.title}`);
-            toast.info(error?.message || `Error in deleting ${selectedProject?.delete?.title}`);
+            console.error('Delete project error:', error);
+            toast.error(error.message || 'Something went wrong');
         } finally {
             setIsDeleting(false);
         }
