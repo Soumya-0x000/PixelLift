@@ -3,6 +3,9 @@ import { Edit2, Calendar, ChevronRight, Trash2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { formatDate } from '@/utils/formatDate';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { parseISO } from 'date-fns/parseISO';
+import { format } from 'date-fns/format';
 
 const ProjectCard = React.memo(({ project, onEditProject, onDeleteProject }) => {
     const { title, description, thumbnailUrl, updatedAt } = project;
@@ -42,6 +45,10 @@ const ProjectCard = React.memo(({ project, onEditProject, onDeleteProject }) => 
             },
         },
     };
+
+    const formattedDate = updatedAt
+        ? format(typeof updatedAt === 'string' ? parseISO(updatedAt) : new Date(updatedAt), 'PPP p')
+        : 'N/A';
 
     return (
         <motion.div
@@ -112,15 +119,24 @@ const ProjectCard = React.memo(({ project, onEditProject, onDeleteProject }) => 
                 {/* Bottom Row - Date & Action */}
                 <div className="flex items-end justify-between gap-2 pt-2.5">
                     {/* Date */}
-                    <div className="">
-                        <div className="flex items-center gap-1.5 text-[0.8rem] text-slate-500">
-                            <Calendar size={14} className="flex-shrink-0" />
-                            <span>{formatDate(updatedAt)}</span>
-                        </div>
+                    <div className="flex flex-col">
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <div className="flex items-center gap-1.5 text-[0.8rem] text-slate-500">
+                                    <Calendar size={14} className="flex-shrink-0" />
+                                    <span>{formatDate(updatedAt)}</span>
+                                </div>
+                            </TooltipTrigger>
+                            <TooltipContent
+                                className={`bg-slate-300 fill-slate-300 text-slate-900`}
+                            >
+                                {formattedDate}
+                            </TooltipContent>
+                        </Tooltip>
 
                         <div className="text-[0.6rem] flex items-center gap-1.5 text-slate-500 mt-1">
-                            <span className='px-1 py-0.5 ring-[0.5px] bg-slate-900  ring-slate-600 rounded-sm' >{`${project.width} x ${project.height}px`}</span>
-                            <span className='px-1 py-0.5 ring-[0.5px] bg-slate-900  ring-slate-600 rounded-sm' >{`${(project.size / (1024 * 1024)).toFixed(2)} MB`}</span>
+                            <span className="px-1 py-0.5 ring-[0.5px] bg-slate-900  ring-slate-600 rounded-sm line-clamp-1">{`${project.width} x ${project.height}px`}</span>
+                            <span className="px-1 py-0.5 ring-[0.5px] bg-slate-900  ring-slate-600 rounded-sm line-clamp-1">{`${(project.size / (1024 * 1024)).toFixed(2)} MB`}</span>
                         </div>
                     </div>
 

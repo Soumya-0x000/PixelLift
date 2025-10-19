@@ -65,6 +65,7 @@ export const APIProvider = ({ children }) => {
     };
 
     const del = async (endpoint, id) => {
+        console.log(endpoint, id)
         const { data, status } = await axiosInstance.delete(`${endpoint}/${id}`);
         return { data, status };
     };

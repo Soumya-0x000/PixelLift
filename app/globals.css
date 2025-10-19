@@ -43,25 +43,73 @@
     --radius-lg: var(--radius);
     --radius-xl: calc(var(--radius) + 4px);
     --animate-gradient: gradient 8s linear infinite;
-  @keyframes gradient {
-  to {
-    background-position: var(--bg-size, 300%) 0;
+    @keyframes gradient {
+        to {
+            background-position: var(--bg-size, 300%) 0;
         }
     }
-  --animate-orbit: orbit calc(var(--duration)*1s) linear infinite
-;
-  @keyframes orbit {
-  0% {
-    transform: rotate(calc(var(--angle) * 1deg)) translateY(calc(var(--radius) * 1px)) rotate(calc(var(--angle) * -1deg));}
-  100% {
-    transform: rotate(calc(var(--angle) * 1deg + 360deg)) translateY(calc(var(--radius) * 1px)) rotate(calc((var(--angle) * -1deg) - 360deg));}}
-  --animate-rippling: rippling var(--duration) ease-out;
-  @keyframes rippling {
-  0% {
-    opacity: 1;}
-  100% {
-    transform: scale(2);
-    opacity: 0;}}}
+    --animate-orbit: orbit calc(var(--duration) * 1s) linear infinite;
+    @keyframes orbit {
+        0% {
+            transform: rotate(calc(var(--angle) * 1deg)) translateY(calc(var(--radius) * 1px))
+                rotate(calc(var(--angle) * -1deg));
+        }
+        100% {
+            transform: rotate(calc(var(--angle) * 1deg + 360deg))
+                translateY(calc(var(--radius) * 1px)) rotate(calc((var(--angle) * -1deg) - 360deg));
+        }
+    }
+    --animate-rippling: rippling var(--duration) ease-out;
+    @keyframes rippling {
+        0% {
+            opacity: 1;
+        }
+        100% {
+            transform: scale(2);
+            opacity: 0;
+        }
+    }
+}
+
+@theme {
+    --breakpoint-*: initial;
+    --breakpoint-xs: 565px;
+    --breakpoint-sm: 640px;
+    --breakpoint-md: 768px;
+    --breakpoint-lg: 1024px;
+    --breakpoint-xl: 1280px;
+    --breakpoint-2xl: 1536px;
+}
+
+@layer utilities {
+    /* Thin scrollbar */
+    .scrollbar-thin {
+        scrollbar-width: thin; /* Firefox */
+    }
+
+    .scrollbar-thin::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    .scrollbar-thin::-webkit-scrollbar-thumb {
+        background-color: rgba(100, 100, 100, 0.5);
+        border-radius: 10px;
+    }
+
+    .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+        background-color: rgba(80, 80, 80, 0.7);
+    }
+
+    .scrollbar-thin::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    /* Dark mode thumb */
+    .dark .scrollbar-thin::-webkit-scrollbar-thumb {
+        background-color: rgba(160, 160, 160, 0.4);
+    }
+}
 
 :root {
     --radius: 0.625rem;
@@ -168,38 +216,38 @@ a,
 }
 
 body {
-  font-family: var(--font-poppins), sans-serif;
+    font-family: var(--font-poppins), sans-serif;
 }
 
-[role="dialog"].cl-drawerRoot {
-  z-index: 99999 !important;
+[role='dialog'].cl-drawerRoot {
+    z-index: 99999 !important;
 }
 
 /* Hide scrollbar arrows and make scrollbar minimal */
 ::-webkit-scrollbar-button {
-  display: none;
+    display: none;
 }
 
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+    width: 6px;
+    height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+    background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: rgba(100, 100, 100, 0.4);
-  border-radius: 9999px;
+    background-color: rgba(100, 100, 100, 0.4);
+    border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(100, 100, 100, 0.6);
+    background-color: rgba(100, 100, 100, 0.6);
 }
 
 /* Firefox support */
 * {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(100, 100, 100, 0.4) transparent;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(100, 100, 100, 0.4) transparent;
 }

@@ -46,6 +46,10 @@ export default defineSchema({
         folderId: v.optional(v.id('folders')),
         imgKitFileId: v.string(),
 
+        deleteStatus: v.optional(
+            v.union(v.literal('pending'), v.literal('deleted'), v.literal('failed'))
+        ),
+
         createdAt: v.number(),
         updatedAt: v.number(),
     })

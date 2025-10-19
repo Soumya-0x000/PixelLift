@@ -2,12 +2,6 @@ import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import { internal } from './_generated/api';
 
-const imageKit = new ImageKit({
-    publicKey: process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY,
-    privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
-    urlEndpoint: process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT,
-});
-
 export const create = mutation({
     args: {
         title: v.string(),
@@ -92,6 +86,52 @@ export const getUserProjects = query({
     },
 });
 
+export const updateProject = mutation({
+    args: {
+        projectId: v.id('projects'),
+        title: v.optional(v.string()),
+        description: v.optional(v.string()),
+        canvasState: v.optional(v.any()),
+        currentImageUrl: v.optional(v.string()),
+        thumbnailUrl: v.optional(v.string()),
+        deleteStatus: v.optional(
+            v.union(v.literal('pending'), v.literal('deleted'), v.literal('failed'))
+        ),
+    },
+    handler: async (ctx, args) => {
+        const user = await ctx.runQuery(internal.user.getCurrentUser);
+
+        if (!user) {
+            throw new Error('Not authenticated');
+        }
+
+        if (!args.projectId) {
+            throw new Error('Project ID is required');
+        }
+
+        const project = await ctx.db.get(args.projectId);
+
+        if (!project) {
+            throw new Error('Project not found');
+        }
+
+        if (project.userId !== user._id) {
+            throw new Error('Not authorized to update this project');
+        }
+
+        await ctx.db.patch(args.projectId, {
+            title: args.title ?? project.title,
+            description: args.description ?? project.description,
+            canvasState: args.canvasState ?? project.canvasState,
+            currentImageUrl: args.currentImageUrl ?? project.currentImageUrl,
+            thumbnailUrl: args.thumbnailUrl ?? project.thumbnailUrl,
+            deleteStatus: args.deleteStatus ?? project.deleteStatus,
+        });
+
+        return { success: true };
+    },
+});
+
 export const deleteProject = mutation({
     args: {
         projectId: v.id('projects'),
@@ -108,7 +148,7 @@ export const deleteProject = mutation({
         }
 
         const project = await ctx.db.get(args.projectId);
-        console.log(project?.userId)
+        console.log(project?.userId);
 
         if (!project) {
             throw new Error('Project not found');
@@ -116,15 +156,6 @@ export const deleteProject = mutation({
 
         if (project.userId !== user._id) {
             throw new Error('Not authorized to delete this project');
-        }
-
-        if (project.imgKitFileId) {
-            // Delete the file from ImageKit
-            try {
-                await imageKit.deleteFile(project.imgKitFileId);
-            } catch (error) {
-                console.error('Error deleting file from ImageKit:', error);
-            }
         }
 
         await ctx.db.delete(args.projectId);

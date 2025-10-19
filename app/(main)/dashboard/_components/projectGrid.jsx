@@ -29,6 +29,7 @@ const ProjectGrid = ({ projects }) => {
     });
     const [isDeleting, setIsDeleting] = useState(false);
     const { mutate: deleteProject, loading } = useConvexMutation(api.projects.deleteProject);
+    const { mutate: updateProject } = useConvexMutation(api.projects.updateProject);
     const { del } = useAPIContext();
 
     const lastUpdated = useCallback(
@@ -56,17 +57,24 @@ const ProjectGrid = ({ projects }) => {
 
         try {
             setIsDeleting(true);
-            // Step 1: Delete from DB (Convex)
-            const response = await deleteProject({ projectId: selectedProject.delete._id });
-            const { success = false } = response;
-            if (!success) throw new Error('Failed to delete project');
 
-            // Step 2: Delete from ImageKit
-            const res = await del('/imagekit/delete', {
-                fileId: selectedProject.delete.imgKitFileId,
+            // step 0, mark the project as 'pending' deletion
+            const markPendingRes = await updateProject({
+                projectId: selectedProject.delete._id,
+                deleteStatus: 'pending',
             });
-            const { success: imgDeleteSuccess = false } = res;
-            if (!imgDeleteSuccess) throw new Error('Failed to delete image');
+            const { success: markPendingSuccess = false } = markPendingRes;
+            if (!markPendingSuccess) throw new Error('Failed to mark project as pending deletion');
+
+            // Step 1: Delete from imagekit
+            const res = await del('/imagekit/delete', selectedProject.delete.imgKitFileId);
+            const { success: imgDeleteSuccess = false, status } = res;
+            if (!imgDeleteSuccess || status !== 204) throw new Error('Failed to delete image');
+
+            // Step 2: Delete from DB (Convex)
+            const response = await deleteProject({ projectId: selectedProject.delete._id });
+            const { success: projectDelSuccess = false } = response;
+            if (!projectDelSuccess) throw new Error('Failed to delete project');
 
             toast.success('Project deleted successfully');
             router.refresh();
@@ -79,15 +87,17 @@ const ProjectGrid = ({ projects }) => {
     };
 
     return (
-        <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6 overflow-auto w-full">
-            {projects?.map(project => (
-                <ProjectCard
-                    key={project?._id}
-                    project={project}
-                    onEditProject={handleEditProject}
-                    onDeleteProject={handleDeleteProject}
-                />
-            ))}
+        <>
+            <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 xl:gap-6 overflow-auto justify-items-center w-full">
+                {projects?.map(project => (
+                    <ProjectCard
+                        key={project?._id}
+                        project={project}
+                        onEditProject={handleEditProject}
+                        onDeleteProject={handleDeleteProject}
+                    />
+                ))}
+            </div>
 
             {/* Delete modal */}
             <Dialog
@@ -98,7 +108,9 @@ const ProjectGrid = ({ projects }) => {
                     <DialogHeader>
                         <DialogTitle>
                             <div className="flex gap-2 items-center w-full justify-start">
-                                <Avatar className={`w-8 h-8 mr-2 ring-1 ring-slate-700/50 flex`}>
+                                <Avatar
+                                    className={`w-6 xs:w-8 h-6 xs:h-8 ring-1 ring-slate-700/50 flex`}
+                                >
                                     <AvatarImage
                                         src={
                                             selectedProject?.delete?.thumbnailUrl ||
@@ -110,46 +122,50 @@ const ProjectGrid = ({ projects }) => {
                                         {selectedProject?.delete?.title}
                                     </AvatarFallback>
                                 </Avatar>
-                                <span>Delete Project "{selectedProject.delete?.title}"</span>
+                                <span className="text-[1rem] sm:text-base line-clamp-1 text-start w-[75%]">
+                                    Delete Project "{selectedProject.delete?.title}"
+                                </span>
                             </div>
                         </DialogTitle>
                     </DialogHeader>
 
-                    <div className="text-sm py-4">
+                    <div className="text-xs sm:text-sm py-4">
                         Are you sure you want to delete this project? This action cannot be undone.
                     </div>
 
                     <DialogFooter>
-                        <Button
-                            disabled={
-                                isDeleting ||
-                                !selectedProject?.delete?.title.trim() ||
-                                !selectedProject?.delete
-                            }
-                            className={`${!selectedProject?.delete && 'cursor-not-allowed pointer-events-none opacity-50'}`}
-                            variant={'secondary'}
-                            onClick={handleDeleteProjectSubmission}
-                        >
-                            {isDeleting ? (
-                                <>
-                                    <Loader2 className="mr-2 animate-spin" /> Deleting...
-                                </>
-                            ) : (
-                                'Delete Project'
-                            )}
-                        </Button>
+                        <div className="flex justify-end gap-3">
+                            <Button
+                                disabled={
+                                    isDeleting ||
+                                    !selectedProject?.delete?.title.trim() ||
+                                    !selectedProject?.delete
+                                }
+                                className={`${!selectedProject?.delete && 'cursor-not-allowed pointer-events-none opacity-50 w-fit'}`}
+                                variant={'secondary'}
+                                onClick={handleDeleteProjectSubmission}
+                            >
+                                {isDeleting ? (
+                                    <>
+                                        <Loader2 className="mr-2 animate-spin" /> Deleting...
+                                    </>
+                                ) : (
+                                    'Delete Project'
+                                )}
+                            </Button>
 
-                        <Button
-                            onClick={handleDialogCLose}
-                            variant="destructive"
-                            disabled={isDeleting}
-                        >
-                            Cancel
-                        </Button>
+                            <Button
+                                onClick={handleDialogCLose}
+                                variant="destructive"
+                                disabled={isDeleting}
+                            >
+                                Cancel
+                            </Button>
+                        </div>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-        </div>
+        </>
     );
 };
 
