@@ -68,7 +68,7 @@ const ProjectGrid = ({ projects }) => {
 
             // Step 1: Delete from imagekit
             const res = await del('/imagekit/delete', selectedProject.delete.imgKitFileId);
-            const { success: imgDeleteSuccess = false, status } = res;
+            const { data: { success: imgDeleteSuccess = false, status } = {} } = res;
             if (!imgDeleteSuccess || status !== 204) throw new Error('Failed to delete image');
 
             // Step 2: Delete from DB (Convex)

@@ -7,11 +7,14 @@ export async function DELETE(req, { params }) {
 
         if (!fileId) return NextResponse.json({ message: 'fileId missing' }, { status: 400 });
 
-        const { statusCode = 200, ...res } = await imagekit.deleteFile(fileId);
+        const {
+            $ResponseMetadata: { statusCode },
+        } = await imagekit.deleteFile(fileId);
         if (statusCode !== 204) {
             return NextResponse.json({ message: 'Failed to delete image' }, { status: statusCode });
         }
-        return NextResponse.json({ success: true, data: res }, { status: 204 });
+
+        return NextResponse.json({ success: true, status: statusCode }, { status: 200 });
     } catch (error) {
         console.error('Image delete error:', error);
         return NextResponse.json({ message: 'Failed to delete image' }, { status: 500 });

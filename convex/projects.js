@@ -137,6 +137,16 @@ export const deleteProject = mutation({
         projectId: v.id('projects'),
     },
     handler: async (ctx, args) => {
+        const project = await ctx.db.get(args.projectId);
+
+        if (!project) {
+            throw new Error('Project not found');
+        }
+
+        if (project.deleteStatus !== 'pending') {
+            throw new Error('Delete must be pending before final removal');
+        }
+
         const user = await ctx.runQuery(internal.user.getCurrentUser);
 
         if (!user) {
@@ -145,13 +155,6 @@ export const deleteProject = mutation({
 
         if (!args.projectId) {
             throw new Error('Project ID is required');
-        }
-
-        const project = await ctx.db.get(args.projectId);
-        console.log(project?.userId);
-
-        if (!project) {
-            throw new Error('Project not found');
         }
 
         if (project.userId !== user._id) {
