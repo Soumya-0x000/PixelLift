@@ -33,6 +33,7 @@ export default defineSchema({
         canvasState: v.any(),
         width: v.number(),
         height: v.number(),
+        size: v.number(),
 
         originalImageUrl: v.optional(v.string()),
         currentImageUrl: v.optional(v.string()),
@@ -43,13 +44,59 @@ export default defineSchema({
         backgroundRemoved: v.optional(v.boolean()),
 
         folderId: v.optional(v.id('folders')),
+        imgKitFileId: v.string(),
+
+        deleteStatus: v.optional(
+            v.union(v.literal('pending'), v.literal('deleted'), v.literal('failed'))
+        ),
+        failedAt: v.optional(v.number()),
+        retryCount: v.optional(v.number()),
+        maxRetries: v.optional(v.number()),
 
         createdAt: v.number(),
         updatedAt: v.number(),
     })
         .index('by_user', ['userId'])
         .index('by_user_updated', ['userId', 'updatedAt'])
-        .index('by_folder', ['folderId']),
+        .index('by_folder', ['folderId'])
+        .index('by_deleteStatus', ['deleteStatus']),
+
+    failedProjects: defineTable({
+        title: v.string(),
+        description: v.optional(v.string()),
+        userId: v.id('users'),
+
+        canvasState: v.any(),
+        width: v.number(),
+        height: v.number(),
+        size: v.number(),
+
+        originalImageUrl: v.optional(v.string()),
+        currentImageUrl: v.optional(v.string()),
+        thumbnailUrl: v.optional(v.string()),
+
+        activeTransformations: v.optional(v.string()),
+
+        backgroundRemoved: v.optional(v.boolean()),
+
+        folderId: v.optional(v.id('folders')),
+        imgKitFileId: v.string(),
+
+        deleteStatus: v.optional(
+            v.union(v.literal('pending'), v.literal('deleted'), v.literal('failed'))
+        ),
+        failedAt: v.optional(v.number()),
+        retryCount: v.optional(v.number()),
+        maxRetries: v.optional(v.number()),
+
+        createdAt: v.number(),
+        updatedAt: v.number(),
+    })
+        .index('by_user', ['userId'])
+        .index('by_user_updated', ['userId', 'updatedAt'])
+        .index('by_folder', ['folderId'])
+        .index('by_deleteStatus', ['deleteStatus'])
+        .index('by_failedAt', ['failedAt']),
 
     folder: defineTable({
         name: v.string(),

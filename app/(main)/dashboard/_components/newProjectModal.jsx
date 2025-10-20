@@ -22,12 +22,28 @@ import { BadgeInfo, Crown, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import React, { useCallback, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import DraggableImage from './draggableImage';
+import DraggableImage from '../../../../components/draggableImage';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import useAPIContext from '@/app/context/APIcontext/useApiContext';
 
 const allowedImageFormats = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+const projectInfoInputs = {
+    title: {
+        name: 'title',
+        label: 'Project Title',
+        type: 'text',
+        placeholder: 'Project Title',
+        value: '',
+    },
+    description: {
+        name: 'description',
+        label: 'Project Description',
+        type: 'text',
+        placeholder: 'Project Description',
+        value: '',
+    },
+};
 
 const NewProjectModal = ({ isOpen, onClose }) => {
     const { isApprenticeUser, isMasterUser, isDeityUser, planWiseLimit, checkLimit } =
@@ -38,12 +54,11 @@ const NewProjectModal = ({ isOpen, onClose }) => {
     const router = useRouter();
 
     const [isUploading, setIsUploading] = useState(false);
-    const initialProjectInfo = { title: '', description: '', error: '' };
-    const [projectInfo, setProjectInfo] = useState(initialProjectInfo);
     const [selectedFile, setSelectedFile] = useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
     const [openPlanUpgradeModal, setOpenPlanUpgradeModal] = useState(false);
     const { post } = useAPIContext();
+    const [projectInfo, setProjectInfo] = useState(projectInfoInputs);
 
     const currentProjectCount = projectData?.length || 0;
     const canCreateProject = useMemo(() => {
@@ -94,15 +109,15 @@ const NewProjectModal = ({ isOpen, onClose }) => {
         }
 
         if (!selectedFile) {
-            setProjectInfo({
-                ...projectInfo,
+            setProjectInfo(prev => ({
+                ...prev,
                 error: 'Project title is required',
-            });
+            }));
             toast.error('Please select an image.');
             return;
         }
 
-        if (!projectInfo?.title.trim()) {
+        if (!projectInfo?.title?.value?.trim()) {
             setProjectInfo({
                 ...projectInfo,
                 error: 'Project title is required',
@@ -127,17 +142,25 @@ const NewProjectModal = ({ isOpen, onClose }) => {
                 throw new Error(response?.error || 'Image upload failed');
             }
 
+            const formattedInfo = Object.entries(projectInfo)?.reduce((acc, [key, val]) => {
+                acc[key] = val?.value;
+                return acc;
+            }, {});
+
+            const projectDetails = {
+                ...formattedInfo,
+                originalImageUrl: response?.url || '',
+                currentImageUrl: response?.url || '',
+                thumbnailUrl: response?.thumbnailUrl || '',
+                width: response?.width || 800,
+                height: response?.height || 600,
+                imgKitFileId: response?.fileId || '',
+                size: response?.size || 0,
+                canvasState: null,
+            };
+
             if (success && status === 200) {
-                const projectId = await createProject({
-                    title: projectInfo?.title?.trim() || '',
-                    description: projectInfo?.description?.trim() || '',
-                    originalImageUrl: response?.url || '',
-                    currentImageUrl: response?.url || '',
-                    thumbnailUrl: response?.thumbnailUrl || '',
-                    width: response?.width || 800,
-                    height: response?.height || 600,
-                    canvasState: null,
-                });
+                const projectId = await createProject(projectDetails);
 
                 router.push(`/editor/${projectId}`);
                 toast.success('Project created successfully');
@@ -157,7 +180,7 @@ const NewProjectModal = ({ isOpen, onClose }) => {
     const handleDialogCLose = () => {
         if (isUploading) return;
         setIsUploading(false);
-        setProjectInfo(initialProjectInfo);
+        setProjectInfo(projectInfoInputs);
         setSelectedFile(null);
         setPreviewUrl(null);
         onClose();
@@ -165,7 +188,7 @@ const NewProjectModal = ({ isOpen, onClose }) => {
 
     const handleProjectInfoChange = e => {
         const { name, value } = e.target;
-        setProjectInfo({ ...projectInfo, [name]: value });
+        setProjectInfo(prev => ({ ...prev, [name]: { ...prev[name], value } }));
     };
 
     return (
@@ -234,26 +257,29 @@ const NewProjectModal = ({ isOpen, onClose }) => {
                     </AnimatePresence>
 
                     <div className=" w-full flex flex-col md:flex-row justify-center items-center gap-4">
-                        <Input
-                            type="text"
-                            value={projectInfo.title}
-                            onChange={handleProjectInfoChange}
-                            placeholder="Project Title"
-                            name="title"
-                        />
-                        <Input
-                            type="text"
-                            value={projectInfo.description}
-                            onChange={handleProjectInfoChange}
-                            placeholder="Project Description (optional)"
-                            name="description"
-                        />
+                        {Object.entries(projectInfo)?.map(([key, input], index) => (
+                            <Input
+                                key={`${index}_${key}`}
+                                type={input.type}
+                                value={input.value}
+                                onChange={handleProjectInfoChange}
+                                placeholder={input.placeholder}
+                                name={input.name}
+                                onKeyDown={e => {
+                                    if (e.key === 'Enter') {
+                                        handleProjectCreate();
+                                    }
+                                }}
+                            />
+                        ))}
                     </div>
 
                     <DialogFooter>
                         <Button
-                            disabled={isUploading || !projectInfo?.title.trim() || !selectedFile}
-                            className={`${!canCreateProject && 'cursor-not-allowed pointer-event s-none opacity-50'}`}
+                            disabled={
+                                isUploading || !projectInfo?.title?.value?.trim() || !selectedFile
+                            }
+                            className={`${!canCreateProject && 'cursor-not-allowed pointer-events-none opacity-50'}`}
                             variant={'secondary'}
                             onClick={handleProjectCreate}
                         >

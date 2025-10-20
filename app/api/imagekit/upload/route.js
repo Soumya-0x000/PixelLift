@@ -1,12 +1,7 @@
 import { auth } from '@clerk/nextjs/server';
-import ImageKit from 'imagekit';
+import { v4 as uuidv4 } from 'uuid';
 import { NextResponse } from 'next/server';
-
-const imageKit = new ImageKit({
-    publicKey: process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY,
-    privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
-    urlEndpoint: process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT,
-});
+import imagekit from '../config';
 
 export async function POST(req) {
     try {
@@ -25,17 +20,17 @@ export async function POST(req) {
 
         const bytes = await file.arrayBuffer();
         const buffer = Buffer.from(bytes);
-        const id = crypto.randomUUID();
+        const id = uuidv4();
 
-        const uniqueFileName = `${userId}_${id}`;
+        const uniqueFileName = `${fileName}_${userId}_${id}`;
 
-        const uploadResponse = await imageKit.upload({
+        const uploadResponse = await imagekit.upload({
             file: buffer,
             fileName: uniqueFileName,
             folder: '/pixellift-projects',
         });
 
-        const thumbnailUrl = imageKit.url({
+        const thumbnailUrl = imagekit.url({
             src: uploadResponse.url,
             transformation: [
                 {
@@ -56,7 +51,6 @@ export async function POST(req) {
             height: uploadResponse.height,
             size: uploadResponse.size,
             name: uploadResponse.name,
-            
         });
     } catch (error) {
         console.error('Upload error:', error);

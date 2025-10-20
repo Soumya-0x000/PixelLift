@@ -11,6 +11,8 @@ export const create = mutation({
         thumbnailUrl: v.optional(v.string()),
         width: v.number(),
         height: v.number(),
+        imgKitFileId: v.string(),
+        size: v.number(),
         canvasState: v.optional(v.any()),
     },
     handler: async (ctx, args) => {
@@ -45,6 +47,8 @@ export const create = mutation({
             thumbnailUrl: args.thumbnailUrl,
             width: args.width,
             height: args.height,
+            imgKitFileId: args.imgKitFileId,
+            size: args.size,
             canvasState: args.canvasState,
             userId: user._id,
             createdAt: Date.now(),
@@ -82,9 +86,17 @@ export const getUserProjects = query({
     },
 });
 
-export const deleteProject = mutation({
+export const updateProject = mutation({
     args: {
         projectId: v.id('projects'),
+        title: v.optional(v.string()),
+        description: v.optional(v.string()),
+        canvasState: v.optional(v.any()),
+        currentImageUrl: v.optional(v.string()),
+        thumbnailUrl: v.optional(v.string()),
+        deleteStatus: v.optional(
+            v.union(v.literal('pending'), v.literal('deleted'), v.literal('failed'))
+        ),
     },
     handler: async (ctx, args) => {
         const user = await ctx.runQuery(internal.user.getCurrentUser);
@@ -103,7 +115,49 @@ export const deleteProject = mutation({
             throw new Error('Project not found');
         }
 
-        if (project.userId._id !== user._id) {
+        if (project.userId !== user._id) {
+            throw new Error('Not authorized to update this project');
+        }
+
+        await ctx.db.patch(args.projectId, {
+            title: args.title ?? project.title,
+            description: args.description ?? project.description,
+            canvasState: args.canvasState ?? project.canvasState,
+            currentImageUrl: args.currentImageUrl ?? project.currentImageUrl,
+            thumbnailUrl: args.thumbnailUrl ?? project.thumbnailUrl,
+            deleteStatus: args.deleteStatus ?? project.deleteStatus,
+        });
+
+        return { success: true };
+    },
+});
+
+export const deleteProject = mutation({
+    args: {
+        projectId: v.id('projects'),
+    },
+    handler: async (ctx, args) => {
+        const project = await ctx.db.get(args.projectId);
+
+        if (!project) {
+            throw new Error('Project not found');
+        }
+
+        if (project.deleteStatus !== 'pending') {
+            throw new Error('Delete must be pending before final removal');
+        }
+
+        const user = await ctx.runQuery(internal.user.getCurrentUser);
+
+        if (!user) {
+            throw new Error('Not authenticated');
+        }
+
+        if (!args.projectId) {
+            throw new Error('Project ID is required');
+        }
+
+        if (project.userId !== user._id) {
             throw new Error('Not authorized to delete this project');
         }
 
