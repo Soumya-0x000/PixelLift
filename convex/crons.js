@@ -15,4 +15,6 @@ crons.interval(
     internal.cronJobs.cleanupOldFailedProjects
 );
 
+crons.interval('reset monthly usage', { hours: 15 * 24 }, internal.cronJobs.auditOrphanedFiles);
+
 export default crons;
