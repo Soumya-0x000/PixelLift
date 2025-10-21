@@ -6,11 +6,25 @@ export const cleanupPendingProjects = internalAction({
     handler: async ctx => {
         // Get all projects that are pending or failed but still eligible for retry
         const pendingProjects = await ctx.runMutation(internal.cronJobs.getPendingProjects);
+        const failedProjects = await ctx.runMutation(internal.cronJobs.getFailedProjects);
 
         let successCount = 0;
         let failCount = 0;
 
-        if (!pendingProjects.length) return { success: true, processed: 0, succeeded: 0, failed: 0 };
+        if (!failedProjects.length) {
+            console.error('No failed projects remaining after cleanup.');
+            return { success: true, processed: 0, succeeded: 0, failed: 0 };
+        }
+        if (failedProjects.length > 0) {
+            for (const project of failedProjects) {
+                await ctx.runMutation(internal.cronJobs.moveToFailedProjects, {
+                    projectId: project._id,
+                });
+            }
+        }
+
+        if (!pendingProjects.length)
+            return { success: true, processed: 0, succeeded: 0, failed: 0 };
 
         for (const project of pendingProjects) {
             try {
@@ -43,9 +57,9 @@ export const cleanupPendingProjects = internalAction({
                         });
                     } else {
                         // Update retry count and leave deleteStatus as 'pending'
-                        await ctx.db.patch(project._id, {
+                        await ctx.runMutation(internal.cronJobs.updateRetryCount, {
+                            projectId: project._id,
                             retryCount: newRetryCount,
-                            failedAt: Date.now(),
                         });
                     }
 
@@ -113,17 +127,27 @@ export const deleteProjectRecord = internalMutation({
 
 // Move project to failedProjects table and delete from projects
 export const moveToFailedProjects = internalMutation({
-    args: { projectId: v.id('projects') },
+    args: {
+        projectId: v.id('projects'),
+    },
     handler: async (ctx, { projectId }) => {
         const project = await ctx.db.get(projectId);
-        if (!project) return { success: false, message: 'Project not found' };
 
+        if (!project) {
+            throw new Error('Project not found');
+        }
+
+        // Create a new document WITHOUT the _id and _creationTime fields
+        const { _id, _creationTime, ...projectData } = project;
+
+        // Insert into failedProjects (Convex will generate a new ID)
         await ctx.db.insert('failedProjects', {
-            ...project,
+            ...projectData,
             deleteStatus: 'failed',
             failedAt: Date.now(),
         });
 
+        // Delete from projects table
         await ctx.db.delete(projectId);
 
         return { success: true };
@@ -143,5 +167,18 @@ export const cleanupOldFailedProjects = internalMutation({
         }
 
         return { deleted: oldFailed.length };
+    },
+});
+
+export const updateRetryCount = internalMutation({
+    args: {
+        projectId: v.id('projects'),
+        retryCount: v.number(),
+    },
+    handler: async (ctx, { projectId, retryCount }) => {
+        await ctx.db.patch(projectId, {
+            retryCount,
+            failedAt: Date.now(),
+        });
     },
 });
