@@ -52,7 +52,14 @@ const ProjectGrid = ({ projects }) => {
         router.push(`/editor/${item?._id}`);
     };
 
+    const handleDeleteProject = item => {
+        setSelectedProject({ ...selectedProject, delete: item });
+        setOpenProjectModal({ ...openProjectModal, delete: true });
+    };
+
     const handleDelegatedClick = e => {
+        const action = e.target?.dataset?.action;
+        console.log(action)
         const projectCard = e.target.closest('[data-id]');
         if (!projectCard) {
             toast.error('Project not found');
@@ -67,11 +74,6 @@ const ProjectGrid = ({ projects }) => {
         }
 
         handleEditProject(project);
-    };
-
-    const handleDeleteProject = item => {
-        setSelectedProject({ ...selectedProject, delete: item });
-        setOpenProjectModal({ ...openProjectModal, delete: true });
     };
 
     const handleDialogCLose = () => {
@@ -123,12 +125,7 @@ const ProjectGrid = ({ projects }) => {
                 onClick={handleDelegatedClick}
             >
                 {projects?.map(project => (
-                    <ProjectCard
-                        key={project?._id}
-                        project={project}
-                        // onEditProject={handleEditProject}
-                        onDeleteProject={handleDeleteProject}
-                    />
+                    <ProjectCard key={project?._id} project={project} />
                 ))}
             </div>
 

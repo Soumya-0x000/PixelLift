@@ -7,7 +7,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { parseISO } from 'date-fns/parseISO';
 import { format } from 'date-fns/format';
 
-const ProjectCard = React.memo(({ project,  onDeleteProject }) => {
+const ProjectCard = React.memo(({ project }) => {
     const { title, description, thumbnailUrl, updatedAt } = project;
     const [isHovered, setIsHovered] = useState(false);
     const containerVariants = {
@@ -55,7 +55,6 @@ const ProjectCard = React.memo(({ project,  onDeleteProject }) => {
             className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-slate-900 to-slate-800 shadow-lg hover:shadow-2xl transition-all duration-300 w-full max-w-sm h-fit"
             onHoverStart={() => setIsHovered(true)}
             onHoverEnd={() => setIsHovered(false)}
-            data-id={project._id}
         >
             {/* Image Container - Compact */}
             <div className="relative w-full h-40 overflow-hidden">
@@ -76,10 +75,9 @@ const ProjectCard = React.memo(({ project,  onDeleteProject }) => {
                     variants={containerVariants}
                 >
                     <motion.button
-                        onClick={e => {
-                            e.stopPropagation();
-                            onEditProject(project);
-                        }}
+                        data-action="edit"
+                        data-id={project._id}
+                        onClick={e => e.stopPropagation()}
                         className="bg-white/10 backdrop-blur-md hover:bg-yellow-400/40 cursor-pointer text-white rounded-full p-2"
                         aria-label="Edit"
                         variants={buttonVariants}
@@ -90,10 +88,9 @@ const ProjectCard = React.memo(({ project,  onDeleteProject }) => {
                     </motion.button>
 
                     <motion.button
-                        onClick={e => {
-                            e.stopPropagation();
-                            onDeleteProject(project);
-                        }}
+                        data-action="delete"
+                        data-id={project._id}
+                        onClick={e => e.stopPropagation()}
                         className="bg-white/10 backdrop-blur-md hover:bg-red-400/40 cursor-pointer text-red-100 rounded-full p-2"
                         aria-label="Delete"
                         variants={buttonVariants}
