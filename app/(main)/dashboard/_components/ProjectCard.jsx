@@ -112,7 +112,7 @@ const ProjectCard = React.memo(({ project, onEditProject, onDeleteProject }) => 
                 </span>
 
                 {/* Description - Optional, compact */}
-                <p className="text-xs text-slate-400 line-clamp-1 w-full hyphens-auto">
+                <p className="text-xs text-slate-400 line-clamp-1 w-full hyphens-auto h-4.5">
                     {description}
                 </p>
 

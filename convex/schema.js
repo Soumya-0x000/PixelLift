@@ -47,7 +47,12 @@ export default defineSchema({
         imgKitFileId: v.string(),
 
         deleteStatus: v.optional(
-            v.union(v.literal('pending'), v.literal('deleted'), v.literal('failed'))
+            v.union(
+                v.literal('none'),
+                v.literal('pending'),
+                v.literal('deleted'),
+                v.literal('failed')
+            )
         ),
         failedAt: v.optional(v.number()),
         retryCount: v.optional(v.number()),
@@ -82,9 +87,7 @@ export default defineSchema({
         folderId: v.optional(v.id('folders')),
         imgKitFileId: v.string(),
 
-        deleteStatus: v.optional(
-            v.union(v.literal('pending'), v.literal('deleted'), v.literal('failed'))
-        ),
+        deleteStatus: v.optional(v.union(v.literal('deleted'), v.literal('failed'))),
         failedAt: v.optional(v.number()),
         retryCount: v.optional(v.number()),
         maxRetries: v.optional(v.number()),

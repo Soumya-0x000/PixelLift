@@ -50,32 +50,81 @@ export const cleanupPendingProjects = internalAction({
 });
 
 /**
- * Weekly audit - finds and cleans up orphaned files
+ * Comprehensive audit - finds and cleans up all orphaned files
+ * Handles both active projects and failed projects
  */
 export const auditOrphanedFiles = internalAction({
     handler: async ctx => {
+        // Get active projects (deleteStatus is undefined/null)
+        const activeProjects = await ctx.runMutation(
+            internal.cronHelpers.projectQueries.getActiveProjects
+        );
+
+        // Get failed projects from archive
         const failedProjects = await ctx.runMutation(
             internal.cronHelpers.projectQueries.getFailedProjectsFromTable
         );
 
-        if (!failedProjects.length) {
-            return { audited: 0, cleanedUp: 0, filesDeleted: 0 };
-        }
+        let dbOrphans = 0; // DB record but no ImageKit file
+        let filesDeleted = 0; // ImageKit file deleted
 
-        let cleanedUp = 0;
-        let filesDeleted = 0;
-
-        for (const project of failedProjects) {
-            const result = await ctx.runAction(
-                internal.cronHelpers.projectCleanup.auditSingleFailedProject,
-                { project }
+        // Audit active projects
+        for (const project of activeProjects) {
+            const { exists } = await ctx.runAction(
+                internal.cronHelpers.imageKit.checkFileExists,
+                { fileId: project.imgKitFileId }
             );
 
-            if (result.cleaned) cleanedUp++;
-            if (result.deleted) filesDeleted++;
+            if (exists === false) {
+                // ImageKit file gone - clean up DB
+                await ctx.runMutation(
+                    internal.cronHelpers.projectMutations.deleteProjectRecord,
+                    { projectId: project._id }
+                );
+                dbOrphans++;
+                console.log(`🗑️ Cleaned up active project (no ImageKit file): ${project._id}`);
+            }
         }
 
-        return { audited: failedProjects.length, cleanedUp, filesDeleted };
+        // Audit failed projects
+        for (const project of failedProjects) {
+            const { exists } = await ctx.runAction(
+                internal.cronHelpers.imageKit.checkFileExists,
+                { fileId: project.imgKitFileId }
+            );
+
+            if (exists === false) {
+                // ImageKit file already gone - safe to remove from DB
+                await ctx.runMutation(
+                    internal.cronHelpers.projectMutations.deleteFailedProjectRecord,
+                    { projectId: project._id }
+                );
+                dbOrphans++;
+                console.log(`🗑️ Cleaned up failed project (no ImageKit file): ${project._id}`);
+            } else if (exists === true) {
+                // ImageKit file still exists - delete it
+                const { success } = await ctx.runAction(
+                    internal.cronHelpers.imageKit.deleteFile,
+                    { fileId: project.imgKitFileId }
+                );
+
+                if (success) {
+                    await ctx.runMutation(
+                        internal.cronHelpers.projectMutations.deleteFailedProjectRecord,
+                        { projectId: project._id }
+                    );
+                    filesDeleted++;
+                    console.log(`🗑️ Deleted ImageKit file & cleaned failed project: ${project._id}`);
+                }
+            }
+        }
+
+        return {
+            audited: activeProjects.length + failedProjects.length,
+            dbOrphans,
+            filesDeleted,
+            totalCleaned: dbOrphans + filesDeleted,
+        };
     },
 });
 
