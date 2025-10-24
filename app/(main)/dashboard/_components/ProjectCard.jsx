@@ -7,7 +7,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { parseISO } from 'date-fns/parseISO';
 import { format } from 'date-fns/format';
 
-const ProjectCard = React.memo(({ project, onEditProject, onDeleteProject }) => {
+const ProjectCard = React.memo(({ project,  onDeleteProject }) => {
     const { title, description, thumbnailUrl, updatedAt } = project;
     const [isHovered, setIsHovered] = useState(false);
     const containerVariants = {
@@ -55,6 +55,7 @@ const ProjectCard = React.memo(({ project, onEditProject, onDeleteProject }) => 
             className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-slate-900 to-slate-800 shadow-lg hover:shadow-2xl transition-all duration-300 w-full max-w-sm h-fit"
             onHoverStart={() => setIsHovered(true)}
             onHoverEnd={() => setIsHovered(false)}
+            data-id={project._id}
         >
             {/* Image Container - Compact */}
             <div className="relative w-full h-40 overflow-hidden">
@@ -142,10 +143,9 @@ const ProjectCard = React.memo(({ project, onEditProject, onDeleteProject }) => 
 
                     {/* Action Button - Inline */}
                     <Button
-                        onClick={e => {
-                            e.stopPropagation();
-                            onEditProject();
-                        }}
+                        data-action="edit"
+                        data-id={project._id}
+                        onClick={e => e.stopPropagation()}
                         variant={'outline'}
                         className="flex items-center gap-1.5 text-slate-200 text-xs font-semibold p-0 px-3 rounded-lg transition-all duration-200 active:scale-95 group/btn cursor-pointer overflow-hidden"
                     >

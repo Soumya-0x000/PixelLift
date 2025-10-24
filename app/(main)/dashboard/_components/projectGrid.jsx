@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import ProjectCard from './ProjectCard';
 import { useRouter } from 'next/navigation';
 import {
@@ -37,8 +37,36 @@ const ProjectGrid = ({ projects }) => {
         [selectedProject?.delete?.updatedAt]
     );
 
+    // Create a Map for O(1) lookup
+    const projectMap = useMemo(() => {
+        const mp = new Map();
+        projects.forEach(p => mp.set(p._id, p));
+        return mp;
+    }, [projects]);
+
     const handleEditProject = item => {
+        if (!item?._id) {
+            toast.error('Invalid project ID');
+            return;
+        }
         router.push(`/editor/${item?._id}`);
+    };
+
+    const handleDelegatedClick = e => {
+        const projectCard = e.target.closest('[data-id]');
+        if (!projectCard) {
+            toast.error('Project not found');
+            return;
+        }
+
+        const projectId = projectCard.dataset.id;
+        const project = projectMap.get(projectId);
+        if (!project) {
+            toast.error('Project not found');
+            return;
+        }
+
+        handleEditProject(project);
     };
 
     const handleDeleteProject = item => {
@@ -83,17 +111,22 @@ const ProjectGrid = ({ projects }) => {
             toast.error(error.message || 'Something went wrong');
         } finally {
             setIsDeleting(false);
+            setOpenProjectModal(prev => ({ ...prev, delete: false }));
+            setSelectedProject({ edit: null, delete: null });
         }
     };
 
     return (
         <>
-            <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 xl:gap-6 overflow-auto justify-items-center w-full">
+            <div
+                className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 xl:gap-6 overflow-auto justify-items-center w-full"
+                onClick={handleDelegatedClick}
+            >
                 {projects?.map(project => (
                     <ProjectCard
                         key={project?._id}
                         project={project}
-                        onEditProject={handleEditProject}
+                        // onEditProject={handleEditProject}
                         onDeleteProject={handleDeleteProject}
                     />
                 ))}
