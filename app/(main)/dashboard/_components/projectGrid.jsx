@@ -15,7 +15,7 @@ import { toast } from 'sonner';
 import { api } from '@/convex/_generated/api';
 import { useConvexMutation } from '@/hooks/useConvexQuery';
 import { formatDistanceToNow } from 'date-fns/formatDistanceToNow';
-import useAPIContext from '@/app/context/APIcontext/useApiContext';
+import useAPIContext from '@/context/APIcontext/useApiContext';
 
 const ProjectGrid = ({ projects }) => {
     const router = useRouter();
@@ -44,12 +44,12 @@ const ProjectGrid = ({ projects }) => {
         return mp;
     }, [projects]);
 
-    const handleEditProject = item => {
-        if (!item?._id) {
+    const handleEditProject = projectId => {
+        if (!projectId) {
             toast.error('Invalid project ID');
             return;
         }
-        router.push(`/editor/${item?._id}`);
+        router.push(`/editor/${projectId}`);
     };
 
     const handleDeleteProject = item => {
@@ -58,22 +58,31 @@ const ProjectGrid = ({ projects }) => {
     };
 
     const handleDelegatedClick = e => {
-        const action = e.target?.dataset?.action;
-        console.log(action)
-        const projectCard = e.target.closest('[data-id]');
-        if (!projectCard) {
-            toast.error('Project not found');
+        // Find the closest element with data-action attribute
+        const actionButton = e.target.closest('[data-action]');
+
+        if (!actionButton) {
+            toast.error('No action button found');
             return;
         }
 
-        const projectId = projectCard.dataset.id;
-        const project = projectMap.get(projectId);
-        if (!project) {
-            toast.error('Project not found');
+        const { action, id: projectID } = actionButton.dataset;
+
+        if (!action) {
+            toast.error('No action specified');
             return;
         }
 
-        handleEditProject(project);
+        if (!projectID) {
+            toast.error('No project ID specified');
+            return;
+        }
+
+        if (action === 'edit') {
+            handleEditProject(projectID);
+        } else if (action === 'delete') {
+            handleDeleteProject(projectMap.get(projectID));
+        }
     };
 
     const handleDialogCLose = () => {

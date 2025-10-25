@@ -77,7 +77,7 @@ const ProjectCard = React.memo(({ project }) => {
                     <motion.button
                         data-action="edit"
                         data-id={project._id}
-                        onClick={e => e.stopPropagation()}
+                        // onClick={e => e.stopPropagation()}
                         className="bg-white/10 backdrop-blur-md hover:bg-yellow-400/40 cursor-pointer text-white rounded-full p-2"
                         aria-label="Edit"
                         variants={buttonVariants}
@@ -90,7 +90,7 @@ const ProjectCard = React.memo(({ project }) => {
                     <motion.button
                         data-action="delete"
                         data-id={project._id}
-                        onClick={e => e.stopPropagation()}
+                        // onClick={e => e.stopPropagation()}
                         className="bg-white/10 backdrop-blur-md hover:bg-red-400/40 cursor-pointer text-red-100 rounded-full p-2"
                         aria-label="Delete"
                         variants={buttonVariants}
@@ -142,7 +142,7 @@ const ProjectCard = React.memo(({ project }) => {
                     <Button
                         data-action="edit"
                         data-id={project._id}
-                        onClick={e => e.stopPropagation()}
+                        // onClick={e => e.stopPropagation()}
                         variant={'outline'}
                         className="flex items-center gap-1.5 text-slate-200 text-xs font-semibold p-0 px-3 rounded-lg transition-all duration-200 active:scale-95 group/btn cursor-pointer overflow-hidden"
                     >

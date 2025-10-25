@@ -25,7 +25,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import DraggableImage from '../../../../components/draggableImage';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-import useAPIContext from '@/app/context/APIcontext/useApiContext';
+import useAPIContext from '@/context/APIcontext/useApiContext';
 
 const allowedImageFormats = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 const projectInfoInputs = {
