@@ -7,7 +7,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { parseISO } from 'date-fns/parseISO';
 import { format } from 'date-fns/format';
 
-const ProjectCard = React.memo(({ project, onEditProject, onDeleteProject }) => {
+const ProjectCard = React.memo(({ project }) => {
     const { title, description, thumbnailUrl, updatedAt } = project;
     const [isHovered, setIsHovered] = useState(false);
     const containerVariants = {
@@ -75,10 +75,9 @@ const ProjectCard = React.memo(({ project, onEditProject, onDeleteProject }) => 
                     variants={containerVariants}
                 >
                     <motion.button
-                        onClick={e => {
-                            e.stopPropagation();
-                            onEditProject(project);
-                        }}
+                        data-action="edit"
+                        data-id={project._id}
+                        // onClick={e => e.stopPropagation()}
                         className="bg-white/10 backdrop-blur-md hover:bg-yellow-400/40 cursor-pointer text-white rounded-full p-2"
                         aria-label="Edit"
                         variants={buttonVariants}
@@ -89,10 +88,9 @@ const ProjectCard = React.memo(({ project, onEditProject, onDeleteProject }) => 
                     </motion.button>
 
                     <motion.button
-                        onClick={e => {
-                            e.stopPropagation();
-                            onDeleteProject(project);
-                        }}
+                        data-action="delete"
+                        data-id={project._id}
+                        // onClick={e => e.stopPropagation()}
                         className="bg-white/10 backdrop-blur-md hover:bg-red-400/40 cursor-pointer text-red-100 rounded-full p-2"
                         aria-label="Delete"
                         variants={buttonVariants}
@@ -112,7 +110,7 @@ const ProjectCard = React.memo(({ project, onEditProject, onDeleteProject }) => 
                 </span>
 
                 {/* Description - Optional, compact */}
-                <p className="text-xs text-slate-400 line-clamp-1 w-full hyphens-auto">
+                <p className="text-xs text-slate-400 line-clamp-1 w-full hyphens-auto h-4.5">
                     {description}
                 </p>
 
@@ -142,10 +140,9 @@ const ProjectCard = React.memo(({ project, onEditProject, onDeleteProject }) => 
 
                     {/* Action Button - Inline */}
                     <Button
-                        onClick={e => {
-                            e.stopPropagation();
-                            onEditProject();
-                        }}
+                        data-action="edit"
+                        data-id={project._id}
+                        // onClick={e => e.stopPropagation()}
                         variant={'outline'}
                         className="flex items-center gap-1.5 text-slate-200 text-xs font-semibold p-0 px-3 rounded-lg transition-all duration-200 active:scale-95 group/btn cursor-pointer overflow-hidden"
                     >

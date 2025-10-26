@@ -51,6 +51,7 @@ export const create = mutation({
             size: args.size,
             canvasState: args.canvasState,
             userId: user._id,
+            deleteStatus: 'none',
             createdAt: Date.now(),
             updatedAt: Date.now(),
         });

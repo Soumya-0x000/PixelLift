@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import ProjectCard from './ProjectCard';
 import { useRouter } from 'next/navigation';
 import {
@@ -15,7 +15,7 @@ import { toast } from 'sonner';
 import { api } from '@/convex/_generated/api';
 import { useConvexMutation } from '@/hooks/useConvexQuery';
 import { formatDistanceToNow } from 'date-fns/formatDistanceToNow';
-import useAPIContext from '@/app/context/APIcontext/useApiContext';
+import useAPIContext from '@/context/APIcontext/useApiContext';
 
 const ProjectGrid = ({ projects }) => {
     const router = useRouter();
@@ -37,13 +37,49 @@ const ProjectGrid = ({ projects }) => {
         [selectedProject?.delete?.updatedAt]
     );
 
-    const handleEditProject = item => {
-        router.push(`/editor/${item?._id}`);
+    // Create a Map for O(1) lookup
+    const projectMap = useMemo(() => {
+        const mp = new Map();
+        projects.forEach(p => mp.set(p._id, p));
+        return mp;
+    }, [projects]);
+
+    const handleEditProject = projectId => {
+        if (!projectId) {
+            toast.error('Invalid project ID');
+            return;
+        }
+        router.push(`/editor/${projectId}`);
     };
 
     const handleDeleteProject = item => {
         setSelectedProject({ ...selectedProject, delete: item });
         setOpenProjectModal({ ...openProjectModal, delete: true });
+    };
+
+    const handleDelegatedClick = e => {
+        // Find the closest element with data-action attribute
+        const actionButton = e.target.closest('[data-action]');
+
+        if (!actionButton) return;
+
+        const { action, id: projectID } = actionButton.dataset;
+
+        if (!action) {
+            toast.error('No action specified');
+            return;
+        }
+
+        if (!projectID) {
+            toast.error('No project ID specified');
+            return;
+        }
+
+        if (action === 'edit') {
+            handleEditProject(projectID);
+        } else if (action === 'delete') {
+            handleDeleteProject(projectMap.get(projectID));
+        }
     };
 
     const handleDialogCLose = () => {
@@ -83,19 +119,19 @@ const ProjectGrid = ({ projects }) => {
             toast.error(error.message || 'Something went wrong');
         } finally {
             setIsDeleting(false);
+            setOpenProjectModal(prev => ({ ...prev, delete: false }));
+            setSelectedProject({ edit: null, delete: null });
         }
     };
 
     return (
         <>
-            <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 xl:gap-6 overflow-auto justify-items-center w-full">
+            <div
+                className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 xl:gap-6 overflow-auto justify-items-center w-full"
+                onClick={handleDelegatedClick}
+            >
                 {projects?.map(project => (
-                    <ProjectCard
-                        key={project?._id}
-                        project={project}
-                        onEditProject={handleEditProject}
-                        onDeleteProject={handleDeleteProject}
-                    />
+                    <ProjectCard key={project?._id} project={project} />
                 ))}
             </div>
 
