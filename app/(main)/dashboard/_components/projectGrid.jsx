@@ -61,10 +61,7 @@ const ProjectGrid = ({ projects }) => {
         // Find the closest element with data-action attribute
         const actionButton = e.target.closest('[data-action]');
 
-        if (!actionButton) {
-            toast.error('No action button found');
-            return;
-        }
+        if (!actionButton) return;
 
         const { action, id: projectID } = actionButton.dataset;
 
