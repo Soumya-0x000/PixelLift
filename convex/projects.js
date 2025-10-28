@@ -191,23 +191,58 @@ export const getProjectById = query({
         projectId: v.id('projects'),
     },
     handler: async (ctx, args) => {
-        console.log(args)
-        const user = await ctx.runQuery(internal.user.getCurrentUser);
+        try {
+            const identity = await ctx.auth.getUserIdentity();
+            if (!identity) {
+                return {
+                    success: false,
+                    error: 'Not authenticated',
+                    data: null,
+                };
+            }
 
-        if (!user) {
-            throw new Error('Not authenticated');
+            const user = await ctx.db
+                .query('users')
+                .withIndex('by_token', q => q.eq('tokenIdentifier', identity.tokenIdentifier))
+                .unique();
+
+            if (!user) {
+                return {
+                    success: false,
+                    error: 'Not authenticated',
+                    data: null,
+                };
+            }
+
+            const project = await ctx.db.get(args.projectId);
+
+            if (!project) {
+                return {
+                    success: false,
+                    error: 'Project not found',
+                    data: null,
+                };
+            }
+
+            if (project.userId !== user._id) {
+                return {
+                    success: false,
+                    error: 'Not authorized to access this project',
+                    data: null,
+                };
+            }
+
+            return {
+                success: true,
+                error: null,
+                data: project,
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: error.message || 'An error occurred',
+                data: null,
+            };
         }
-
-        const project = await ctx.db.get(args.projectId);
-
-        if (!project) {
-            throw new Error('Project not found');
-        }
-
-        if (project.userId !== user._id) {
-            throw new Error('Not authorized to access this project');
-        }
-
-        return project;
     },
 });
