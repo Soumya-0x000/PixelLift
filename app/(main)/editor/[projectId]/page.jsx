@@ -2,21 +2,22 @@
 
 import { useParams } from 'next/navigation';
 import { useEffect, useState, useCallback, memo } from 'react';
-import CanvasContext from '@/context/canvasContext/CanvasContext';
+import { CanvasProvider } from '@/context/canvasContext/CanvasContext';
+import useCanvasContext from '@/context/canvasContext/useCanvasContext';
 import GotoDesktopWarning from '@/components/GotoDesktopWarning';
 import { api } from '@/convex/_generated/api';
 import { MoonLoader } from 'react-spinners';
 import { motion, AnimatePresence } from 'motion/react';
 import { useConvex } from 'convex/react';
 import { Loader } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import CanvasEditor from './_components/CanvasEditor';
 
-const Editor = memo(() => {
+const EditorContent = memo(() => {
     const { projectId } = useParams();
     const convex = useConvex();
 
-    const [canvasEditor, setCanvasEditor] = useState(null);
-    const [processingMessage, setProcessingMessage] = useState('');
-    const [activeTool, setActiveTool] = useState('resize');
+    const { processingMessage } = useCanvasContext();
 
     const [isLoading, setIsLoading] = useState(true);
     const [projectData, setProjectData] = useState(null);
@@ -44,21 +45,13 @@ const Editor = memo(() => {
         fetchProject();
     }, [fetchProject]);
 
-    const contextData = {
-        canvasEditor,
-        setCanvasEditor,
-        processingMessage,
-        setProcessingMessage,
-        activeTool,
-        setActiveTool,
-    };
-
     const showLoader = isLoading;
     const showError = !isLoading && (error || !projectData);
     const showEditor = !isLoading && projectData && !error;
+    const deactiveBehindActivity = Boolean(processingMessage || isLoading);
 
     return (
-        <CanvasContext.Provider value={contextData}>
+        <>
             {/* Loader */}
             {showLoader && (
                 <div className="w-full h-screen flex items-center justify-center fixed top-0 left-0 z-50 bg-white/5 backdrop-blur-md">
@@ -85,29 +78,34 @@ const Editor = memo(() => {
             {/* Main Editor Section */}
             {showEditor && (
                 <div className="hidden preXl:block min-h-screen">
-                    <div className="">
-                        {processingMessage && (
-                            <motion.div
-                                initial={{ opacity: 0, y: -20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ damping: 15, stiffness: 200 }}
-                                className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-70 text-white px-4 py-2 rounded-md z-50 shadow-md flex flex-col items-center gap-2"
-                            >
-                                <div>
-                                    <Loader className="inline-block mr-2 animate-spin" size={18} />
-                                    {processingMessage}
-                                </div>
-                                <span className='text-sm'>
-                                    Please wait! Do not close or navigate away from this page.
-                                </span>
-                            </motion.div>
-                        )}
-
-                        <div>
-                            {/* topbar */}
+                    {processingMessage && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ damping: 15, stiffness: 200 }}
+                            className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-70 text-white px-3 py-2 rounded-md z-50 shadow-md flex flex-row items-center justify-between gap-14"
+                        >
                             <div>
-                                {/* sidebar */}
-                                <div>{/* canvas */}</div>
+                                <Loader className="inline-block mr-2 animate-spin" size={18} />
+                                {processingMessage}
+                            </div>
+                            <span className="text-xs w-[50%] text-right hyphens-auto break-after-all">
+                                Don&apos;t close or move from this page.
+                            </span>
+                        </motion.div>
+                    )}
+
+                    <div
+                        className={cn('flex h-screen', {
+                            'pointer-events-none opacity-100 backdrop-blur-md':
+                                deactiveBehindActivity,
+                        })}
+                    >
+                        {/* topbar */}
+                        <div>
+                            {/* sidebar */}
+                            <div className="flex flex-1 overflow-hidden">
+                                <CanvasEditor />
                             </div>
                         </div>
                     </div>
@@ -115,9 +113,17 @@ const Editor = memo(() => {
             )}
 
             <GotoDesktopWarning />
-        </CanvasContext.Provider>
+        </>
     );
 });
+
+EditorContent.displayName = 'EditorContent';
+
+const Editor = () => (
+    <CanvasProvider>
+        <EditorContent />
+    </CanvasProvider>
+);
 
 Editor.displayName = 'Editor';
 export default Editor;
