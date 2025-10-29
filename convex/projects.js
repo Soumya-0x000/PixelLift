@@ -93,11 +93,15 @@ export const updateProject = mutation({
         title: v.optional(v.string()),
         description: v.optional(v.string()),
         canvasState: v.optional(v.any()),
+        width: v.optional(v.number()),
+        height: v.optional(v.number()),
         currentImageUrl: v.optional(v.string()),
         thumbnailUrl: v.optional(v.string()),
         deleteStatus: v.optional(
             v.union(v.literal('pending'), v.literal('deleted'), v.literal('failed'))
         ),
+        activeTransformations: v.optional(v.string()),
+        backgroundRemoved: v.optional(v.boolean()),
     },
     handler: async (ctx, args) => {
         const user = await ctx.runQuery(internal.user.getCurrentUser);
@@ -120,16 +124,26 @@ export const updateProject = mutation({
             throw new Error('Not authorized to update this project');
         }
 
-        await ctx.db.patch(args.projectId, {
+        const updatedData = {
+            updatedAt: Date.now(),
             title: args.title ?? project.title,
             description: args.description ?? project.description,
             canvasState: args.canvasState ?? project.canvasState,
+            width: args.width ?? project.width,
+            height: args.height ?? project.height,
+            activeTransformations: args.activeTransformations ?? project.activeTransformations,
+            backgroundRemoved: args.backgroundRemoved ?? project.backgroundRemoved,
             currentImageUrl: args.currentImageUrl ?? project.currentImageUrl,
             thumbnailUrl: args.thumbnailUrl ?? project.thumbnailUrl,
             deleteStatus: args.deleteStatus ?? project.deleteStatus,
+        };
+
+        await ctx.db.patch(args.projectId, updatedData);
+        await ctx.db.patch(user._id, {
+            lastActiveAt: Date.now(),
         });
 
-        return { success: true };
+        return { success: true, data: updatedData };
     },
 });
 
@@ -169,5 +183,66 @@ export const deleteProject = mutation({
         });
 
         return { success: true };
+    },
+});
+
+export const getProjectById = query({
+    args: {
+        projectId: v.id('projects'),
+    },
+    handler: async (ctx, args) => {
+        try {
+            const identity = await ctx.auth.getUserIdentity();
+            if (!identity) {
+                return {
+                    success: false,
+                    error: 'Not authenticated',
+                    data: null,
+                };
+            }
+
+            const user = await ctx.db
+                .query('users')
+                .withIndex('by_token', q => q.eq('tokenIdentifier', identity.tokenIdentifier))
+                .unique();
+
+            if (!user) {
+                return {
+                    success: false,
+                    error: 'Not authenticated',
+                    data: null,
+                };
+            }
+
+            const project = await ctx.db.get(args.projectId);
+
+            if (!project) {
+                return {
+                    success: false,
+                    error: 'Project not found',
+                    data: null,
+                };
+            }
+
+            if (project.userId !== user._id) {
+                return {
+                    success: false,
+                    error: 'Not authorized to access this project',
+                    data: null,
+                };
+            }
+
+            return {
+                success: true,
+                error: null,
+                data: project,
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: error.message || 'An error occurred',
+                data: null,
+            };
+        }
     },
 });

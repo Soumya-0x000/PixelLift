@@ -1,10 +1,21 @@
-import { createContext } from 'react';
+import { createContext, useState } from 'react';
 
 const CanvasContext = createContext(undefined);
 export default CanvasContext;
 
 export const CanvasProvider = ({ children }) => {
-    const contextData = {};
+    const [canvasEditor, setCanvasEditor] = useState(null);
+    const [processingMessage, setProcessingMessage] = useState('');
+    const [activeTool, setActiveTool] = useState('resize');
+
+    const contextData = {
+        canvasEditor,
+        setCanvasEditor,
+        processingMessage,
+        setProcessingMessage,
+        activeTool,
+        setActiveTool,
+    };
 
     return <CanvasContext.Provider value={contextData}>{children}</CanvasContext.Provider>;
 };
