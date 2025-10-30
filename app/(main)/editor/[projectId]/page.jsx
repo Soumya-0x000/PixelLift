@@ -105,7 +105,7 @@ const EditorContent = memo(() => {
                         <div>
                             {/* sidebar */}
                             <div className="flex flex-1 overflow-hidden">
-                                <CanvasEditor />
+                                <CanvasEditor project={projectData?.data} />
                             </div>
                         </div>
                     </div>

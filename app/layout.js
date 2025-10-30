@@ -63,7 +63,7 @@ export const metadata = {
         description:
             'Created by Soumya Sankar Das, Frontend Developer. Transform your images with advanced AI tools.',
         images: ['/og-image.png'],
-        creator: '@SoumyaSankarDas',
+        // creator: '@SoumyaSankarDas',
     },
     authors: [{ name: 'Soumya Sankar Das', url: 'https://github.com/Soumya-0x000' }],
     creator: 'Soumya Sankar Das',
