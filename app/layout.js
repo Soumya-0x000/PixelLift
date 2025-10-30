@@ -37,7 +37,42 @@ const poppins = Poppins({
 
 export const metadata = {
     title: 'PixelLift',
-    description: 'Created for doing AI stuffs on an image',
+    description:
+        'Created by Soumya Sankar Das, Frontend Developer. Transform your images with advanced AI tools.',
+    metadataBase: new URL('https://pixellift.vercel.app'),
+    openGraph: {
+        title: 'PixelLift — AI Image Tools',
+        description:
+            'Created by Soumya Sankar Das, Frontend Developer. Explore AI-powered tools to enhance and transform your images instantly.',
+        url: 'https://pixellift.vercel.app',
+        siteName: 'PixelLift',
+        images: [
+            {
+                url: '/og-image.png', // put this in your public folder
+                width: 1200,
+                height: 630,
+                alt: 'PixelLift by Soumya Sankar Das',
+            },
+        ],
+        locale: 'en_US',
+        type: 'website',
+    },
+    twitter: {
+        card: 'summary_large_image',
+        title: 'PixelLift — AI Image Tools',
+        description:
+            'Created by Soumya Sankar Das, Frontend Developer. Transform your images with advanced AI tools.',
+        images: ['/og-image.png'],
+        creator: '@SoumyaSankarDas',
+    },
+    authors: [{ name: 'Soumya Sankar Das', url: 'https://github.com/Soumya-0x000' }],
+    creator: 'Soumya Sankar Das',
+    publisher: 'Soumya Sankar Das',
+    icons: {
+        icon: '/favicon.ico',
+        shortcut: '/favicon.ico',
+        apple: '/apple-touch-icon.png',
+    },
 };
 
 export default function RootLayout({ children }) {
