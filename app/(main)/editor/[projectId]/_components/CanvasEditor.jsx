@@ -3,12 +3,14 @@ import { api } from '@/convex/_generated/api';
 import { useConvexMutation } from '@/hooks/useConvexQuery';
 import { Canvas, FabricImage } from 'fabric';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { RingLoader } from 'react-spinners';
 import { toast } from 'sonner';
 
 const CanvasEditor = ({ project }) => {
     const [isLoading, setIsLoading] = useState(false);
     const canvasRef = useRef(null);
     const containerRef = useRef(null);
+    const isInitializedRef = useRef(false); // ✅ Add this to track initialization
     const { canvasEditor, setCanvasEditor, activeTool, setActiveTool } = useCanvasContext();
 
     const { mutate: updateProject } = useConvexMutation(api.projects.updateProject);
@@ -24,9 +26,12 @@ const CanvasEditor = ({ project }) => {
         const scaleY = containerWidth / project.width;
 
         return Math.min(scaleX, scaleY, 1);
-    }, [canvasRef]);
+    }, [project]); // ✅ Fixed dependency
 
     const initializeCanvas = useCallback(async () => {
+        // ✅ Prevent double initialization
+        if (isInitializedRef.current) return;
+
         setIsLoading(true);
 
         const viewportScale = calculateViewportScale();
@@ -116,8 +121,9 @@ const CanvasEditor = ({ project }) => {
         canvas.calcOffset();
         canvas.requestRenderAll();
         setCanvasEditor(canvas);
+        isInitializedRef.current = true; // ✅ Mark as initialized
         setIsLoading(false);
-    }, [project, calculateViewportScale]);
+    }, [project, calculateViewportScale, setCanvasEditor]);
 
     useEffect(() => {
         if (!canvasRef.current || !project || canvasEditor) return;
@@ -128,12 +134,39 @@ const CanvasEditor = ({ project }) => {
             if (canvasEditor) {
                 canvasEditor.dispose();
                 setCanvasEditor(null);
+                isInitializedRef.current = false; // ✅ Reset on cleanup
             }
         };
-    }, [project, canvasRef, initializeCanvas]);
+    }, [project, canvasEditor, initializeCanvas, setCanvasEditor]);
 
     return (
-        <div ref={containerRef}>
+        <div
+            ref={containerRef}
+            className="relative flex items-center justify-center bg-secondary w-full h-full overflow-hidden"
+        >
+            <div
+                className="absolute inset-0 opacity-10 pointer-events-none"
+                style={{
+                    backgroundImage: `
+                        linear-gradient(45deg, #64748b 25%, transparent 25%),
+                        linear-gradient(-45deg, #64748b 25%, transparent 25%),
+                        linear-gradient(45deg, transparent 75%, #64748b 75%),
+                        linear-gradient(-45deg, transparent 75%, #64748b 75%)
+                    `,
+                    backgroundSize: '20px 20px',
+                    backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px',
+                }}
+            />
+
+            {!isLoading && (
+                <div className=" absolute inset-0 flex items-center justify-center bg-slate-800/80 z-10">
+                    <div className="flex flex-col items-center justify-center">
+                        <RingLoader color="#77c2e7" size={80} />
+                        <p>Loading your canvas...</p>
+                    </div>
+                </div>
+            )}
+
             <div className="p-4">
                 <canvas id="canvas" className="border" ref={canvasRef} />
             </div>

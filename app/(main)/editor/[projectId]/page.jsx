@@ -30,7 +30,7 @@ const EditorContent = memo(() => {
         setError(null);
 
         try {
-            const data = await convex.query(api.projects.getProjectById, { projectId });
+            const { data = {} } = await convex.query(api.projects.getProjectById, { projectId });
             if (!data) throw new Error('Project not found.');
             setProjectData(data);
         } catch (err) {
@@ -102,10 +102,10 @@ const EditorContent = memo(() => {
                         })}
                     >
                         {/* topbar */}
-                        <div>
+                        <div className="flex flex-1 overflow-hidden">
                             {/* sidebar */}
-                            <div className="flex flex-1 overflow-hidden">
-                                <CanvasEditor project={projectData?.data} />
+                            <div className='flex flex-1'>
+                                <CanvasEditor project={projectData} />
                             </div>
                         </div>
                     </div>
