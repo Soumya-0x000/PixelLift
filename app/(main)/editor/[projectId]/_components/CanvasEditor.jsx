@@ -1,13 +1,13 @@
 import { Input } from '@/components/ui/input';
-// import {
-//     ColorPicker,
-//     ColorPickerAlpha,
-//     ColorPickerEyeDropper,
-//     ColorPickerFormat,
-//     ColorPickerHue,
-//     ColorPickerOutput,
-//     ColorPickerSelection,
-// } from '@/components/ui/shadcn-io/color-picker';
+import {
+    ColorPicker,
+    ColorPickerAlpha,
+    ColorPickerEyeDropper,
+    ColorPickerFormat,
+    ColorPickerHue,
+    ColorPickerOutput,
+    ColorPickerSelection,
+} from '@/components/ui/shadcn-io/color-picker';
 import useCanvasContext from '@/context/canvasContext/useCanvasContext';
 import { api } from '@/convex/_generated/api';
 import { useConvexMutation } from '@/hooks/useConvexQuery';
@@ -173,6 +173,34 @@ const CanvasEditor = ({ project }) => {
         return () => window.removeEventListener('resize', handleResize);
     }, [canvasEditor, project]);
     console.log(canvasBgColor);
+
+    const saveCanvasState = useCallback(async () => {
+        if (!canvasEditor || !project) return;
+
+        try {
+            const canvasJSON = canvasEditor.toJSON();
+            await updateProject({
+                projectId: project._id,
+                canvasState: canvasJSON,
+            });
+        } catch (error) {
+            console.error('Error saving canvas state:', error);
+            toast.error('Failed to save canvas state.');
+        }
+    }, [canvasEditor, project]);
+
+    useEffect(() => {
+        if (!canvasEditor) return;
+
+        let timeOut;
+        const handleCanvasChange = () => {
+            clearTimeout(timeOut);
+            timeOut = setTimeout(() => {
+                saveCanvasState();
+            }, 1000);
+        };
+    }, [canvasEditor]);
+
     return (
         <div
             ref={containerRef}
@@ -182,11 +210,11 @@ const CanvasEditor = ({ project }) => {
                 className="absolute inset-0 opacity-10 pointer-events-none"
                 style={{
                     backgroundImage: `
-                        linear-gradient(45deg, #64748b 25%, transparent 25%),
-                        linear-gradient(-45deg, #64748b 25%, transparent 25%),
-                        linear-gradient(45deg, transparent 75%, #64748b 75%),
-                        linear-gradient(-45deg, transparent 75%, #64748b 75%)
-                    `,
+                            linear-gradient(45deg, #64748b 25%, transparent 25%),
+                            linear-gradient(-45deg, #64748b 25%, transparent 25%),
+                            linear-gradient(45deg, transparent 75%, #64748b 75%),
+                            linear-gradient(-45deg, transparent 75%, #64748b 75%)
+                        `,
                     backgroundSize: '20px 20px',
                     backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px',
                 }}
@@ -206,7 +234,7 @@ const CanvasEditor = ({ project }) => {
             </div>
 
             <div className="fixed right-6 bottom-6">
-                {/* <ColorPicker
+                <ColorPicker
                     className="max-w-sm rounded-md border bg-background p-4 shadow-sm"
                     defaultValue={canvasBgColor}
                     onChange={setCanvasBgColor}
@@ -223,7 +251,7 @@ const CanvasEditor = ({ project }) => {
                         <ColorPickerOutput />
                         <ColorPickerFormat />
                     </div>
-                </ColorPicker> */}
+                </ColorPicker>
             </div>
         </div>
     );
