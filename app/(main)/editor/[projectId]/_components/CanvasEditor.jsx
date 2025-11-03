@@ -197,7 +197,18 @@ const CanvasEditor = ({ project }) => {
             clearTimeout(timeOut);
             timeOut = setTimeout(() => {
                 saveCanvasState();
-            }, 1000);
+            }, 3000);
+        };
+
+        canvasEditor.on('object:modified', handleCanvasChange);
+        canvasEditor.on('object:added', handleCanvasChange);
+        canvasEditor.on('object:removed', handleCanvasChange);
+
+        return () => {
+            clearTimeout(timeOut);
+            canvasEditor.off('object:modified', handleCanvasChange);
+            canvasEditor.off('object:added', handleCanvasChange);
+            canvasEditor.off('object:removed', handleCanvasChange);
         };
     }, [canvasEditor]);
 
