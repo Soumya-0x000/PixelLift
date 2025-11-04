@@ -14,7 +14,7 @@ export const CanvasProvider = ({ children }) => {
         processingMessage,
         setProcessingMessage,
         activeTool,
-        setActiveTool,
+        onToolChange: setActiveTool,
     };
 
     return <CanvasContext.Provider value={contextData}>{children}</CanvasContext.Provider>;
