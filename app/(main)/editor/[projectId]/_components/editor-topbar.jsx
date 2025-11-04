@@ -80,7 +80,7 @@ const EditorTopbar = props => {
     const router = useRouter();
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
     const [restrictedTool, setRestrictedTool] = useState(null);
-    const { hasAccess } = usePlanAccess();
+    const { hasAccess, isApprenticeUser,  } = usePlanAccess();
 
     const { canvasEditor, activeTool, onToolChange } = useCanvasContext();
 
