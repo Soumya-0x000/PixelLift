@@ -21,7 +21,7 @@ const CanvasEditor = ({ project }) => {
     const [canvasBgColor, setCanvasBgColor] = useState('#ffffff');
     const canvasRef = useRef(null);
     const containerRef = useRef(null);
-    const { canvasEditor, setCanvasEditor, activeTool, setActiveTool } = useCanvasContext();
+    const { canvasEditor, setCanvasEditor, activeTool, onToolChange } = useCanvasContext();
 
     const { mutate: updateProject } = useConvexMutation(api.projects.updateProject);
 
@@ -134,7 +134,7 @@ const CanvasEditor = ({ project }) => {
         }, 500);
 
         setIsLoading(false);
-    }, [calculateViewportScale, project, setCanvasEditor]);
+    }, [calculateViewportScale, project, setCanvasEditor, canvasBgColor]);
 
     useEffect(() => {
         if (!canvasRef.current || !project || canvasEditor) return;
@@ -172,7 +172,17 @@ const CanvasEditor = ({ project }) => {
 
         return () => window.removeEventListener('resize', handleResize);
     }, [canvasEditor, project]);
-    console.log(canvasBgColor);
+
+    useEffect(() => {
+        if (!canvasEditor) return;
+
+        if (typeof canvasEditor.setBackgroundColor === 'function') {
+            canvasEditor.setBackgroundColor(canvasBgColor, () => canvasEditor.renderAll());
+        } else {
+            canvasEditor.backgroundColor = canvasBgColor;
+            canvasEditor.requestRenderAll();
+        }
+    }, [canvasEditor, canvasBgColor]);
 
     const saveCanvasState = useCallback(async () => {
         if (!canvasEditor || !project) return;
@@ -244,7 +254,25 @@ const CanvasEditor = ({ project }) => {
                 <canvas id="canvas" className="border" ref={canvasRef} />
             </div>
 
-            <div className="fixed right-6 bottom-6">
+            {/* <div className="fixed right-6 bottom-6">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    class="lucide lucide-palette-icon lucide-palette"
+                >
+                    <path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z" />
+                    <circle cx="13.5" cy="6.5" r=".5" fill="currentColor" />
+                    <circle cx="17.5" cy="10.5" r=".5" fill="currentColor" />
+                    <circle cx="6.5" cy="12.5" r=".5" fill="currentColor" />
+                    <circle cx="8.5" cy="7.5" r=".5" fill="currentColor" />
+                </svg>
                 <ColorPicker
                     className="max-w-sm rounded-md border bg-background p-4 shadow-sm"
                     defaultValue={canvasBgColor}
@@ -263,7 +291,7 @@ const CanvasEditor = ({ project }) => {
                         <ColorPickerFormat />
                     </div>
                 </ColorPicker>
-            </div>
+            </div> */}
         </div>
     );
 };

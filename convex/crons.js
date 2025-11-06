@@ -18,6 +18,6 @@ crons.interval(
 );
 
 // Every 7 days - audit for orphaned files
-crons.interval('audit orphaned files', { hours: 24 * 7 }, internal.cronJobs.auditOrphanedFiles);
+crons.interval('audit orphaned files', { hours: 24 }, internal.cronJobs.auditOrphanedFiles);
 
 export default crons;

@@ -12,6 +12,8 @@ import { useConvex } from 'convex/react';
 import { Loader } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import CanvasEditor from './_components/CanvasEditor';
+import EditorTopbar from './_components/editor-topbar';
+import EditorSidebar from './_components/editor-sidebar';
 
 const EditorContent = memo(() => {
     const { projectId } = useParams();
@@ -97,14 +99,14 @@ const EditorContent = memo(() => {
                     )}
 
                     <div
-                        className={cn('flex h-screen', {
+                        className={cn('flex flex-col h-screen', {
                             'pointer-events-none opacity-100 backdrop-blur-md':
                                 deactiveBehindActivity,
                         })}
                     >
-                        {/* topbar */}
+                        <EditorTopbar project={projectData} />
                         <div className="flex flex-1 overflow-hidden">
-                            {/* sidebar */}
+                            <EditorSidebar project={projectData} />
                             <div className="flex flex-1">
                                 <CanvasEditor project={projectData} />
                             </div>
