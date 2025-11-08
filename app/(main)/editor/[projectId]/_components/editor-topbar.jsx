@@ -2,10 +2,11 @@
 
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { Crop, Expand, Eye, Maximize2, Palette, Sliders, Text } from 'lucide-react';
+import { ArrowLeft, Crop, Expand, Eye, Maximize2, Palette, Sliders, Text } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import useCanvasContext from '@/context/canvasContext/useCanvasContext';
 import { usePlanAccess } from '@/hooks/usePlanAccess';
+import { Button } from '@/components/ui/button';
 
 const TOOLS = [
     {
@@ -76,15 +77,44 @@ const EXPORT_FORMATS = [
     },
 ];
 
-const EditorTopbar = props => {
+const EditorTopbar = ({ project }) => {
     const router = useRouter();
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
     const [restrictedTool, setRestrictedTool] = useState(null);
-    const { hasAccess, isApprenticeUser,  } = usePlanAccess();
+    const { hasAccess, isApprenticeUser } = usePlanAccess();
 
     const { canvasEditor, activeTool, onToolChange } = useCanvasContext();
 
-    return <div>EditorTopbar</div>;
+    const handleBackToDashboard = () => {
+        router.push('/dashboard');
+    };
+
+    const handleToolChange = toolId => {};
+
+    return (
+        <>
+            <div className="border-b px-6 py-3">
+                {/* Header Row */}
+                <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-4">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleBackToDashboard}
+                            className="text-white hover:text-gray-300"
+                        >
+                            <ArrowLeft className="h-4 w-4 mr-2" />
+                            All Projects
+                        </Button>
+                    </div>
+
+                    <h1 className="font-extrabold capitalize">{project.title}</h1>
+
+                    <div>Right</div>
+                </div>
+            </div>
+        </>
+    );
 };
 
 EditorTopbar.propTypes = {};
