@@ -2,11 +2,28 @@
 
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { ArrowLeft, Crop, Expand, Eye, Maximize2, Palette, Sliders, Text } from 'lucide-react';
+import {
+    ArrowLeft,
+    Crop,
+    Expand,
+    Eye,
+    Maximize2,
+    Palette,
+    Sliders,
+    Text,
+    Icon,
+    Lock,
+    RotateCcw,
+    RotateCw,
+} from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import useCanvasContext from '@/context/canvasContext/useCanvasContext';
 import { usePlanAccess } from '@/hooks/usePlanAccess';
 import { Button } from '@/components/ui/button';
+import UpgradePlanModal from '@/components/UpgradePlanModal';
+import { Input } from '@/components/ui/input';
+import { useConvexMutation } from '@/hooks/useConvexQuery';
+import { api } from '@/convex/_generated/api';
 
 const TOOLS = [
     {
@@ -21,14 +38,14 @@ const TOOLS = [
         icon: Crop,
     },
     {
-        id: 'adjust',
-        label: 'Adjust',
-        icon: Sliders,
-    },
-    {
         id: 'text',
         label: 'Text',
         icon: Text,
+    },
+    {
+        id: 'adjust',
+        label: 'Adjust',
+        icon: Sliders,
     },
     {
         id: 'background',
@@ -81,15 +98,42 @@ const EditorTopbar = ({ project }) => {
     const router = useRouter();
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
     const [restrictedTool, setRestrictedTool] = useState(null);
+    const [projectTitle, setProjectTitle] = useState(project.title || 'Untitled Project');
     const { hasAccess, isApprenticeUser } = usePlanAccess();
 
     const { canvasEditor, activeTool, onToolChange } = useCanvasContext();
+    const { mutate: updateProject } = useConvexMutation(api.projects.updateProject);
 
     const handleBackToDashboard = () => {
         router.push('/dashboard');
     };
 
-    const handleToolChange = toolId => {};
+    const handleToolChange = toolId => {
+        if (!hasAccess(toolId)) {
+            setRestrictedTool(toolId);
+            setShowUpgradeModal(true);
+            return;
+        }
+        onToolChange(toolId);
+    };
+
+    const onTitleChange = async e => {
+        const { value } = e.target;
+        setProjectTitle(value);
+
+        if (value) {
+            const updateTitle = await updateProject({
+                projectId: project._id,
+                title: value,
+            });
+
+            let timeoutId;
+            if (timeoutId) clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+                updateTitle();
+            }, 600);
+        }
+    };
 
     return (
         <>
@@ -108,11 +152,80 @@ const EditorTopbar = ({ project }) => {
                         </Button>
                     </div>
 
-                    <h1 className="font-extrabold capitalize">{project.title}</h1>
+                    <div>
+                        <Input
+                            className="font-semibold w-xs border-none outline-none bg-transparent text-white text-center text-medium placeholder:text-gray-400 focus-within:font-normal focus-within:tracking-wider transition-all"
+                            value={projectTitle}
+                            onChange={onTitleChange}
+                        />
+                    </div>
 
                     <div>Right</div>
                 </div>
+
+                {/* Tools Row */}
+                <div className="flex items-center justify-between">
+                    {/* Tools */}
+                    <div className="flex items-center gap-2">
+                        {TOOLS.map(tool => {
+                            const Icon = tool.icon;
+                            const isActive = activeTool === tool.id;
+                            const hasToolAccess = hasAccess(tool.id);
+
+                            return (
+                                <Button
+                                    key={tool.id}
+                                    variant={isActive ? 'default' : 'ghost'}
+                                    size="sm"
+                                    onClick={() => handleToolChange(tool.id)}
+                                    className={`gap-2 relative ${
+                                        isActive
+                                            ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                            : 'text-white hover:text-gray-300 hover:bg-gray-100'
+                                    } ${!hasToolAccess ? 'opacity-60' : ''}`}
+                                >
+                                    <Icon className="h-4 w-4" />
+                                    {tool.label}
+                                    {!hasToolAccess && <Lock className="h-3 w-3 text-amber-400" />}
+                                </Button>
+                            );
+                        })}
+                    </div>
+
+                    {/* Right side controls */}
+                    <div className="flex items-center gap-4">
+                        {/* Undo/Redo */}
+                        <div className="flex items-center gap-1">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                // className={`text-white ${!canUndo ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-700'}`}
+                                // onClick={handleUndo}
+                                // disabled={!canUndo || isUndoRedoOperation}
+                                // title={`Undo (${undoStack.length - 1} actions available)`}
+                            >
+                                <RotateCcw className="h-4 w-4" />
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                // className={`text-white ${!canRedo ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-700'}`}
+                                // onClick={handleRedo}
+                                // disabled={!canRedo || isUndoRedoOperation}
+                                // title={`Redo (${redoStack.length} actions available)`}
+                            >
+                                <RotateCw className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    </div>
+                </div>
             </div>
+
+            {/* Upgrade Plan Modal */}
+            <UpgradePlanModal
+                openModal={showUpgradeModal}
+                closeModal={() => setShowUpgradeModal(false)}
+            />
         </>
     );
 };
