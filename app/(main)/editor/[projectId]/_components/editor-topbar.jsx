@@ -15,6 +15,8 @@ import {
     Lock,
     RotateCcw,
     RotateCw,
+    SendToBack,
+    WandSparkles,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import useCanvasContext from '@/context/canvasContext/useCanvasContext';
@@ -43,28 +45,44 @@ const TOOLS = [
         icon: Text,
     },
     {
-        id: 'adjust',
-        label: 'Adjust',
-        icon: Sliders,
-    },
-    {
         id: 'background',
         label: 'AI Background',
         icon: Palette,
         proOnly: true,
     },
     {
-        id: 'ai_extender',
+        id: 'aiEdit',
+        label: 'AI Editing',
+        icon: WandSparkles,
+        proOnly: true,
+    },
+    {
+        id: 'upscaler',
+        label: 'AI Upscaler',
+        icon: Expand,
+        proOnly: true,
+    },
+    {
+        id: 'aiExtender',
         label: 'AI Image Extender',
         icon: Maximize2,
         proOnly: true,
     },
-    {
-        id: 'ai_edit',
-        label: 'AI Editing',
-        icon: Eye,
-        proOnly: true,
-    },
+    // {
+    //     id: 'adjust',
+    //     label: 'Adjust',
+    //     icon: Sliders,
+    // },
+    // {
+    //     id: 'colorAdjustments',
+    //     label: 'Color Adjustments',
+    //     icon: Palette,
+    // },
+    // {
+    //     id: 'retouch',
+    //     label: 'Retouch',
+    //     icon: SendToBack,
+    // },
 ];
 
 const EXPORT_FORMATS = [

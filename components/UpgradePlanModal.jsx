@@ -1,9 +1,18 @@
 import { useRouter } from 'next/navigation';
 import React from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './ui/dialog';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from './ui/dialog';
 import { Crown } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Button } from './ui/button';
+import PricingSection from '@/app/LandingPage/pricing/page';
+
 
 const UpgradePlanModal = ({ openModal, closeModal }) => {
     const router = useRouter();
@@ -14,8 +23,8 @@ const UpgradePlanModal = ({ openModal, closeModal }) => {
     };
 
     return (
-        <Dialog open={openModal} onOpenChange={closeModal} className={' backdrop-blur-md'}>
-            <DialogContent>
+        <Dialog open={openModal} onOpenChange={closeModal} className={' backdrop-blur-md '}>
+            <DialogContent className={`w-[67vw] max-w-[67vw]`}>
                 <DialogHeader>
                     <DialogTitle>
                         <span
@@ -26,7 +35,7 @@ const UpgradePlanModal = ({ openModal, closeModal }) => {
                     </DialogTitle>
                 </DialogHeader>
 
-                <DialogDescription asChild>
+                {/* <DialogDescription asChild>
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -89,7 +98,9 @@ const UpgradePlanModal = ({ openModal, closeModal }) => {
                     <Button onClick={closeModal} variant="destructive">
                         Maybe Later
                     </Button>
-                </DialogFooter>
+                </DialogFooter> */}
+
+                <PricingSection showHeader={false} className='p-1' tabsPosition='tl' />
             </DialogContent>
         </Dialog>
     );
