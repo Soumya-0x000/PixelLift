@@ -27,6 +27,7 @@ const PricingSection = React.memo(
         const { user } = useUser();
         const { data: subscriptionData } = useSubscription();
         const [mergedPlans, setMergedPlans] = useState([]);
+        const [showDurationTabs, setShowDurationTabs] = useState(false);
 
         // Base plan structure
         const basePricingPlans = [
@@ -331,6 +332,16 @@ const PricingSection = React.memo(
             return styles[color] || styles.slate;
         };
 
+        const pricingTabsPosition = {
+            tl: 'mr-auto',
+            tr: 'ml-auto',
+            center: 'mx-auto',
+        }[tabsPosition];
+
+        useEffect(() => {
+            setShowDurationTabs(currentPlan && !currentPlan.isFree);
+        }, [currentPlan]);
+
         return (
             <section
                 id="pricing"
@@ -391,7 +402,7 @@ const PricingSection = React.memo(
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, delay: 0.3 }}
-                    className="flex items-center justify-center gap-6 ring-1 w-fit mx-auto ring-slate-700/80 rounded-lg p-2 backdrop-blur-sm overflow-hidden"
+                    className={`flex items-center justify-center gap-6 ring-1 w-fit ${pricingTabsPosition} ring-slate-700/80 rounded-lg p-2 backdrop-blur-sm overflow-hidden`}
                 >
                     {mergedPlans.map(({ plan }) => (
                         <button
@@ -415,17 +426,17 @@ const PricingSection = React.memo(
                     ))}
                 </motion.div>
 
-                <div>
+                <div className=" w-full">
                     {/* Time period tabs - only show for paid plans */}
                     <AnimatePresence>
-                        {currentPlan && !currentPlan.isFree && (
+                        {showDurationTabs && (
                             <motion.div
                                 initial={{ opacity: 0, scaleY: 0 }}
                                 animate={{ opacity: 1, scaleY: 1 }}
                                 exit={{ opacity: 0, scaleY: 0 }}
                                 transition={{ duration: 0.6, ease: 'easeInOut' }}
                                 style={{ originY: 1 }}
-                                className="flex items-center justify-center gap-6 z-0 w-fit mx-auto border-2 border-slate-800 border-b-transparent rounded-t-2xl bg-slate-900/70 backdrop-blur-sm p-2 overflow-hidden absolute left-[8rem] -translate-y-[3.2rem]"
+                                className="flex items-center justify-center gap-6 z-10 w-fit mx-auto border-2 border-slate-800 border-b-transparent rounded-t-2xl bg-slate-900/70 backdrop-blur-sm p-2 overflow-hidden absolute left-[8rem] -translate-y-[3.2rem]"
                             >
                                 {pricingTimes.map(time => (
                                     <button
@@ -468,7 +479,7 @@ const PricingSection = React.memo(
                     {/* Pricing content */}
                     <motion.div
                         layout
-                        className="max-w-6xl h-[25rem] mx-auto flex justify-between gap-10 ring-1 ring-slate-800 rounded-2xl bg-slate-900/70 backdrop-blur-sm p-8 relative -z-10"
+                        className=" max-w-6xl h-[25rem] mx-auto flex justify-between gap-10 ring-1 ring-slate-800 rounded-2xl bg-slate-900/70 backdrop-blur-sm p-8 relative -z-10"
                     >
                         {/* Left: Features */}
                         <div className="flex flex-col gap-6 flex-1">
