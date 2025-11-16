@@ -37,15 +37,17 @@ const UpgradePlanModal = ({ openModal, closeModal, upgradeMsg }) => {
 
                 <DialogDescription asChild>
                     <div>
-                        <Alert className="bg-amber-500/10 border-amber-500/20 mb-4">
-                            <Sparkles className="h-5 w-5 text-amber-400" />
-                            <AlertDescription className="text-amber-300/80">
-                                <span className="font-semibold text-amber-400 mb-1">
-                                    PIXXELLIFT - {upgradeMsg?.title}
-                                </span>
-                                {upgradeMsg?.description}
-                            </AlertDescription>
-                        </Alert>
+                        {upgradeMsg?.title && (
+                            <Alert className="bg-amber-500/10 border-amber-500/20 mb-4">
+                                <Sparkles className="h-5 w-5 text-amber-400" />
+                                <AlertDescription className="text-amber-300/80">
+                                    <span className="font-semibold text-amber-400 mb-1">
+                                        PIXXELLIFT - {upgradeMsg?.title}
+                                    </span>
+                                    {upgradeMsg?.description}
+                                </AlertDescription>
+                            </Alert>
+                        )}
 
                         <PricingSection
                             showHeader={false}

@@ -58,15 +58,15 @@ const TOOLS = [
         icon: WandSparkles,
         masterOnly: true,
     },
-    {
-        id: 'upscaler',
-        label: 'AI Upscaler',
-        icon: Expand,
-        masterOnly: true,
-    },
+    // {
+    //     id: 'upscaler',
+    //     label: 'AI Upscaler',
+    //     icon: Expand,
+    //     masterOnly: true,
+    // },
     {
         id: 'aiExtender',
-        label: 'AI Image Extender',
+        label: 'AI Extender',
         icon: Maximize2,
         masterOnly: true,
     },
