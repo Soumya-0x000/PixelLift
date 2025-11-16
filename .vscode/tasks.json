@@ -15,16 +15,16 @@
       "problemMatcher": [],
       "group": "build"
     },
+    // {
+    //   "label": "ngrok start",
+    //   "type": "shell",
+    //   "command": "ngrok start clerk-webhook",
+    //   "problemMatcher": [],
+    //   "group": "build"
+    // },
     {
-      "label": "ngrok start",
-      "type": "shell",
-      "command": "ngrok start clerk-webhook",
-      "problemMatcher": [],
-      "group": "build"
-    },
-    {
-      "label": "Dev (Next + Convex + ngrok)",
-      "dependsOn": ["Next.js Dev", "Convex Dev", "ngrok start"],
+      "label": "Dev (Next + Convex)",
+      "dependsOn": ["Next.js Dev", "Convex Dev"],
       "dependsOrder": "parallel",
       "problemMatcher": [],
       "group": {

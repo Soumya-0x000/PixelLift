@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
     ArrowLeft,
@@ -17,6 +17,8 @@ import {
     RotateCw,
     SendToBack,
     WandSparkles,
+    Undo2,
+    Redo2,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import useCanvasContext from '@/context/canvasContext/useCanvasContext';
@@ -48,25 +50,25 @@ const TOOLS = [
         id: 'background',
         label: 'AI Background',
         icon: Palette,
-        proOnly: true,
+        masterOnly: true,
     },
     {
         id: 'aiEdit',
         label: 'AI Editing',
         icon: WandSparkles,
-        proOnly: true,
+        masterOnly: true,
     },
-    {
-        id: 'upscaler',
-        label: 'AI Upscaler',
-        icon: Expand,
-        proOnly: true,
-    },
+    // {
+    //     id: 'upscaler',
+    //     label: 'AI Upscaler',
+    //     icon: Expand,
+    //     masterOnly: true,
+    // },
     {
         id: 'aiExtender',
-        label: 'AI Image Extender',
+        label: 'AI Extender',
         icon: Maximize2,
-        proOnly: true,
+        masterOnly: true,
     },
     // {
     //     id: 'adjust',
@@ -84,6 +86,11 @@ const TOOLS = [
     //     icon: SendToBack,
     // },
 ];
+
+const upMessage = {
+    master: 'This feature is locked behind the Master plan. Upgrade and break past the basic limits to access advanced functionality.',
+    deity: 'This feature is reserved for the Deity plan. Upgrade to the highest tier to experience everything the platform truly offers—nothing less will do.',
+};
 
 const EXPORT_FORMATS = [
     {
@@ -117,10 +124,26 @@ const EditorTopbar = ({ project }) => {
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
     const [restrictedTool, setRestrictedTool] = useState(null);
     const [projectTitle, setProjectTitle] = useState(project.title || 'Untitled Project');
+    const [upgradeMsg, setUpgradeMsg] = useState({ title: '', description: '' });
     const { hasAccess, isApprenticeUser } = usePlanAccess();
 
     const { canvasEditor, activeTool, onToolChange } = useCanvasContext();
     const { mutate: updateProject } = useConvexMutation(api.projects.updateProject);
+
+    const formatUpgradeMsg = toolId => {
+        const plan = TOOLS.find(tool => tool.id === toolId);
+        if (plan?.hasOwnProperty('masterOnly')) {
+            setUpgradeMsg({
+                title: `Master Plan`,
+                description: upMessage.master,
+            });
+        } else if (plan?.hasOwnProperty('deityOnly')) {
+            setUpgradeMsg({
+                title: `Deity Plan`,
+                description: upMessage.deity,
+            });
+        }
+    };
 
     const handleBackToDashboard = () => {
         router.push('/dashboard');
@@ -129,6 +152,7 @@ const EditorTopbar = ({ project }) => {
     const handleToolChange = toolId => {
         if (!hasAccess(toolId)) {
             setRestrictedTool(toolId);
+            formatUpgradeMsg(toolId);
             setShowUpgradeModal(true);
             return;
         }
@@ -222,7 +246,7 @@ const EditorTopbar = ({ project }) => {
                                 // disabled={!canUndo || isUndoRedoOperation}
                                 // title={`Undo (${undoStack.length - 1} actions available)`}
                             >
-                                <RotateCcw className="h-4 w-4" />
+                                <Undo2 className="h-4 w-4" />
                             </Button>
                             <Button
                                 variant="ghost"
@@ -232,7 +256,7 @@ const EditorTopbar = ({ project }) => {
                                 // disabled={!canRedo || isUndoRedoOperation}
                                 // title={`Redo (${redoStack.length} actions available)`}
                             >
-                                <RotateCw className="h-4 w-4" />
+                                <Redo2 className="h-4 w-4" />
                             </Button>
                         </div>
                     </div>
@@ -243,6 +267,7 @@ const EditorTopbar = ({ project }) => {
             <UpgradePlanModal
                 openModal={showUpgradeModal}
                 closeModal={() => setShowUpgradeModal(false)}
+                upgradeMsg={upgradeMsg}
             />
         </>
     );
