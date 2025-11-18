@@ -47,6 +47,12 @@ const TOOLS = [
         icon: Text,
     },
     {
+        id: 'adjust',
+        label: 'Adjust',
+        icon: Sliders,
+        masterOnly: true,
+    },
+    {
         id: 'background',
         label: 'AI Background',
         icon: Palette,
@@ -70,11 +76,6 @@ const TOOLS = [
         icon: Maximize2,
         masterOnly: true,
     },
-    // {
-    //     id: 'adjust',
-    //     label: 'Adjust',
-    //     icon: Sliders,
-    // },
     // {
     //     id: 'colorAdjustments',
     //     label: 'Color Adjustments',
@@ -150,12 +151,12 @@ const EditorTopbar = ({ project }) => {
     };
 
     const handleToolChange = toolId => {
-        if (!hasAccess(toolId)) {
-            setRestrictedTool(toolId);
-            formatUpgradeMsg(toolId);
-            setShowUpgradeModal(true);
-            return;
-        }
+        // if (!hasAccess(toolId)) {
+        //     setRestrictedTool(toolId);
+        //     formatUpgradeMsg(toolId);
+        //     setShowUpgradeModal(true);
+        //     return;
+        // }
         onToolChange(toolId);
     };
 
