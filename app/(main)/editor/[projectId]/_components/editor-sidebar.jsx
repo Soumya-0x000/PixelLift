@@ -2,6 +2,13 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Crop, Expand, Eye, Maximize2, Palette, Sliders, Text } from 'lucide-react';
 import useCanvasContext from '@/context/canvasContext/useCanvasContext';
+import CropContent from './tools/CropContent';
+import ResizeControls from './tools/ResizeControls';
+import AdjustControls from './tools/AdjustControls';
+import BackgroundControls from './tools/BackgroundControls';
+import AIExtenderControls from './tools/AIExtenderControls';
+import TextControls from './tools/TextControls';
+import AIEdit from './tools/AIEdit';
 
 const TOOL_CONFIGS = {
     resize: {
@@ -24,7 +31,7 @@ const TOOL_CONFIGS = {
         icon: Palette,
         description: 'Remove or change background',
     },
-    ai_extender: {
+    aiExtender: {
         title: 'AI Image Extender',
         icon: Maximize2,
         description: 'Extend image boundaries with AI',
@@ -34,7 +41,7 @@ const TOOL_CONFIGS = {
         icon: Text,
         description: 'Customize in Various Fonts',
     },
-    ai_edit: {
+    aiEdit: {
         title: 'AI Editing',
         icon: Eye,
         description: 'Enhance image quality with AI',

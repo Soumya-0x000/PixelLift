@@ -222,6 +222,20 @@ const CanvasEditor = ({ project }) => {
         };
     }, [canvasEditor]);
 
+    useEffect(() => {
+        if(!canvasEditor) return;
+
+        switch (activeTool) {
+            case 'crop':
+                canvasEditor.defaultCursor = 'crosshair';
+                canvasEditor.hoverCursor = 'crosshair';
+                break;
+            default:
+                canvasEditor.defaultCursor = 'default';
+                canvasEditor.hoverCursor = 'move';
+        }
+    }, [canvasEditor, activeTool]);
+
     return (
         <div
             ref={containerRef}
