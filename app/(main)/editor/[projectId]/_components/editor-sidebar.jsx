@@ -24,7 +24,7 @@ const TOOL_CONFIGS = {
     adjust: {
         title: 'Adjust',
         icon: Sliders,
-        description: 'Brightness, contrast, and more (Manual saving required)',
+        description: 'Brightness, contrast, and more (Save Manually)',
     },
     background: {
         title: 'Background',

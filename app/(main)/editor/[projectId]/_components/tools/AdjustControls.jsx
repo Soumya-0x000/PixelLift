@@ -1,3 +1,5 @@
+'use client';
+
 import { Button } from '@/components/ui/button';
 import { filters } from 'fabric';
 import { RotateCcw } from 'lucide-react';
@@ -80,10 +82,15 @@ const DEFAULT_VALUES = FILTER_CONFIGS.reduce((acc, config) => {
 
 const AdjustControls = () => {
     const [filterValues, setFilterValues] = useState(DEFAULT_VALUES);
+    const [loading, setLoading] = useState(false);
 
     const resetFilters = () => {
         setFilterValues(DEFAULT_VALUES);
         // applyFilters(DEFAULT_VALUES);
+    };
+
+    const handleChange = (key, value) => {
+        setFilterValues({ ...filterValues, [key]: value });
     };
 
     return (
@@ -100,8 +107,48 @@ const AdjustControls = () => {
                     Reset
                 </Button>
             </div>
+
+            <div className="flex flex-col gap-4">
+                {FILTER_CONFIGS.map(config => (
+                    <FilterControl
+                        key={config.key}
+                        config={config}
+                        value={filterValues[config.key]}
+                        onChange={handleChange}
+                    />
+                ))}
+            </div>
         </div>
     );
 };
 
 export default AdjustControls;
+
+const FilterControl = ({ config, value, onChange }) => {
+    const { key, label, min, max, step, defaultValue, filterClass, valueKey, transform, suffix } =
+        config;
+
+    const handleChange = e => {
+        const { value } = e.target;
+        onChange(key, value);
+    };
+
+    return (
+        <div className="flex flex-col">
+            <label className="text-sm font-medium text-white">{label}</label>
+            <input
+                type="range"
+                min={min}
+                max={max}
+                step={step}
+                value={value}
+                onChange={handleChange}
+                className="mt-2 w-full"
+            />
+            <span className="text-xs text-white/70">
+                {value}
+                {suffix || ''}
+            </span>
+        </div>
+    );
+};

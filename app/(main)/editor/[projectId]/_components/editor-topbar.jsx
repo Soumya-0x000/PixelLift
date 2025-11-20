@@ -151,12 +151,12 @@ const EditorTopbar = ({ project }) => {
     };
 
     const handleToolChange = toolId => {
-        // if (!hasAccess(toolId)) {
-        //     setRestrictedTool(toolId);
-        //     formatUpgradeMsg(toolId);
-        //     setShowUpgradeModal(true);
-        //     return;
-        // }
+        if (!hasAccess(toolId)) {
+            setRestrictedTool(toolId);
+            formatUpgradeMsg(toolId);
+            setShowUpgradeModal(true);
+            return;
+        }
         onToolChange(toolId);
     };
 
