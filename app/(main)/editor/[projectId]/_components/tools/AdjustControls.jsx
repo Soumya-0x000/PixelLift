@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { filters } from 'fabric';
 import { RotateCcw } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AnimatedSlider } from '@/components/ui/animated-slider';
 import useCanvasContext from '@/context/canvasContext/useCanvasContext';
 
@@ -93,8 +93,67 @@ const AdjustControls = () => {
         applyFilters(DEFAULT_VALUES);
     };
 
-    const applyFilters = value => {
-        console.log(value);
+    const getActiveImage = () => {
+        if (!canvasEditor) return null;
+
+        const activeObject = canvasEditor.getActiveObject();
+        if (activeObject && activeObject.type === 'image') return activeObject;
+
+        const objects = canvasEditor.getObjects();
+        return objects.find(obj => obj.type === 'image') || null;
+    };
+
+    const applyFilters = async data => {
+        const imageObject = getActiveImage();
+        if (!imageObject || applying) return;
+
+        setApplying(true);
+        try {
+            const filtersToApply = [];
+
+            FILTER_CONFIGS.forEach(config => {
+                const value = data[config?.key];
+                if (value === undefined) return;
+
+                if (value !== config.defaultValue) {
+                    const transformedValue = config.transform(value);
+                    const filter = new config.filterClass();
+                    filter[config.valueKey] = transformedValue;
+                    filtersToApply.push(filter);
+                }
+            });
+
+            imageObject.filters = filtersToApply;
+            await new Promise(resolve => {
+                imageObject.applyFilters();
+                canvasEditor.requestRenderAll();
+                setTimeout(resolve, 50);
+            });
+        } catch (error) {
+            console.error('Error applying filters:', error);
+        } finally {
+            setApplying(false);
+        }
+    };
+
+    useEffect(() => {
+        const imgObj = canvasEditor.getActiveImage();
+        if (!imgObj) return;
+        if (imgObj?.filters) {
+            const existingValues = extractExistingValues(imgObj);
+            setFilterValues(existingValues);
+        }
+    }, [filterValues]);
+
+    const extractExistingValues = imgObj => {
+        if (imgObj?.filters?.length > 0) {
+            const extractedValues = { ...DEFAULT_VALUES };
+            
+
+            
+            return extractedValues;
+        }
+        return DEFAULT_VALUES;
     };
 
     const handleChange = (key, value) => {
