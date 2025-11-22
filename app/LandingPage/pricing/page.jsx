@@ -479,7 +479,7 @@ const PricingSection = React.memo(
                     {/* Pricing content */}
                     <motion.div
                         layout
-                        className=" max-w-6xl h-[25rem] mx-auto flex justify-between gap-10 ring-1 ring-slate-800 rounded-2xl bg-slate-900/70 backdrop-blur-sm p-8 relative -z-10"
+                        className=" max-w-6xl h-[25rem] mx-auto flex justify-between gap-10 ring-1 ring-slate-800 rounded-2xl bg-slate-900/70 backdrop-blur-sm p-8 relative"
                     >
                         {/* Left: Features */}
                         <div className="flex flex-col gap-6 flex-1">

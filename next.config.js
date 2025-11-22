@@ -3,6 +3,7 @@ const nextConfig = {
     images: {
         domains: ['github.com', 'avatars.githubusercontent.com', 'img.clerk.com', 'ik.imagekit.io'],
     },
+    reactStrictMode: false,
 };
 
 module.exports = nextConfig;

@@ -13,7 +13,7 @@ export const usePlanAccess = () => {
     const plan = isDeityUser ? 'deity' : isMasterUser ? 'master' : 'apprentice';
 
     const baseFeatures = ['resize', 'crop', 'text'];
-    const masterExtra = ['standardExports', 'backgroundRemoval', 'aiEdit', 'upscaler'];
+    const masterExtra = ['standardExports', 'background', 'aiEdit', 'upscaler'];
     const deityExtra = ['adjust', 'colorAdjustments', 'aiExtender', 'retouch'];
 
     const limitModes = ['projects', 'exports'];
