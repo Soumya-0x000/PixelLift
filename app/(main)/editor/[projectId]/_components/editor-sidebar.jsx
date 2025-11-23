@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Crop, Expand, Eye, Maximize2, Palette, Sliders, Text } from 'lucide-react';
+import { Crop, Expand, Eye, Loader2, Maximize2, Palette, Sliders, Text } from 'lucide-react';
 import useCanvasContext from '@/context/canvasContext/useCanvasContext';
 import CropContent from './tools/CropContent';
 import ResizeControls from './tools/ResizeControls';
@@ -49,7 +49,7 @@ const TOOL_CONFIGS = {
 };
 
 const EditorSidebar = ({ project }) => {
-    const { activeTool } = useCanvasContext();
+    const { activeTool, applying } = useCanvasContext();
 
     const toolConfig = TOOL_CONFIGS[activeTool] || {};
 
@@ -63,9 +63,17 @@ const EditorSidebar = ({ project }) => {
         <div className="min-w-96 border-r flex flex-col">
             {/* Sidebar Header */}
             <div className="p-4 border-b">
-                <div className="flex items-center gap-3">
-                    <Icon className="h-5 w-5 text-white" />
-                    <h2 className="text-lg font-semibold text-white">{toolConfig.title}</h2>
+                <div className="flex items-center justify-between">
+                    <span className="flex gap-3">
+                        <Icon className="h-5 w-5 text-white" />
+                        <h2 className="text-lg font-semibold text-white">{toolConfig.title}</h2>
+                    </span>
+                    {applying && (
+                        <span className="flex items-center gap-2">
+                            <Loader2 className="h-4 w-4 text-white/70 animate-spin" />
+                            <span className="text-white/70">Applying...</span>
+                        </span>
+                    )}
                 </div>
                 <p className="text-sm text-white mt-1">{toolConfig.description}</p>
             </div>

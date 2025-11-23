@@ -8,7 +8,7 @@ import { useImageAdjust, FILTER_CONFIGS } from './useImageAdjust';
 
 const AdjustControls = memo(() => {
     const { filterValues, applying, canvasEditor, resetFilters, handleChange } = useImageAdjust();
-
+    
     if (!canvasEditor) {
         return (
             <div className="space-y-6">

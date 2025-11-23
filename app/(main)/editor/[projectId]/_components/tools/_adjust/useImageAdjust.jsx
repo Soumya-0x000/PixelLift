@@ -79,8 +79,7 @@ const DEFAULT_VALUES = FILTER_CONFIGS.reduce((acc, config) => {
 
 export const useImageAdjust = () => {
     const [filterValues, setFilterValues] = useState(DEFAULT_VALUES);
-    const [applying, setApplying] = useState(false);
-    const { canvasEditor } = useCanvasContext();
+    const { canvasEditor, setApplying, applying } = useCanvasContext();
 
     /**
      * Get the active image object from the canvas
@@ -156,10 +155,12 @@ export const useImageAdjust = () => {
             } catch (error) {
                 console.error('Error applying filters:', error);
             } finally {
-                setApplying(false);
+                setTimeout(() => {
+                    setApplying(false);
+                }, 300);
             }
         },
-        [canvasEditor, applying, getActiveImage]
+        [canvasEditor, getActiveImage, applying]
     );
 
     /**
@@ -196,7 +197,6 @@ export const useImageAdjust = () => {
 
     return {
         filterValues,
-        applying,
         canvasEditor,
         resetFilters,
         handleChange,
