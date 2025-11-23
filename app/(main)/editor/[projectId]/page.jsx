@@ -19,10 +19,9 @@ const EditorContent = memo(() => {
     const { projectId } = useParams();
     const convex = useConvex();
 
-    const { processingMessage } = useCanvasContext();
+    const { processingMessage, currentProject, setCurrentProject } = useCanvasContext();
 
     const [isLoading, setIsLoading] = useState(true);
-    const [projectData, setProjectData] = useState(null);
     const [error, setError] = useState(null);
 
     const fetchProject = useCallback(async () => {
@@ -35,7 +34,7 @@ const EditorContent = memo(() => {
             const res = await convex.query(api.projects.getProjectById, { projectId });
             const data = res?.data;
             if (!data) throw new Error(res?.error || 'Project not found.');
-            setProjectData(data);
+            setCurrentProject(data);
         } catch (err) {
             console.error('Error fetching project:', err);
             setError(err);
@@ -49,8 +48,8 @@ const EditorContent = memo(() => {
     }, [fetchProject]);
 
     const showLoader = isLoading;
-    const showError = !isLoading && (error || !projectData);
-    const showEditor = !isLoading && projectData && !error;
+    const showError = !isLoading && (error || !currentProject);
+    const showEditor = !isLoading && currentProject && !error;
     const deactiveBehindActivity = Boolean(processingMessage || isLoading);
 
     return (
@@ -104,11 +103,11 @@ const EditorContent = memo(() => {
                                 deactiveBehindActivity,
                         })}
                     >
-                        <EditorTopbar project={projectData} />
+                        <EditorTopbar />
                         <div className="flex flex-1 overflow-hidden">
-                            <EditorSidebar project={projectData} />
+                            <EditorSidebar />
                             <div className="flex flex-1">
-                                <CanvasEditor project={projectData} />
+                                <CanvasEditor />
                             </div>
                         </div>
                     </div>

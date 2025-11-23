@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { Crop, Expand, Eye, Loader2, Maximize2, Palette, Sliders, Text } from 'lucide-react';
 import useCanvasContext from '@/context/canvasContext/useCanvasContext';
 import CropContent from './tools/CropContent';
-import ResizeControls from './tools/ResizeControls';
+import ResizeControls from './tools/_resize/ResizeControls';
 import AdjustControls from './tools/_adjust/AdjustControls';
 import BackgroundControls from './tools/BackgroundControls';
 import AIExtenderControls from './tools/AIExtenderControls';
@@ -48,8 +48,8 @@ const TOOL_CONFIGS = {
     },
 };
 
-const EditorSidebar = ({ project }) => {
-    const { activeTool, applying } = useCanvasContext();
+const EditorSidebar = () => {
+    const { activeTool, processing } = useCanvasContext();
 
     const toolConfig = TOOL_CONFIGS[activeTool] || {};
 
@@ -68,10 +68,10 @@ const EditorSidebar = ({ project }) => {
                         <Icon className="h-5 w-5 text-white" />
                         <h2 className="text-lg font-semibold text-white">{toolConfig.title}</h2>
                     </span>
-                    {applying && (
+                    {processing && (
                         <span className="flex items-center gap-2">
                             <Loader2 className="h-4 w-4 text-white/70 animate-spin" />
-                            <span className="text-white/70">Applying...</span>
+                            <span className="text-white/70 text-sm">Applying...</span>
                         </span>
                     )}
                 </div>
@@ -80,7 +80,7 @@ const EditorSidebar = ({ project }) => {
 
             {/* Sidebar Content */}
             <div className="flex-1 p-4 overflow-y-scroll">
-                {renderToolContent(activeTool, project)}
+                {renderToolContent(activeTool)}
             </div>
         </div>
     );
@@ -90,22 +90,22 @@ EditorSidebar.propTypes = {};
 
 export default EditorSidebar;
 
-function renderToolContent(activeTool, project) {
+function renderToolContent(activeTool) {
     switch (activeTool) {
         case 'crop':
             return <CropContent />;
         case 'resize':
-            return <ResizeControls project={project} />;
+            return <ResizeControls />;
         case 'adjust':
             return <AdjustControls />;
         case 'background':
-            return <BackgroundControls project={project} />;
+            return <BackgroundControls />;
         case 'ai_extender':
-            return <AIExtenderControls project={project} />;
+            return <AIExtenderControls />;
         case 'text':
             return <TextControls />;
         case 'ai_edit':
-            return <AIEdit project={project} />;
+            return <AIEdit />;
         default:
             return <div className="text-white">Select a tool to get started</div>;
     }
