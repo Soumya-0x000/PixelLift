@@ -4,7 +4,7 @@ import { Crop, Expand, Eye, Maximize2, Palette, Sliders, Text } from 'lucide-rea
 import useCanvasContext from '@/context/canvasContext/useCanvasContext';
 import CropContent from './tools/CropContent';
 import ResizeControls from './tools/ResizeControls';
-import AdjustControls from './tools/AdjustControls';
+import AdjustControls from './tools/_adjust/AdjustControls';
 import BackgroundControls from './tools/BackgroundControls';
 import AIExtenderControls from './tools/AIExtenderControls';
 import TextControls from './tools/TextControls';
