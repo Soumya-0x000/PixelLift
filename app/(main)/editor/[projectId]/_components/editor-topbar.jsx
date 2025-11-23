@@ -120,15 +120,15 @@ const EXPORT_FORMATS = [
     },
 ];
 
-const EditorTopbar = ({ project }) => {
+const EditorTopbar = () => {
+    const { canvasEditor, activeTool, onToolChange, currentProject: project } = useCanvasContext();
     const router = useRouter();
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
     const [restrictedTool, setRestrictedTool] = useState(null);
     const [projectTitle, setProjectTitle] = useState(project.title || 'Untitled Project');
-    const [upgradeMsg, setUpgradeMsg] = useState({ title: '', description: '' });
+    const [upgradeMsg, setUpgradeMsg] = useState({ title: project.title || 'Untitled Project', description: '' });
     const { hasAccess, isApprenticeUser } = usePlanAccess();
 
-    const { canvasEditor, activeTool, onToolChange } = useCanvasContext();
     const { mutate: updateProject } = useConvexMutation(api.projects.updateProject);
 
     const formatUpgradeMsg = toolId => {

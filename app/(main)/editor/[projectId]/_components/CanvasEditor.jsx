@@ -1,27 +1,17 @@
-import { Input } from '@/components/ui/input';
-import {
-    ColorPicker,
-    ColorPickerAlpha,
-    ColorPickerEyeDropper,
-    ColorPickerFormat,
-    ColorPickerHue,
-    ColorPickerOutput,
-    ColorPickerSelection,
-} from '@/components/ui/shadcn-io/color-picker';
 import useCanvasContext from '@/context/canvasContext/useCanvasContext';
 import { api } from '@/convex/_generated/api';
 import { useConvexMutation } from '@/hooks/useConvexQuery';
 import { Canvas, FabricImage } from 'fabric';
-import React, { use, useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { RingLoader } from 'react-spinners';
 import { toast } from 'sonner';
 
-const CanvasEditor = ({ project }) => {
+const CanvasEditor = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [canvasBgColor, setCanvasBgColor] = useState('#ffffff');
     const canvasRef = useRef(null);
     const containerRef = useRef(null);
-    const { canvasEditor, setCanvasEditor, activeTool, onToolChange } = useCanvasContext();
+    const { canvasEditor, setCanvasEditor, activeTool, currentProject: project } = useCanvasContext();
 
     const { mutate: updateProject } = useConvexMutation(api.projects.updateProject);
 
@@ -223,7 +213,7 @@ const CanvasEditor = ({ project }) => {
     }, [canvasEditor]);
 
     useEffect(() => {
-        if(!canvasEditor) return;
+        if (!canvasEditor) return;
 
         switch (activeTool) {
             case 'crop':

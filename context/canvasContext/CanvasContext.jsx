@@ -7,7 +7,8 @@ export const CanvasProvider = ({ children }) => {
     const [canvasEditor, setCanvasEditor] = useState(null);
     const [processingMessage, setProcessingMessage] = useState('');
     const [activeTool, setActiveTool] = useState('resize');
-    const [applying, setApplying] = useState(false);
+    const [processing, setProcessing] = useState(false);
+    const [currentProject, setCurrentProject] = useState(null);
 
     const contextData = {
         canvasEditor,
@@ -16,8 +17,10 @@ export const CanvasProvider = ({ children }) => {
         setProcessingMessage,
         activeTool,
         onToolChange: setActiveTool,
-        applying,
-        setApplying,
+        processing,
+        setProcessing,
+        currentProject,
+        setCurrentProject,
     };
 
     return <CanvasContext.Provider value={contextData}>{children}</CanvasContext.Provider>;
