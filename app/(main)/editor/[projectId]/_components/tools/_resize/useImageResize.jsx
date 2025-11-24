@@ -1,3 +1,4 @@
+import useCanvasContext from '@/context/canvasContext/useCanvasContext';
 import { useState } from 'react';
 
 const ASPECT_RATIOS = [
@@ -18,4 +19,10 @@ export const useImageResize = () => {
     };
 
     const [dimensions, setDimensions] = useState(initialDimension);
+
+    return {
+        ASPECT_RATIOS,
+        dimensions,
+        setDimensions
+    }
 };
