@@ -19,10 +19,15 @@ export const useImageResize = () => {
     };
 
     const [dimensions, setDimensions] = useState(initialDimension);
-
+    const [lockAspectRatio, setLockAspectRatio] = useState(true);
+    const [selectedPreset, setSelectedPreset] = useState(null);
     return {
         ASPECT_RATIOS,
         dimensions,
-        setDimensions
-    }
+        setDimensions,
+        lockAspectRatio,
+        setLockAspectRatio,
+        selectedPreset,
+        setSelectedPreset,
+    };
 };
