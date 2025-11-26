@@ -3,6 +3,7 @@ import { useImageResize } from './useImageResize';
 import useCanvasContext from '@/context/canvasContext/useCanvasContext';
 import { Button } from '@/components/ui/button';
 import { Lock, Unlock } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 
 const ResizeControls = () => {
     const {
@@ -30,6 +31,19 @@ const ResizeControls = () => {
         dimensions.newWidth !== currentProject.width ||
         dimensions.newHeight !== currentProject.height;
 
+    const handleDimensionsChange = (value, dimension) => {
+        const parsedValue = parseInt(value, 10) || 0;
+        if (!isNaN(parsedValue) && parsedValue >= 100 && parsedValue <= 5000) {
+            setDimensions({ ...dimensions, [dimension]: parsedValue });
+        }
+
+        if (lockAspectRatio && currentProject) {
+            const ratio = currentProject.width / currentProject.height;
+            const modifiedValue = Math.round(parsedValue * ratio);
+            setDimensions(prev => ({ ...prev, [dimension]: modifiedValue }));
+        }
+    };
+
     return (
         <div className="space-y-6">
             {/* Current Size Display */}
@@ -56,6 +70,37 @@ const ResizeControls = () => {
                             <Unlock className="h-4 w-4" />
                         )}
                     </Button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                    <div>
+                        <label className="text-xs text-white/70 mb-1 block">Width</label>
+                        <Input
+                            type="number"
+                            value={dimensions.newWidth}
+                            onChange={e => handleDimensionsChange(e.target.value, 'newWidth')}
+                            min="100"
+                            max="5000"
+                            className="bg-slate-700 border-white/20 text-white"
+                        />
+                    </div>
+                    <div>
+                        <label className="text-xs text-white/70 mb-1 block">Height</label>
+                        <Input
+                            type="number"
+                            value={dimensions.newHeight}
+                            onChange={e => handleDimensionsChange(e.target.value, 'newHeight')}
+                            min="100"
+                            max="5000"
+                            className="bg-slate-700 border-white/20 text-white"
+                        />
+                    </div>
+                </div>
+
+                <div className="flex items-center justify-between text-xs">
+                    <span className="text-white/70">
+                        {lockAspectRatio ? 'Aspect ratio locked' : 'Free resize'}
+                    </span>
                 </div>
             </div>
         </div>
