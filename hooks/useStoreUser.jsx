@@ -9,7 +9,7 @@ export default function useStoreUser() {
     const { isAuthenticated, isLoading: convexAuthLoading } = useConvexAuth();
     const { user } = useUser();
     const { data = {} } = useSubscription(api.auth.getCurrentUser);
-    const { subscriptionItems = [] } = data;
+    const { subscriptionItems = [] } = data || {};
 
     // Safely derive current plan (memoized)
     const currentUserPlan = useMemo(() => {

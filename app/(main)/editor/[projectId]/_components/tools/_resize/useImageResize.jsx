@@ -1,3 +1,6 @@
+import useCanvasContext from '@/context/canvasContext/useCanvasContext';
+import { api } from '@/convex/_generated/api';
+import { useConvexMutation } from '@/hooks/useConvexQuery';
 import { useState } from 'react';
 
 const ASPECT_RATIOS = [
@@ -13,9 +16,27 @@ export const useImageResize = () => {
     const { canvasEditor, setProcessing, processing, setProcessingMessage, currentProject } =
         useCanvasContext();
     const initialDimension = {
-        width: currentProject?.width || 800,
-        height: currentProject?.height || 600,
+        newWidth: currentProject?.width || 800,
+        newHeight: currentProject?.height || 600,
     };
 
     const [dimensions, setDimensions] = useState(initialDimension);
+    const [lockAspectRatio, setLockAspectRatio] = useState(true);
+    const [selectedPreset, setSelectedPreset] = useState(null);
+
+    const {
+        mutate: updateProject,
+        data,
+        isLoading,
+    } = useConvexMutation(api.projects.updateProject);
+
+    return {
+        ASPECT_RATIOS,
+        dimensions,
+        setDimensions,
+        lockAspectRatio,
+        setLockAspectRatio,
+        selectedPreset,
+        setSelectedPreset,
+    };
 };
