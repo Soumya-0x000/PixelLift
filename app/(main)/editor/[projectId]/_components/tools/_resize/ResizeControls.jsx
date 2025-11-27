@@ -2,8 +2,9 @@ import React from 'react';
 import { useImageResize } from './useImageResize';
 import useCanvasContext from '@/context/canvasContext/useCanvasContext';
 import { Button } from '@/components/ui/button';
-import { Lock, Unlock } from 'lucide-react';
+import { Lock, Monitor, Unlock } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { toast } from 'sonner';
 
 const ResizeControls = () => {
     const {
@@ -33,15 +34,50 @@ const ResizeControls = () => {
 
     const handleDimensionsChange = (value, dimension) => {
         const parsedValue = parseInt(value, 10) || 0;
-        if (!isNaN(parsedValue) && parsedValue >= 100 && parsedValue <= 5000) {
-            setDimensions({ ...dimensions, [dimension]: parsedValue });
+        if (!isNaN(parsedValue)) {
+            setDimensions(prev => ({ ...prev, [dimension]: parsedValue }));
         }
 
         if (lockAspectRatio && currentProject) {
             const ratio = currentProject.width / currentProject.height;
             const modifiedValue = Math.round(parsedValue * ratio);
-            setDimensions(prev => ({ ...prev, [dimension]: modifiedValue }));
+            setDimensions(prev => {
+                const key = dimension === 'newWidth' ? 'newHeight' : 'newWidth';
+                return {
+                    ...prev,
+                    [key]: modifiedValue,
+                };
+            });
         }
+        setSelectedPreset(null);
+    };
+
+    // Calculate dimensions for aspect ratio based on original canvas size
+    const calculateAspectRatioDimensions = ratio => {
+        if (!currentProject) return { width: currentProject.width, height: currentProject.height };
+
+        const [ratioW, ratioH] = ratio;
+        const originalArea = currentProject.width * currentProject.height;
+
+        // Calculate new dimensions maintaining the same area approximately
+        const aspectRatio = ratioW / ratioH;
+        const newHeight = Math.sqrt(originalArea / aspectRatio);
+        const newWidth = newHeight * aspectRatio;
+
+        return {
+            width: Math.round(newWidth),
+            height: Math.round(newHeight),
+        };
+    };
+
+    const applyAspectRatio = aspectRatio => {
+        const dimensions = calculateAspectRatioDimensions(aspectRatio.ratio);
+        setDimensions(prev => ({
+            ...prev,
+            newWidth: dimensions.width,
+            newHeight: dimensions.height,
+        }));
+        setSelectedPreset(aspectRatio.name);
     };
 
     return (
@@ -101,6 +137,40 @@ const ResizeControls = () => {
                     <span className="text-white/70">
                         {lockAspectRatio ? 'Aspect ratio locked' : 'Free resize'}
                     </span>
+                </div>
+            </div>
+
+            {/* Aspect Ratio Presets */}
+            <div className="space-y-3">
+                <h3 className="text-sm font-medium text-white">Aspect Ratios</h3>
+                <div className="grid grid-cols-1 gap-2 max-h-60 overflow-y-auto">
+                    {ASPECT_RATIOS.map(aspectRatio => {
+                        const dimensions = calculateAspectRatioDimensions(aspectRatio.ratio);
+                        return (
+                            <Button
+                                key={aspectRatio.name}
+                                variant={
+                                    selectedPreset === aspectRatio.name ? 'default' : 'outline'
+                                }
+                                size="sm"
+                                onClick={() => applyAspectRatio(aspectRatio)}
+                                className={`justify-between h-auto py-2 ${
+                                    selectedPreset === aspectRatio.name
+                                        ? 'bg-cyan-500 hover:bg-cyan-600'
+                                        : 'text-left'
+                                }`}
+                            >
+                                <div>
+                                    <div className="font-medium">{aspectRatio.name}</div>
+                                    <div className="text-xs opacity-70">
+                                        {dimensions.width} × {dimensions.height} (
+                                        {aspectRatio.label})
+                                    </div>
+                                </div>
+                                <Monitor className="h-4 w-4" />
+                            </Button>
+                        );
+                    })}
                 </div>
             </div>
         </div>
