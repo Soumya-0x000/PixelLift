@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useImageResize } from './useImageResize';
 import useCanvasContext from '@/context/canvasContext/useCanvasContext';
 import { Button } from '@/components/ui/button';
@@ -15,10 +15,18 @@ const ResizeControls = () => {
         setLockAspectRatio,
         selectedPreset,
         setSelectedPreset,
+        data,
+        isLoading,
     } = useImageResize();
 
     const { canvasEditor, setProcessing, processing, setProcessingMessage, currentProject } =
         useCanvasContext();
+
+    useEffect(() => {
+        if (!isLoading && data) {
+            window.location.reload();
+        }
+    }, [data, isLoading]);
 
     if (!canvasEditor || !currentProject) {
         return (
@@ -78,6 +86,17 @@ const ResizeControls = () => {
             newHeight: dimensions.height,
         }));
         setSelectedPreset(aspectRatio.name);
+    };
+
+    // Calculate viewport scale to fit canvas in container
+    const calculateViewportScale = () => {
+        const container = canvasEditor.getElement().parentNode;
+        if (!container) return 1;
+        const containerWidth = container.clientWidth - 40;
+        const containerHeight = container.clientHeight - 40;
+        const scaleX = containerWidth / newWidth;
+        const scaleY = containerHeight / newHeight;
+        return Math.min(scaleX, scaleY, 1);
     };
 
     return (
@@ -156,7 +175,7 @@ const ResizeControls = () => {
                                 onClick={() => applyAspectRatio(aspectRatio)}
                                 className={`justify-between h-auto py-2 ${
                                     selectedPreset === aspectRatio.name
-                                        ? 'bg-cyan-500 hover:bg-cyan-600'
+                                        ? 'bg-slate-800/50 hover:bg-zinc-800/40 text-zinc-100 scale-95'
                                         : 'text-left'
                                 }`}
                             >

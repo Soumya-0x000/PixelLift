@@ -48,5 +48,7 @@ export const useImageResize = () => {
         setLockAspectRatio,
         selectedPreset,
         setSelectedPreset,
+        data,
+        isLoading,
     };
 };

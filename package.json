@@ -2,6 +2,7 @@
   "name": "pixellift",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev:next": "next dev",
     "dev:convex": "npx convex dev",
@@ -58,6 +59,7 @@
     "@types/color": "^4.2.0",
     "@types/three": "^0.179.0",
     "autoprefixer": "^10.4.21",
+    "baseline-browser-mapping": "^2.8.32",
     "eslint": "^9",
     "eslint-config-next": "15.4.5",
     "postcss": "^8.5.6",
