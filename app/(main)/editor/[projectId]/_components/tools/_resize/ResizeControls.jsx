@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useImageResize } from './useImageResize';
 import useCanvasContext from '@/context/canvasContext/useCanvasContext';
 import { Button } from '@/components/ui/button';
-import { Lock, Monitor, Unlock } from 'lucide-react';
+import { Expand, Lock, Monitor, Unlock } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 
@@ -19,8 +19,14 @@ const ResizeControls = () => {
         isLoading,
     } = useImageResize();
 
-    const { canvasEditor, setProcessing, processing, setProcessingMessage, currentProject } =
-        useCanvasContext();
+    const {
+        canvasEditor,
+        setProcessing,
+        processing,
+        setProcessingMessage,
+        processingMessage,
+        currentProject,
+    } = useCanvasContext();
 
     useEffect(() => {
         if (!isLoading && data) {
@@ -98,6 +104,8 @@ const ResizeControls = () => {
         const scaleY = containerHeight / newHeight;
         return Math.min(scaleX, scaleY, 1);
     };
+
+    const handleApplyResize = () => {};
 
     return (
         <div className="flex flex-col gap-y-1.5 h-full">
@@ -177,7 +185,7 @@ const ResizeControls = () => {
                                         : ''
                                 }`}
                             >
-                                <div>
+                                <div className="flex flex-col gap-y-1">
                                     <div className="font-medium">{aspectRatio.name}</div>
                                     <div className="text-xs opacity-70">
                                         {dimensions.width} × {dimensions.height} (
@@ -189,6 +197,28 @@ const ResizeControls = () => {
                         );
                     })}
                 </div>
+            </div>
+
+            {/* Apply Button */}
+            <Button
+                onClick={handleApplyResize}
+                disabled={!hasChanges || processingMessage}
+                className="w-full"
+                variant="primary"
+            >
+                <Expand className="h-4 w-4 mr-2" />
+                Apply Resize
+            </Button>
+
+            {/* Instructions */}
+            <div className="bg-slate-700/30 rounded-lg p-3">
+                <p className="text-xs text-white/70">
+                    <strong>Resize Canvas:</strong> Changes canvas dimensions.
+                    <br />
+                    <strong>Aspect Ratios:</strong> Smart sizing based on your current canvas.
+                    <br />
+                    Objects maintain their size and position.
+                </p>
             </div>
         </div>
     );
