@@ -199,6 +199,27 @@ const ResizeControls = () => {
                 </div>
             </div>
 
+            {/* New Size Preview */}
+            {hasChanges && (
+                <div className="bg-slate-700/30 rounded-lg p-3">
+                    <h4 className="text-sm font-medium text-white mb-2">New Size Preview</h4>
+                    <div className="text-xs text-white/70">
+                        <div>
+                            New Canvas: {dimensions.newWidth} × {dimensions.newHeight} pixels
+                        </div>
+                        <div className="text-cyan-400">
+                            {dimensions.newWidth > currentProject.width ||
+                            dimensions.newHeight > currentProject.height
+                                ? 'Canvas will be expanded'
+                                : 'Canvas will be cropped'}
+                        </div>
+                        <div className="text-white/50 mt-1">
+                            Objects will maintain their current size and position
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Apply Button */}
             <Button
                 onClick={handleApplyResize}
