@@ -60,9 +60,9 @@ const EditorSidebar = () => {
     const Icon = toolConfig.icon;
 
     return (
-        <div className="min-w-96 border-r flex flex-col">
+        <div className="min-w-96 max-w-96 border-r flex flex-col ">
             {/* Sidebar Header */}
-            <div className="p-4 border-b">
+            <div className="px-4 py-3 border-b">
                 <div className="flex items-center justify-between">
                     <span className="flex gap-3">
                         <Icon className="h-5 w-5 text-white" />
@@ -79,7 +79,7 @@ const EditorSidebar = () => {
             </div>
 
             {/* Sidebar Content */}
-            <div className="flex-1 p-4 overflow-y-scroll">
+            <div className="flex-1 p-3 overflow-y-auto">
                 {renderToolContent(activeTool)}
             </div>
         </div>
