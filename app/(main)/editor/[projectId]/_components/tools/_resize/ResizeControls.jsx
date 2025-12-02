@@ -17,6 +17,7 @@ const ResizeControls = () => {
         setSelectedPreset,
         data,
         isLoading,
+        updateProject,
     } = useImageResize();
 
     const {
@@ -105,7 +106,7 @@ const ResizeControls = () => {
         return Math.min(scaleX, scaleY, 1);
     };
 
-    const handleApplyResize = () => {
+    const handleApplyResize = async () => {
         if (
             !canvasEditor ||
             !currentProject ||
@@ -117,7 +118,39 @@ const ResizeControls = () => {
 
         setProcessing(true);
         setProcessingMessage('Resizing canvas...');
-        canvasEditor.resizeCanvas(dimensions.newWidth, dimensions.newHeight);
+
+        try {
+            canvasEditor.setWidth(dimensions.newWidth);
+            canvasEditor.setHeight(dimensions.newHeight);
+
+            // Calculate and apply viewport scale
+            const viewportScale = calculateViewportScale();
+
+            canvasEditor.setDimensions(
+                {
+                    width: dimensions.newWidth * viewportScale,
+                    height: dimensions.newHeight * viewportScale,
+                },
+                { backstoreOnly: false }
+            );
+
+            canvasEditor.setZoom(viewportScale);
+            canvasEditor.calcOffset();
+            canvasEditor.requestRenderAll();
+            console.log(currentProject);
+            // await updateProject({
+            //     projectId: currentProject._id,
+            //     width: dimensions.newWidth,
+            //     height: dimensions.newHeight,
+            //     canvasState: canvasEditor.toJSON(),
+            // });
+        } catch (error) {
+            console.error('Failed to resize canvas', error);
+            toast.error('Failed to resize canvas');
+        } finally {
+            setProcessing(false);
+            setProcessingMessage(null);
+        }
     };
 
     return (
@@ -214,7 +247,7 @@ const ResizeControls = () => {
 
             {/* New Size Preview */}
             {console.log(hasChanges)}
-            {!hasChanges && (
+            {hasChanges && (
                 <div className="bg-slate-700/30 rounded-lg p-3 mt-4">
                     <h4 className="text-sm font-medium text-white mb-2">New Size Preview</h4>
                     <div className="text-xs text-white/70">
@@ -237,9 +270,9 @@ const ResizeControls = () => {
             {/* Apply Button */}
             <Button
                 onClick={handleApplyResize}
-                disabled={!hasChanges || processingMessage}
-                className="w-full"
-                variant="ghost"
+                // disabled={!hasChanges || processingMessage}
+                className="w-fit my-4"
+                variant="default"
             >
                 <Expand className="h-4 w-4 mr-2" />
                 Apply Resize
