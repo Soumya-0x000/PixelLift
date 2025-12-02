@@ -105,7 +105,20 @@ const ResizeControls = () => {
         return Math.min(scaleX, scaleY, 1);
     };
 
-    const handleApplyResize = () => {};
+    const handleApplyResize = () => {
+        if (
+            !canvasEditor ||
+            !currentProject ||
+            dimensions.newWidth === currentProject.width ||
+            dimensions.newHeight === currentProject.height
+        ) {
+            return;
+        }
+
+        setProcessing(true);
+        setProcessingMessage('Resizing canvas...');
+        canvasEditor.resizeCanvas(dimensions.newWidth, dimensions.newHeight);
+    };
 
     return (
         <div className="flex flex-col gap-y-1.5 h-full">
@@ -200,8 +213,9 @@ const ResizeControls = () => {
             </div>
 
             {/* New Size Preview */}
-            {hasChanges && (
-                <div className="bg-slate-700/30 rounded-lg p-3">
+            {console.log(hasChanges)}
+            {!hasChanges && (
+                <div className="bg-slate-700/30 rounded-lg p-3 mt-4">
                     <h4 className="text-sm font-medium text-white mb-2">New Size Preview</h4>
                     <div className="text-xs text-white/70">
                         <div>
@@ -225,7 +239,7 @@ const ResizeControls = () => {
                 onClick={handleApplyResize}
                 disabled={!hasChanges || processingMessage}
                 className="w-full"
-                variant="primary"
+                variant="ghost"
             >
                 <Expand className="h-4 w-4 mr-2" />
                 Apply Resize

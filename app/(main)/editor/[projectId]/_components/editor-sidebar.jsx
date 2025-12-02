@@ -60,7 +60,7 @@ const EditorSidebar = () => {
     const Icon = toolConfig.icon;
 
     return (
-        <div className="min-w-96 border-r flex flex-col ">
+        <div className="min-w-96 max-w-96 border-r flex flex-col ">
             {/* Sidebar Header */}
             <div className="px-4 py-3 border-b">
                 <div className="flex items-center justify-between">
