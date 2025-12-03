@@ -28,6 +28,7 @@ import UpgradePlanModal from '@/components/UpgradePlanModal';
 import { Input } from '@/components/ui/input';
 import { useConvexMutation } from '@/hooks/useConvexQuery';
 import { api } from '@/convex/_generated/api';
+import { motion } from 'motion/react';
 
 const TOOLS = [
     {
@@ -126,7 +127,10 @@ const EditorTopbar = () => {
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
     const [restrictedTool, setRestrictedTool] = useState(null);
     const [projectTitle, setProjectTitle] = useState(project.title || 'Untitled Project');
-    const [upgradeMsg, setUpgradeMsg] = useState({ title: project.title || 'Untitled Project', description: '' });
+    const [upgradeMsg, setUpgradeMsg] = useState({
+        title: project.title || 'Untitled Project',
+        description: '',
+    });
     const { hasAccess, isApprenticeUser } = usePlanAccess();
 
     const { mutate: updateProject } = useConvexMutation(api.projects.updateProject);
@@ -208,7 +212,6 @@ const EditorTopbar = () => {
 
                 {/* Tools Row */}
                 <div className="flex items-center justify-between">
-                    {/* Tools */}
                     <div className="flex items-center gap-2">
                         {TOOLS.map(tool => {
                             const Icon = tool.icon;
@@ -216,21 +219,24 @@ const EditorTopbar = () => {
                             const hasToolAccess = hasAccess(tool.id);
 
                             return (
-                                <Button
-                                    key={tool.id}
-                                    variant={isActive ? 'default' : 'ghost'}
-                                    size="sm"
-                                    onClick={() => handleToolChange(tool.id)}
-                                    className={`gap-2 relative ${
-                                        isActive
-                                            ? 'bg-blue-600 text-white hover:bg-blue-700'
-                                            : 'text-white hover:text-gray-300 hover:bg-gray-100'
-                                    } ${!hasToolAccess ? 'opacity-60' : ''}`}
-                                >
-                                    <Icon className="h-4 w-4" />
-                                    {tool.label}
-                                    {!hasToolAccess && <Lock className="h-3 w-3 text-amber-400" />}
-                                </Button>
+                                <div key={tool.id}>
+                                    <Button
+                                        variant={isActive ? 'default' : 'ghost'}
+                                        size="sm"
+                                        onClick={() => handleToolChange(tool.id)}
+                                        className={`gap-2 relative ${
+                                            isActive
+                                                ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                                : 'text-white hover:text-gray-300 hover:bg-gray-100'
+                                        } ${!hasToolAccess ? 'opacity-60' : ''}`}
+                                    >
+                                        <Icon className="h-4 w-4" />
+                                        {tool.label}
+                                        {!hasToolAccess && (
+                                            <Lock className="h-3 w-3 text-amber-400" />
+                                        )}
+                                    </Button>
+                                </div>
                             );
                         })}
                     </div>

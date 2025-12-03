@@ -2,10 +2,11 @@ import React, { useEffect } from 'react';
 import { useImageResize } from './useImageResize';
 import useCanvasContext from '@/context/canvasContext/useCanvasContext';
 import { Button } from '@/components/ui/button';
-import { Expand, Lock, Monitor, Unlock } from 'lucide-react';
+import { Expand, Lock, Monitor, RefreshCw, Unlock } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { motion } from 'motion/react';
+import useAPIContext from '@/context/APIcontext/useApiContext';
 
 const ResizeControls = () => {
     const {
@@ -29,12 +30,21 @@ const ResizeControls = () => {
         processingMessage,
         currentProject,
     } = useCanvasContext();
+    const { get } = useAPIContext();
 
     useEffect(() => {
         if (!isLoading && data) {
             window.location.reload();
         }
     }, [data, isLoading]);
+
+    useEffect(() => {
+        if (!isLoading && data) {
+            setTimeout(() => {
+                window.dispatchEvent(new Event('resize'));
+            }, 500);
+        }
+    }, [isLoading, data]);
 
     if (!canvasEditor || !currentProject) {
         return (
@@ -139,12 +149,12 @@ const ResizeControls = () => {
             canvasEditor.calcOffset();
             canvasEditor.requestRenderAll();
             console.log(currentProject);
-            // await updateProject({
-            //     projectId: currentProject._id,
-            //     width: dimensions.newWidth,
-            //     height: dimensions.newHeight,
-            //     canvasState: canvasEditor.toJSON(),
-            // });
+            await updateProject({
+                projectId: currentProject._id,
+                width: dimensions.newWidth,
+                height: dimensions.newHeight,
+                canvasState: canvasEditor.toJSON(),
+            });
         } catch (error) {
             console.error('Failed to resize canvas', error);
             toast.error('Failed to resize canvas');
@@ -154,13 +164,62 @@ const ResizeControls = () => {
         }
     };
 
+    const handleRestoreOriginalSize = async () => {
+        const imgKitFileId = currentProject?.imgKitFileId;
+
+        if (!imgKitFileId) {
+            toast.error('Image ID not found');
+            return;
+        }
+
+        try {
+            setProcessing(true);
+            setProcessingMessage('Fetching original dimensions...');
+
+            const response = await fetch(`/api/imagekit/get_image_details/${imgKitFileId}`);
+            const result = await response.json();
+
+            if (!result.success) {
+                throw new Error(result.error || 'Failed to fetch image details');
+            }
+
+            const { width, height } = result.data;
+
+            setDimensions({
+                newWidth: width,
+                newHeight: height,
+            });
+
+            toast.success('Original dimensions restored');
+        } catch (error) {
+            console.error('Failed to restore original size', error);
+            toast.error('Failed to restore original size');
+        } finally {
+            setProcessing(false);
+            setProcessingMessage(null);
+        }
+    };
+
     return (
         <div className="flex flex-col gap-y-1.5 h-auto ">
             {/* Current Size Display */}
-            <div className="bg-slate-700/30 rounded-lg p-3">
-                <h4 className="text-sm font-medium text-white mb-2">Current Size</h4>
-                <div className="text-xs text-white/70">
-                    {currentProject.width} × {currentProject.height} pixels
+            <div className="bg-slate-700/30 rounded-lg p-3 flex items-center justify-between">
+                <div className="flex flex-col items-start justify-center w-fit">
+                    <h4 className="text-sm font-medium text-white mb-2">Current Size</h4>
+                    <div className="text-xs text-white/70">
+                        {currentProject.width} × {currentProject.height} pixels
+                    </div>
+                </div>
+
+                <div>
+                    <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={handleRestoreOriginalSize}
+                        className="text-white/70 hover:text-white p-1 group hover:bg-slate-950"
+                    >
+                        <RefreshCw className="group-hover:animate-spin" />
+                    </Button>
                 </div>
             </div>
 
@@ -248,7 +307,12 @@ const ResizeControls = () => {
 
             {/* New Size Preview */}
             {hasChanges && (
-                <motion.div initial={{ opacity: 0, y: 150 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="bg-slate-700/30 rounded-lg p-3 mt-4">
+                <motion.div
+                    initial={{ opacity: 0, y: 150 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="bg-slate-700/30 rounded-lg p-3 mt-4"
+                >
                     <h4 className="text-sm font-medium text-white mb-2">New Size Preview</h4>
                     <div className="text-xs text-white/70">
                         <div>

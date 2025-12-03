@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import imagekit from '../../config';
 
-export async function DELETE(req, { params }) {
+export async function DELETE(req, { params }) { 
     try {
         const { fileId } = params;
 
