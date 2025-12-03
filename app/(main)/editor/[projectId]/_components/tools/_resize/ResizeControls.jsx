@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Expand, Lock, Monitor, Unlock } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
+import { motion } from 'motion/react';
 
 const ResizeControls = () => {
     const {
@@ -101,8 +102,8 @@ const ResizeControls = () => {
         if (!container) return 1;
         const containerWidth = container.clientWidth - 40;
         const containerHeight = container.clientHeight - 40;
-        const scaleX = containerWidth / newWidth;
-        const scaleY = containerHeight / newHeight;
+        const scaleX = containerWidth / dimensions?.newWidth;
+        const scaleY = containerHeight / dimensions?.newHeight;
         return Math.min(scaleX, scaleY, 1);
     };
 
@@ -154,7 +155,7 @@ const ResizeControls = () => {
     };
 
     return (
-        <div className="flex flex-col gap-y-1.5 h-full">
+        <div className="flex flex-col gap-y-1.5 h-auto ">
             {/* Current Size Display */}
             <div className="bg-slate-700/30 rounded-lg p-3">
                 <h4 className="text-sm font-medium text-white mb-2">Current Size</h4>
@@ -246,9 +247,8 @@ const ResizeControls = () => {
             </div>
 
             {/* New Size Preview */}
-            {console.log(hasChanges)}
             {hasChanges && (
-                <div className="bg-slate-700/30 rounded-lg p-3 mt-4">
+                <motion.div initial={{ opacity: 0, y: 150 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="bg-slate-700/30 rounded-lg p-3 mt-4">
                     <h4 className="text-sm font-medium text-white mb-2">New Size Preview</h4>
                     <div className="text-xs text-white/70">
                         <div>
@@ -264,7 +264,7 @@ const ResizeControls = () => {
                             Objects will maintain their current size and position
                         </div>
                     </div>
-                </div>
+                </motion.div>
             )}
 
             {/* Apply Button */}
