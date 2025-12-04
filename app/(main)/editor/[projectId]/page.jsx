@@ -87,8 +87,8 @@ const EditorContent = memo(() => {
                             transition={{ damping: 15, stiffness: 200 }}
                             className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-70 text-white px-3 py-2 rounded-md z-50 shadow-md flex flex-row items-center justify-between gap-14"
                         >
-                            <div>
-                                <Loader className="inline-block mr-2 animate-spin" size={18} />
+                            <div className="flex items-center gap-2">
+                                <Loader className="inline-block mr-2 animate-spin" size={22} />
                                 {processingMessage}
                             </div>
                             <span className="text-xs w-[50%] text-right hyphens-auto break-after-all">
