@@ -2,165 +2,75 @@ import React, { useEffect } from 'react';
 import { useImageResize } from './useImageResize';
 import useCanvasContext from '@/context/canvasContext/useCanvasContext';
 import { Button } from '@/components/ui/button';
-import { Expand, Lock, Monitor, Unlock } from 'lucide-react';
+import { Expand, Lock, Monitor, RefreshCw, Unlock } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { toast } from 'sonner';
 import { motion } from 'motion/react';
+import { useRouter } from 'next/navigation';
 
 const ResizeControls = () => {
     const {
         ASPECT_RATIOS,
         dimensions,
-        setDimensions,
         lockAspectRatio,
         setLockAspectRatio,
         selectedPreset,
-        setSelectedPreset,
+        hasChanges,
+        calculateAspectRatioDimensions,
+        handleDimensionsChange,
+        applyAspectRatio,
+        handleApplyResize,
+        handleRestoreOriginalSize,
         data,
         isLoading,
-        updateProject,
     } = useImageResize();
 
-    const {
-        canvasEditor,
-        setProcessing,
-        processing,
-        setProcessingMessage,
-        processingMessage,
-        currentProject,
-    } = useCanvasContext();
+    const { canvasEditor, currentProject } = useCanvasContext();
 
+    // Reload page after successful update
     useEffect(() => {
         if (!isLoading && data) {
-            window.location.reload();
+            router.refresh();
         }
     }, [data, isLoading]);
 
+    // Dispatch resize event after update
+    useEffect(() => {
+        if (!isLoading && data) {
+            setTimeout(() => {
+                window.dispatchEvent(new Event('resize'));
+                router.refresh();
+            }, 500);
+        }
+    }, [isLoading, data]);
+
     if (!canvasEditor || !currentProject) {
         return (
-            <div className=" ring-1 ring-slate-800/50 rounded-md bg-slate-900/20 w-full h-full flex items-center justify-center">
+            <div className="ring-1 ring-slate-800/50 rounded-md bg-slate-900/20 w-full h-full flex items-center justify-center">
                 <div>Canvas not ready!</div>
             </div>
         );
     }
 
-    const hasChanges =
-        dimensions.newWidth !== currentProject.width ||
-        dimensions.newHeight !== currentProject.height;
-
-    const handleDimensionsChange = (value, dimension) => {
-        const parsedValue = parseInt(value, 10) || 0;
-        if (!isNaN(parsedValue)) {
-            setDimensions(prev => ({ ...prev, [dimension]: parsedValue }));
-        }
-
-        if (lockAspectRatio && currentProject) {
-            const ratio = currentProject.width / currentProject.height;
-            const modifiedValue = Math.round(parsedValue * ratio);
-            setDimensions(prev => {
-                const key = dimension === 'newWidth' ? 'newHeight' : 'newWidth';
-                return {
-                    ...prev,
-                    [key]: modifiedValue,
-                };
-            });
-        }
-        setSelectedPreset(null);
-    };
-
-    // Calculate dimensions for aspect ratio based on original canvas size
-    const calculateAspectRatioDimensions = ratio => {
-        if (!currentProject) return { width: currentProject.width, height: currentProject.height };
-
-        const [ratioW, ratioH] = ratio;
-        const originalArea = currentProject.width * currentProject.height;
-
-        // Calculate new dimensions maintaining the same area approximately
-        const aspectRatio = ratioW / ratioH;
-        const newHeight = Math.sqrt(originalArea / aspectRatio);
-        const newWidth = newHeight * aspectRatio;
-
-        return {
-            width: Math.round(newWidth),
-            height: Math.round(newHeight),
-        };
-    };
-
-    const applyAspectRatio = aspectRatio => {
-        const dimensions = calculateAspectRatioDimensions(aspectRatio.ratio);
-        setDimensions(prev => ({
-            ...prev,
-            newWidth: dimensions.width,
-            newHeight: dimensions.height,
-        }));
-        setSelectedPreset(aspectRatio.name);
-    };
-
-    // Calculate viewport scale to fit canvas in container
-    const calculateViewportScale = () => {
-        const container = canvasEditor.getElement().parentNode;
-        if (!container) return 1;
-        const containerWidth = container.clientWidth - 40;
-        const containerHeight = container.clientHeight - 40;
-        const scaleX = containerWidth / dimensions?.newWidth;
-        const scaleY = containerHeight / dimensions?.newHeight;
-        return Math.min(scaleX, scaleY, 1);
-    };
-
-    const handleApplyResize = async () => {
-        if (
-            !canvasEditor ||
-            !currentProject ||
-            dimensions.newWidth === currentProject.width ||
-            dimensions.newHeight === currentProject.height
-        ) {
-            return;
-        }
-
-        setProcessing(true);
-        setProcessingMessage('Resizing canvas...');
-
-        try {
-            canvasEditor.setWidth(dimensions.newWidth);
-            canvasEditor.setHeight(dimensions.newHeight);
-
-            // Calculate and apply viewport scale
-            const viewportScale = calculateViewportScale();
-
-            canvasEditor.setDimensions(
-                {
-                    width: dimensions.newWidth * viewportScale,
-                    height: dimensions.newHeight * viewportScale,
-                },
-                { backstoreOnly: false }
-            );
-
-            canvasEditor.setZoom(viewportScale);
-            canvasEditor.calcOffset();
-            canvasEditor.requestRenderAll();
-            console.log(currentProject);
-            // await updateProject({
-            //     projectId: currentProject._id,
-            //     width: dimensions.newWidth,
-            //     height: dimensions.newHeight,
-            //     canvasState: canvasEditor.toJSON(),
-            // });
-        } catch (error) {
-            console.error('Failed to resize canvas', error);
-            toast.error('Failed to resize canvas');
-        } finally {
-            setProcessing(false);
-            setProcessingMessage(null);
-        }
-    };
-
     return (
-        <div className="flex flex-col gap-y-1.5 h-auto ">
+        <div className="flex flex-col gap-y-1.5 h-auto">
             {/* Current Size Display */}
-            <div className="bg-slate-700/30 rounded-lg p-3">
-                <h4 className="text-sm font-medium text-white mb-2">Current Size</h4>
-                <div className="text-xs text-white/70">
-                    {currentProject.width} × {currentProject.height} pixels
+            <div className="bg-slate-700/30 rounded-lg p-3 flex items-center justify-between">
+                <div className="flex flex-col items-start justify-center w-fit">
+                    <h4 className="text-sm font-medium text-white mb-2">Current Size</h4>
+                    <div className="text-xs text-white/70">
+                        {currentProject.width} × {currentProject.height} pixels
+                    </div>
+                </div>
+
+                <div>
+                    <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={handleRestoreOriginalSize}
+                        className="text-white/70 hover:text-white p-1 group hover:bg-slate-950"
+                    >
+                        <RefreshCw className="group-hover:animate-spin" />
+                    </Button>
                 </div>
             </div>
 
@@ -207,7 +117,7 @@ const ResizeControls = () => {
                     </div>
                 </div>
 
-                <div className=" text-xs text-white/70 text-right">
+                <div className="text-xs text-white/70 text-right">
                     {lockAspectRatio ? 'Aspect ratio locked' : 'Free resize'}
                 </div>
             </div>
@@ -217,7 +127,9 @@ const ResizeControls = () => {
                 <h3 className="text-sm font-medium text-white">Aspect Ratios</h3>
                 <div className="grid grid-cols-1 gap-2 max-h-60 overflow-y-auto">
                     {ASPECT_RATIOS.map(aspectRatio => {
-                        const dimensions = calculateAspectRatioDimensions(aspectRatio.ratio);
+                        const calculatedDimensions = calculateAspectRatioDimensions(
+                            aspectRatio.ratio
+                        );
                         return (
                             <Button
                                 key={aspectRatio.name}
@@ -235,8 +147,8 @@ const ResizeControls = () => {
                                 <div className="flex flex-col gap-y-1">
                                     <div className="font-medium">{aspectRatio.name}</div>
                                     <div className="text-xs opacity-70">
-                                        {dimensions.width} × {dimensions.height} (
-                                        {aspectRatio.label})
+                                        {calculatedDimensions.width} × {calculatedDimensions.height}{' '}
+                                        ({aspectRatio.label})
                                     </div>
                                 </div>
                                 <Monitor className="h-4 w-4" />
@@ -248,7 +160,12 @@ const ResizeControls = () => {
 
             {/* New Size Preview */}
             {hasChanges && (
-                <motion.div initial={{ opacity: 0, y: 150 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="bg-slate-700/30 rounded-lg p-3 mt-4">
+                <motion.div
+                    initial={{ opacity: 0, y: 150 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="bg-slate-700/30 rounded-lg p-3 mt-4"
+                >
                     <h4 className="text-sm font-medium text-white mb-2">New Size Preview</h4>
                     <div className="text-xs text-white/70">
                         <div>
@@ -268,12 +185,7 @@ const ResizeControls = () => {
             )}
 
             {/* Apply Button */}
-            <Button
-                onClick={handleApplyResize}
-                // disabled={!hasChanges || processingMessage}
-                className="w-fit my-4"
-                variant="default"
-            >
+            <Button onClick={handleApplyResize} className="w-fit my-4" variant="default">
                 <Expand className="h-4 w-4 mr-2" />
                 Apply Resize
             </Button>

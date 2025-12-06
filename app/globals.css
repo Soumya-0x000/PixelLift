@@ -252,3 +252,15 @@ body {
     scrollbar-width: thin;
     scrollbar-color: rgba(100, 100, 100, 0.4) transparent;
 }
+
+/* For Chrome, Safari, Edge, and Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* For Firefox */
+input[type=number] {
+  -moz-appearance: textfield;
+}

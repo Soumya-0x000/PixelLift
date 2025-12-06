@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Crop, Expand, Eye, Loader2, Maximize2, Palette, Sliders, Text } from 'lucide-react';
 import useCanvasContext from '@/context/canvasContext/useCanvasContext';
-import CropContent from './tools/CropContent';
+import CropContent from './tools/crop/CropContent';
 import ResizeControls from './tools/_resize/ResizeControls';
 import AdjustControls from './tools/_adjust/AdjustControls';
 import BackgroundControls from './tools/BackgroundControls';
