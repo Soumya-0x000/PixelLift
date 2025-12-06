@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Expand, Lock, Monitor, RefreshCw, Unlock } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { motion } from 'motion/react';
+import { useRouter } from 'next/navigation';
 
 const ResizeControls = () => {
     const {
@@ -28,7 +29,7 @@ const ResizeControls = () => {
     // Reload page after successful update
     useEffect(() => {
         if (!isLoading && data) {
-            window.location.reload();
+            router.refresh();
         }
     }, [data, isLoading]);
 
@@ -37,6 +38,7 @@ const ResizeControls = () => {
         if (!isLoading && data) {
             setTimeout(() => {
                 window.dispatchEvent(new Event('resize'));
+                router.refresh();
             }, 500);
         }
     }, [isLoading, data]);
