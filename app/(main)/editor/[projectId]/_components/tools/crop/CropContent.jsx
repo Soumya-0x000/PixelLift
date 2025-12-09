@@ -1,27 +1,23 @@
 import React from 'react';
 import { useImageCrop } from './useImageCrop';
-import { useCanvasContext } from '@/context/canvasContext';
 import { Button } from '@/components/ui/button';
 import { CheckCheck, Crop, X } from 'lucide-react';
+import useCanvasContext from '@/context/canvasContext/useCanvasContext';
 
 const CropContent = () => {
-    const { ASPECT_RATIOS } = useImageCrop();
-    const { canvasEditor, activeTool } = useCanvasContext();
+    const { canvasEditor } = useCanvasContext();
 
-    const [selectedImage, setSelectedImage] = useState(null);
-    const [isCropMode, setIsCropMode] = useState(false);
-
-    const getActiveImage = () => {
-        if (!canvasEditor) return null;
-
-        const activeObject = canvasEditor.getActiveObject();
-        if (activeObject && activeObject.type === 'image') {
-            return activeObject;
-        }
-
-        const objects = canvasEditor.getObjects();
-        return objects.find(object => object.type === 'image') || null;
-    };
+    const {
+        ASPECT_RATIOS,
+        selectedImage,
+        isCropMode,
+        selectedRatio,
+        getActiveImage,
+        initializeCropMode,
+        applyAspectRatio,
+        applyCrop,
+        cancelCrop,
+    } = useImageCrop(canvasEditor);
 
     if (!canvasEditor) {
         return (
@@ -39,27 +35,6 @@ const CropContent = () => {
             </div>
         );
     }
-
-    const removeAllCropRectangles = image => {
-        if (!canvasEditor) return;
-
-        const objects = canvasEditor.getObjects();
-        const rectsToRemove = objects.filter(object => object.type === 'rect');
-
-        rectsToRemove.forEach(rect => {
-            canvasEditor.remove(rect);
-        });
-
-        canvasEditor.requestRenderAll();
-    };
-
-    const initializeCropMode = image => {};
-
-    const applyAspectRatio = () => {};
-
-    const applyCrop = () => {};
-
-    const cancelCrop = () => {};
 
     return (
         <div className="space-y-6">
