@@ -1,23 +1,20 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Maximize, RectangleHorizontal, RectangleVertical, Smartphone, Square } from 'lucide-react';
+import useCanvasContext from '@/context/canvasContext/useCanvasContext';
 
 const ASPECT_RATIOS = [
     { label: 'Freeform', value: null, icon: Maximize },
     { label: 'Square', value: 1, icon: Square, ratio: '1:1' },
-    {
-        label: 'Widescreen',
-        value: 16 / 9,
-        icon: RectangleHorizontal,
-        ratio: '16:9',
-    },
+    { label: 'Widescreen', value: 16 / 9, icon: RectangleHorizontal, ratio: '16:9' },
     { label: 'Portrait', value: 4 / 5, icon: RectangleVertical, ratio: '4:5' },
     { label: 'Story', value: 9 / 16, icon: Smartphone, ratio: '9:16' },
 ];
 
-export const useImageCrop = canvasEditor => {
+export const useImageCrop = () => {
     const [selectedImage, setSelectedImage] = useState(null);
     const [isCropMode, setIsCropMode] = useState(false);
     const [selectedRatio, setSelectedRatio] = useState(null);
+    const { canvasEditor, activeTool } = useCanvasContext();
 
     const getActiveImage = () => {
         if (!canvasEditor) return null;
@@ -30,6 +27,17 @@ export const useImageCrop = canvasEditor => {
         const objects = canvasEditor.getObjects();
         return objects.find(object => object.type === 'image') || null;
     };
+
+    useEffect(() => {
+        if (activeTool === 'crop' && canvasEditor && isCropMode) {
+            const activeImage = getActiveImage();
+            if (activeImage) {
+                initializeCropMode(activeImage);
+            }
+        } else if (activeTool !== 'crop' && isCropMode) {
+            cancelCrop();
+        }
+    }, [canvasEditor, activeTool, isCropMode]);
 
     const removeAllCropRectangles = () => {
         if (!canvasEditor) return;
