@@ -25,6 +25,7 @@ const ResizeControls = () => {
     } = useImageResize();
 
     const { canvasEditor, currentProject } = useCanvasContext();
+    const router = useRouter();
 
     // Reload page after successful update
     useEffect(() => {
@@ -38,7 +39,7 @@ const ResizeControls = () => {
         if (!isLoading && data) {
             setTimeout(() => {
                 window.dispatchEvent(new Event('resize'));
-                router.refresh();
+                window.location.reload();
             }, 500);
         }
     }, [isLoading, data]);
