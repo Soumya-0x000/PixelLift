@@ -39,6 +39,15 @@ export const useImageCrop = () => {
         }
     }, [canvasEditor, activeTool, isCropMode]);
 
+    // Cleanup when component unmounts
+    useEffect(() => {
+        return () => {
+            if (isCropMode) {
+                exitCropMode();
+            }
+        };
+    }, []);
+
     const removeAllCropRectangles = () => {
         if (!canvasEditor) return;
 
