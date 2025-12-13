@@ -20,10 +20,6 @@ export const useImageCrop = () => {
     const [cropRect, setCropRect] = useState(null);
     const [originalProps, setOriginalProps] = useState(null);
 
-    useEffect(() => {
-        console.log(activeTool);
-    }, [activeTool]);
-
     const getActiveImage = () => {
         if (!canvasEditor) return null;
 
@@ -37,11 +33,15 @@ export const useImageCrop = () => {
     };
 
     useEffect(() => {
-        if (activeTool !== 'crop' && isCropMode) {
-            // Clean up when switching away from crop tool
+        if (activeTool === 'crop' && canvasEditor && isCropMode) {
+            const activeImage = getActiveImage();
+            if (activeImage) {
+                initializeCropMode(activeImage);
+            }
+        } else if (activeTool !== 'crop' && isCropMode) {
             exitCropMode();
         }
-    }, [canvasEditor, activeTool]);
+    }, [canvasEditor, activeTool, isCropMode]);
 
     // Cleanup when component unmounts
     useEffect(() => {
@@ -66,27 +66,31 @@ export const useImageCrop = () => {
     };
 
     const exitCropMode = () => {
-        if (!canvasEditor) return;
+        if (!isCropMode) return;
 
-        // Remove crop rectangle
         removeAllCropRectangles();
+        setCropRect(null);
 
-        // Restore original image properties if they exist
         if (selectedImage && originalProps) {
             selectedImage.set({
+                left: originalProps.left,
+                top: originalProps.top,
+                scaleX: originalProps.scaleX,
+                scaleY: originalProps.scaleY,
+                angle: originalProps.angle,
                 selectable: originalProps.selectable,
                 evented: originalProps.evented,
             });
+
+            canvasEditor.setActiveObject(selectedImage);
         }
 
-        // Reset all state
         setIsCropMode(false);
         setSelectedImage(null);
-        setCropRect(null);
         setOriginalProps(null);
         setSelectedRatio(null);
 
-        canvasEditor.requestRenderAll();
+        canvasEditor && canvasEditor.requestRenderAll();
     };
 
     const initializeCropMode = image => {
@@ -187,12 +191,16 @@ export const useImageCrop = () => {
 
     const applyCrop = () => {
         if (!selectedImage || !isCropMode) return;
+
+        try {
+            const cropBounds = cropRect.getBoundingRect();
+            const imageBounds = selectedImage.getBoundingRect();
+        } catch (error) {
+            
+        }
     };
 
     const cancelCrop = () => {
-        if (!isCropMode) return;
-
-        // Use exitCropMode to properly clean up everything
         exitCropMode();
     };
 
