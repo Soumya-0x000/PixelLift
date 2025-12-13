@@ -100,10 +100,14 @@ const CropContent = () => {
                                                     : 'border-white/20 hover:border-white/40 hover:bg-white/5'
                                             }`}
                                     >
-                                        <IconComponent className="h-6 w-6 mx-auto mb-2 text-white" />
-                                        <div className="text-xs text-white">{ratio.label}</div>
+                                        <IconComponent
+                                            className={`h-6 w-6 mx-auto mb-2 ${selectedRatio === ratio.value ? 'text-cyan-500' : 'text-white'}`}
+                                        />
+                                        <div className={`text-xs ${selectedRatio === ratio.value ? 'text-cyan-500' : 'text-white'}`}>{ratio.label}</div>
                                         {ratio.ratio && (
-                                            <div className="text-xs text-white/70">
+                                            <div
+                                                className={`text-xs ${selectedRatio === ratio.value ? 'text-cyan-700' : 'text-white/70'}`}
+                                            >
                                                 {ratio.ratio}
                                             </div>
                                         )}
@@ -124,7 +128,11 @@ const CropContent = () => {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.25 }}
                     >
-                        <Button onClick={applyCrop} className="flex gap-2 flex-1 hover:ring-1 ring-zinc-800" variant="ghost">
+                        <Button
+                            onClick={applyCrop}
+                            className="flex gap-2 flex-1 hover:ring-1 ring-zinc-800"
+                            variant="ghost"
+                        >
                             <CheckCheck className="h-4 w-4 mr-2" />
                             Apply Crop
                         </Button>

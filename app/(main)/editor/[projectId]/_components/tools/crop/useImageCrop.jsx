@@ -20,6 +20,10 @@ export const useImageCrop = () => {
     const [cropRect, setCropRect] = useState(null);
     const [originalProps, setOriginalProps] = useState(null);
 
+    useEffect(() => {
+        console.log(activeTool);
+    }, [activeTool]);
+
     const getActiveImage = () => {
         if (!canvasEditor) return null;
 
@@ -33,15 +37,11 @@ export const useImageCrop = () => {
     };
 
     useEffect(() => {
-        if (activeTool === 'crop' && canvasEditor && isCropMode) {
-            const activeImage = getActiveImage();
-            if (activeImage) {
-                initializeCropMode(activeImage);
-            }
-        } else if (activeTool !== 'crop' && isCropMode) {
+        if (activeTool !== 'crop' && isCropMode) {
+            // Clean up when switching away from crop tool
             exitCropMode();
         }
-    }, [canvasEditor, activeTool, isCropMode]);
+    }, [canvasEditor, activeTool]);
 
     // Cleanup when component unmounts
     useEffect(() => {
@@ -65,7 +65,29 @@ export const useImageCrop = () => {
         canvasEditor.requestRenderAll();
     };
 
-    const exitCropMode = () => {};
+    const exitCropMode = () => {
+        if (!canvasEditor) return;
+
+        // Remove crop rectangle
+        removeAllCropRectangles();
+
+        // Restore original image properties if they exist
+        if (selectedImage && originalProps) {
+            selectedImage.set({
+                selectable: originalProps.selectable,
+                evented: originalProps.evented,
+            });
+        }
+
+        // Reset all state
+        setIsCropMode(false);
+        setSelectedImage(null);
+        setCropRect(null);
+        setOriginalProps(null);
+        setSelectedRatio(null);
+
+        canvasEditor.requestRenderAll();
+    };
 
     const initializeCropMode = image => {
         if (!image || isCropMode) return;
@@ -147,7 +169,7 @@ export const useImageCrop = () => {
         canvasEditor.setActiveObject(cropRectangle);
         setCropRect(cropRectangle);
     };
-console.log(cropRect)
+
     const applyAspectRatio = ratio => {
         setSelectedRatio(ratio);
 
@@ -168,14 +190,10 @@ console.log(cropRect)
     };
 
     const cancelCrop = () => {
-        if (!selectedImage || !isCropMode) return;
+        if (!isCropMode) return;
 
-        const cropRectangle = selectedImage.get('crop-rectangle');
-        if (!cropRectangle) return;
-
-        canvasEditor.remove(cropRectangle);
-        canvasEditor.requestRenderAll();
-        setIsCropMode(false);
+        // Use exitCropMode to properly clean up everything
+        exitCropMode();
     };
 
     return {
