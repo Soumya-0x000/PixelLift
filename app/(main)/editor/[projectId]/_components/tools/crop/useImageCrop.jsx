@@ -65,7 +65,33 @@ export const useImageCrop = () => {
         canvasEditor.requestRenderAll();
     };
 
-    const exitCropMode = () => {};
+    const exitCropMode = () => {
+        if (!isCropMode) return;
+
+        removeAllCropRectangles();
+        setCropRect(null);
+
+        if (selectedImage && originalProps) {
+            selectedImage.set({
+                left: originalProps.left,
+                top: originalProps.top,
+                scaleX: originalProps.scaleX,
+                scaleY: originalProps.scaleY,
+                angle: originalProps.angle,
+                selectable: originalProps.selectable,
+                evented: originalProps.evented,
+            });
+
+            canvasEditor.setActiveObject(selectedImage);
+        }
+
+        setIsCropMode(false);
+        setSelectedImage(null);
+        setOriginalProps(null);
+        setSelectedRatio(null);
+
+        canvasEditor && canvasEditor.requestRenderAll();
+    };
 
     const initializeCropMode = image => {
         if (!image || isCropMode) return;
@@ -147,7 +173,7 @@ export const useImageCrop = () => {
         canvasEditor.setActiveObject(cropRectangle);
         setCropRect(cropRectangle);
     };
-console.log(cropRect)
+
     const applyAspectRatio = ratio => {
         setSelectedRatio(ratio);
 
@@ -165,17 +191,17 @@ console.log(cropRect)
 
     const applyCrop = () => {
         if (!selectedImage || !isCropMode) return;
+
+        try {
+            const cropBounds = cropRect.getBoundingRect();
+            const imageBounds = selectedImage.getBoundingRect();
+        } catch (error) {
+            
+        }
     };
 
     const cancelCrop = () => {
-        if (!selectedImage || !isCropMode) return;
-
-        const cropRectangle = selectedImage.get('crop-rectangle');
-        if (!cropRectangle) return;
-
-        canvasEditor.remove(cropRectangle);
-        canvasEditor.requestRenderAll();
-        setIsCropMode(false);
+        exitCropMode();
     };
 
     return {
