@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Maximize, RectangleHorizontal, RectangleVertical, Smartphone, Square } from 'lucide-react';
 import useCanvasContext from '@/context/canvasContext/useCanvasContext';
+import { Rect } from 'fabric';
 
 const ASPECT_RATIOS = [
     { label: 'Freeform', value: null, icon: Maximize },
@@ -11,10 +12,13 @@ const ASPECT_RATIOS = [
 ];
 
 export const useImageCrop = () => {
+    const { canvasEditor, activeTool } = useCanvasContext();
+
     const [selectedImage, setSelectedImage] = useState(null);
     const [isCropMode, setIsCropMode] = useState(false);
     const [selectedRatio, setSelectedRatio] = useState(null);
-    const { canvasEditor, activeTool } = useCanvasContext();
+    const [cropRect, setCropRect] = useState(null);
+    const [originalProps, setOriginalProps] = useState(null);
 
     const getActiveImage = () => {
         if (!canvasEditor) return null;
@@ -35,7 +39,7 @@ export const useImageCrop = () => {
                 initializeCropMode(activeImage);
             }
         } else if (activeTool !== 'crop' && isCropMode) {
-            cancelCrop();
+            exitCropMode();
         }
     }, [canvasEditor, activeTool, isCropMode]);
 
@@ -61,49 +65,117 @@ export const useImageCrop = () => {
         canvasEditor.requestRenderAll();
     };
 
-    const initializeCropMode = image => {
-        if (!image || !canvasEditor) return;
+    const exitCropMode = () => {};
 
+    const initializeCropMode = image => {
+        if (!image || isCropMode) return;
+
+        removeAllCropRectangles();
+
+        const orginial = {
+            left: image.left,
+            top: image.top,
+            width: image.width,
+            height: image.height,
+            scaleX: image.scaleX,
+            scaleY: image.scaleY,
+            angle: image.angle,
+            selectable: image.selectable,
+            evented: image.evented,
+        };
+
+        setOriginalProps(orginial);
         setSelectedImage(image);
         setIsCropMode(true);
-        setSelectedRatio(null);
 
-        // TODO: Create crop rectangle overlay
-        // This would typically create a fabric.Rect with specific properties
-        // for visual crop area selection
+        image.set({ selectable: false, evented: false });
+        createCropRectangle(image);
+        canvasEditor.requestRenderAll();
     };
 
+    const createCropRectangle = image => {
+        if (!canvasEditor) return;
+
+        const bounds = image.getBoundingRect();
+
+        const cropRectangle = new Rect({
+            left: bounds.left + bounds.width * 0.1,
+            top: bounds.top + bounds.height * 0.1,
+            width: bounds.width * 0.8,
+            height: bounds.height * 0.8,
+            fill: 'transparent',
+            stroke: '#00bcd4',
+            strokeWidth: 2,
+            strokeDashArray: [5, 5],
+            selectable: true,
+            evented: true,
+            name: 'crop-rectangle',
+
+            // visual styles
+            cornerColor: '#00bcd4',
+            cornerSize: 12,
+            transparentCorners: true,
+            cornerStyle: 'circle',
+            cornerStrokeColor: '#00bcd4',
+            cornerDashArray: [5, 5],
+            borderColor: '#00bcd4',
+            borderScaleFactor: 1,
+            borderOpacity: 0.5,
+            borderDashArray: [5, 5],
+
+            // custom property to identify crop rectangle
+            isCropRectangle: true,
+        });
+
+        cropRectangle.on('scaling', e => {
+            const rect = e.target;
+
+            if (selectedRatio && selectedRatio !== null) {
+                const currentRatio = (rect.width * rect.scaleX) / (rect.height * rect.scaleY);
+                if (Math.abs(currentRatio - selectedRatio) > 0.01) {
+                    const newHeight = (rect.height * rect.scaleX) / selectedRatio / rect.scaleY;
+                    rect.set({
+                        height: newHeight,
+                        scaleY: newHeight / rect.height,
+                    });
+                }
+            }
+            canvasEditor.requestRenderAll();
+        });
+
+        canvasEditor.add(cropRectangle);
+        canvasEditor.setActiveObject(cropRectangle);
+        setCropRect(cropRectangle);
+    };
+console.log(cropRect)
     const applyAspectRatio = ratio => {
         setSelectedRatio(ratio);
 
-        if (!selectedImage || !canvasEditor) return;
+        if (!cropRect || ratio === null) return;
 
-        // TODO: Adjust crop rectangle to match the selected aspect ratio
-        // This would modify the existing crop rectangle's dimensions
-        // while maintaining the aspect ratio
+        const currentWidth = cropRect.width * cropRect.scaleX;
+        const newHeight = currentWidth / ratio;
+
+        cropRect.set({
+            height: newHeight / cropRect.scaleY,
+            scaleY: cropRect.scaleX,
+        });
+        canvasEditor.requestRenderAll();
     };
 
     const applyCrop = () => {
-        if (!selectedImage || !canvasEditor) return;
-
-        // TODO: Apply the crop to the image
-        // This would:
-        // 1. Get the crop rectangle dimensions
-        // 2. Crop the image based on those dimensions
-        // 3. Update the canvas
-        // 4. Clean up crop mode
-
-        removeAllCropRectangles();
-        setIsCropMode(false);
-        setSelectedImage(null);
-        setSelectedRatio(null);
+        if (!selectedImage || !isCropMode) return;
     };
 
     const cancelCrop = () => {
-        removeAllCropRectangles();
+        if (!selectedImage || !isCropMode) return;
+
+        const cropRectangle = selectedImage.get('crop-rectangle');
+        if (!cropRectangle) return;
+
+        canvasEditor.remove(cropRectangle);
+        canvasEditor.requestRenderAll();
         setIsCropMode(false);
-        setSelectedImage(null);
-        setSelectedRatio(null);
     };
 
     return {

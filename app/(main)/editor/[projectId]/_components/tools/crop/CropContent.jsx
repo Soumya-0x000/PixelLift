@@ -124,7 +124,7 @@ const CropContent = () => {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.25 }}
                     >
-                        <Button onClick={applyCrop} className="flex gap-2 flex-1" variant="primary">
+                        <Button onClick={applyCrop} className="flex gap-2 flex-1 hover:ring-1 ring-zinc-800" variant="ghost">
                             <CheckCheck className="h-4 w-4 mr-2" />
                             Apply Crop
                         </Button>
