@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Maximize, RectangleHorizontal, RectangleVertical, Smartphone, Square } from 'lucide-react';
 import useCanvasContext from '@/context/canvasContext/useCanvasContext';
-import { Rect } from 'fabric';
+import { FabricImage, Rect } from 'fabric';
 
 const ASPECT_RATIOS = [
     { label: 'Freeform', value: null, icon: Maximize },
@@ -195,8 +195,48 @@ export const useImageCrop = () => {
         try {
             const cropBounds = cropRect.getBoundingRect();
             const imageBounds = selectedImage.getBoundingRect();
+
+            const cropX = Math.max(0, cropBounds.left - imageBounds.left);
+            const cropY = Math.max(0, cropBounds.top - imageBounds.top);
+
+            const cropWidth = Math.min(cropBounds.width, imageBounds.width - cropX);
+            const cropHeight = Math.min(cropBounds.height, imageBounds.height - cropY);
+
+            const imgScaleX = selectedImage.scaleX || 1;
+            const imgScaleY = selectedImage.scaleY || 1;
+
+            const actualCropX = cropX / imgScaleX;
+            const actualCropY = cropY / imgScaleY;
+            const actualCropWidth = cropWidth / imgScaleX;
+            const actualCropHeight = cropHeight / imgScaleY;
+
+            const croppedImage = new FabricImage(selectedImage._element, {
+                left: cropBounds.left + cropBounds.width / 2,
+                top: cropBounds.top + cropBounds.height / 2,
+
+                originX: 'center',
+                originY: 'center',
+                selectable: true,
+                evented: true,
+
+                cropX: actualCropX,
+                cropY: actualCropY,
+                width: actualCropWidth,
+                height: actualCropHeight,
+                scaleX: imgScaleX,
+                scaleY: imgScaleY,
+            });
+
+            canvasEditor.remove(selectedImage);
+            canvasEditor.add(croppedImage);
+
+            canvasEditor.setActiveObject(croppedImage);
+            canvasEditor.requestRenderAll();
         } catch (error) {
-            
+            toast.error('Failed to apply crop, Please try again!');
+            console.error(error);
+        } finally {
+            exitCropMode();
         }
     };
 

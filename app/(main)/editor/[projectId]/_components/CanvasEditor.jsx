@@ -11,7 +11,12 @@ const CanvasEditor = () => {
     const [canvasBgColor, setCanvasBgColor] = useState('#ffffff');
     const canvasRef = useRef(null);
     const containerRef = useRef(null);
-    const { canvasEditor, setCanvasEditor, activeTool, currentProject: project } = useCanvasContext();
+    const {
+        canvasEditor,
+        setCanvasEditor,
+        activeTool,
+        currentProject: project,
+    } = useCanvasContext();
 
     const { mutate: updateProject } = useConvexMutation(api.projects.updateProject);
 
@@ -178,7 +183,18 @@ const CanvasEditor = () => {
         if (!canvasEditor || !project) return;
 
         try {
-            const canvasJSON = canvasEditor.toJSON();
+            // Serialize canvas with only essential custom properties
+            // This reduces payload size significantly while preserving transformations
+            const canvasJSON = canvasEditor.toJSON([
+                'cropX',
+                'cropY',
+                'filters',
+                'selectable',
+                'evented',
+                'name',
+                'isCropRectangle',
+            ]);
+
             await updateProject({
                 projectId: project._id,
                 canvasState: canvasJSON,
@@ -187,7 +203,7 @@ const CanvasEditor = () => {
             console.error('Error saving canvas state:', error);
             toast.error('Failed to save canvas state.');
         }
-    }, [canvasEditor, project]);
+    }, [canvasEditor, project, updateProject]);
 
     useEffect(() => {
         if (!canvasEditor) return;
@@ -210,7 +226,7 @@ const CanvasEditor = () => {
             canvasEditor.off('object:added', handleCanvasChange);
             canvasEditor.off('object:removed', handleCanvasChange);
         };
-    }, [canvasEditor]);
+    }, [canvasEditor, saveCanvasState]);
 
     useEffect(() => {
         if (!canvasEditor) return;

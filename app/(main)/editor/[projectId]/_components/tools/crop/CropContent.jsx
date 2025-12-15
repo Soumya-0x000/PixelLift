@@ -10,7 +10,6 @@ const CropContent = () => {
 
     const {
         ASPECT_RATIOS,
-        selectedImage,
         isCropMode,
         selectedRatio,
         getActiveImage,
