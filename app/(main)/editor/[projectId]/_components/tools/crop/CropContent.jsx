@@ -1,12 +1,13 @@
-import React from 'react';
+import React, { memo, useState } from 'react';
 import { useImageCrop } from './useImageCrop';
 import { Button } from '@/components/ui/button';
 import { CheckCheck, Crop, X } from 'lucide-react';
 import useCanvasContext from '@/context/canvasContext/useCanvasContext';
 import { AnimatePresence, motion } from 'motion/react';
 
-const CropContent = () => {
+const CropContent = memo(() => {
     const { canvasEditor } = useCanvasContext();
+    const [showSaveOptions, setShowSaveOptions] = useState(false);
 
     const {
         ASPECT_RATIOS,
@@ -102,7 +103,11 @@ const CropContent = () => {
                                         <IconComponent
                                             className={`h-6 w-6 mx-auto mb-2 ${selectedRatio === ratio.value ? 'text-cyan-500' : 'text-white'}`}
                                         />
-                                        <div className={`text-xs ${selectedRatio === ratio.value ? 'text-cyan-500' : 'text-white'}`}>{ratio.label}</div>
+                                        <div
+                                            className={`text-xs ${selectedRatio === ratio.value ? 'text-cyan-500' : 'text-white'}`}
+                                        >
+                                            {ratio.label}
+                                        </div>
                                         {ratio.ratio && (
                                             <div
                                                 className={`text-xs ${selectedRatio === ratio.value ? 'text-cyan-700' : 'text-white/70'}`}
@@ -127,14 +132,15 @@ const CropContent = () => {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.25 }}
                     >
-                        <Button
-                            onClick={applyCrop}
+                        <motion.button
+                            layoutId="save-cropped-img"
+                            onClick={() => setShowSaveOptions(true)}
                             className="flex gap-2 flex-1 hover:ring-1 ring-zinc-800"
                             variant="ghost"
                         >
                             <CheckCheck className="h-4 w-4 mr-2" />
-                            Apply Crop
-                        </Button>
+                            Save Image
+                        </motion.button>
 
                         <Button
                             onClick={cancelCrop}
@@ -164,6 +170,6 @@ const CropContent = () => {
             </div>
         </div>
     );
-};
+});
 
 export default CropContent;
