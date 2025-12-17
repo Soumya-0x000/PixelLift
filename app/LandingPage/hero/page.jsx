@@ -62,7 +62,7 @@ const Hero = () => {
 
             <div className="text-center z-10 relative">
                 {/* Main Content */}
-                <div className="text-center z-10 relative min-w-[80rem] w-[78vw">
+                <div className="text-center z-10 relative min-w-7xl w-[78vw">
                     {/* Holographic Frame */}
                     <motion.div
                         initial={{ opacity: 0, scale: 0.8 }}
@@ -75,7 +75,7 @@ const Hero = () => {
                             damping: 30,
                         }}
                         layout
-                        className="relative p-12 rounded-3xl backdrop-blur-xl bg-gradient-to-br from-white/5 via-white/2 to-transparent border border-cyan-500/20 shadow-2xl "
+                        className="relative p-12 rounded-3xl backdrop-blur-xl bg-linear-to-br from-white/5 via-white/2 to-transparent border border-cyan-500/20 shadow-2xl "
                     >
                         {/* Corner Accents */}
                         <div className="absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-cyan-400 rounded-tl-3xl"></div>
@@ -104,7 +104,7 @@ const Hero = () => {
                             texts={words}
                             morphTime={1.5}
                             cooldownTime={0.9}
-                            className={`h-48 text-[4rem] leading-[5rem] bg-gradient-to-r from-blue-400 via-purple-500 to-cyan-400 bg-clip-text text-transparent`}
+                            className={`h-48 text-[4rem] leading-20 bg-linear-to-r from-blue-400 via-purple-500 to-cyan-400 bg-clip-text text-transparent`}
                         />
 
                         {/* Status Indicator */}

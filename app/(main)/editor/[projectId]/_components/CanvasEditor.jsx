@@ -11,7 +11,12 @@ const CanvasEditor = () => {
     const [canvasBgColor, setCanvasBgColor] = useState('#ffffff');
     const canvasRef = useRef(null);
     const containerRef = useRef(null);
-    const { canvasEditor, setCanvasEditor, activeTool, currentProject: project } = useCanvasContext();
+    const {
+        canvasEditor,
+        setCanvasEditor,
+        activeTool,
+        currentProject: project,
+    } = useCanvasContext();
 
     const { mutate: updateProject } = useConvexMutation(api.projects.updateProject);
 
