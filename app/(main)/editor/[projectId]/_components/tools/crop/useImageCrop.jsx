@@ -240,6 +240,8 @@ export const useImageCrop = () => {
         }
     };
 
+    const saveAsNew = () => {};
+
     const cancelCrop = () => {
         exitCropMode();
     };
@@ -255,5 +257,6 @@ export const useImageCrop = () => {
         applyAspectRatio,
         applyCrop,
         cancelCrop,
+        saveAsNew,
     };
 };
