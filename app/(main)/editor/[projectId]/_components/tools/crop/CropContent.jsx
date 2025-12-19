@@ -190,7 +190,7 @@ const CropContent = memo(() => {
             </AnimatePresence>
 
             {/* Instructions */}
-            <motion.div layout className="bg-slate-700/30 rounded-lg p-3">
+            {/* <motion.div layout className="bg-slate-700/30 rounded-lg p-3">
                 <p className="text-xs text-white/70">
                     <strong>How to crop:</strong>
                     <br />
@@ -202,7 +202,7 @@ const CropContent = memo(() => {
                     <br />
                     4. Click "Apply Crop" to finalize
                 </p>
-            </motion.div>
+            </motion.div> */}
         </div>
     );
 });
