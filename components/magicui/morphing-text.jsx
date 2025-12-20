@@ -120,12 +120,12 @@ const SvgFilters = () => (
 export const MorphingText = ({ texts, className, morphTime = 1.5, cooldownTime = 0.5 }) => (
     <div
         className={cn(
-            'relative mx-auto h-full w-full  text-center  font-bold leading-none [filter:url(#threshold)_blur(0.6px)] ',
+            'relative mx-auto h-full w-full  text-center  font-bold leading-none filter-[url(#threshold)_blur(0.6px)] ',
             className
         )}
     >
         <Texts
-            texts={texts}
+            texts={typeof texts === 'string' ? [texts] : texts}
             className={className}
             morphTime={morphTime}
             cooldownTime={cooldownTime}
