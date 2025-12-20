@@ -40,7 +40,7 @@ const Hero = () => {
     const handleHoverStart = async () => {
         await controls.start({
             opacity: 1,
-            width: '100%',
+            width: '24rem',
             transition: {
                 duration: 0.5,
                 ease: 'easeOut',
@@ -76,6 +76,8 @@ const Hero = () => {
         });
     };
 
+    const brandingTexts = ['PixelLift', 'PixelLift', 'PixelLift', 'PixelLift', 'PixelLift'];
+
     return (
         <motion.section
             className="h-screen flex flex-col gap-10 items-center justify-center relative overflow-hidden"
@@ -91,10 +93,10 @@ const Hero = () => {
                     stiffness: 300,
                     damping: 30,
                 }}
-                className="z-10"
+                className="z-20"
             >
                 <motion.div
-                    className="relative group z-50"
+                    className="relative group"
                     onHoverStart={handleHoverStart}
                     onHoverEnd={handleHoverEnd}
                 >
@@ -123,13 +125,17 @@ const Hero = () => {
                         </span>
                     </HoverBorderGradient>
 
+                    <div className="h-20 absolute top-0 w-full"/>
+
                     <motion.div
                         animate={controls}
                         initial="hidden"
                         variants={revealVariants}
-                        className="absolute top-11 left-1/2 -translate-x-1/2 overflow-hidden whitespace-nowrap px-4 py-2 rounded-md bg-black text-white pointer-events-none"
+                        className="absolute top-11 left-1/2 -translate-x-1/2 overflow-hidden whitespace-nowrap px-4 py-2 rounded-md bg-black text-white"
                     >
-                        <MorphingText texts={words} />
+                        <span className="ring -translate-y-1/2">
+                            <MorphingText texts={brandingTexts} />
+                        </span>
                     </motion.div>
                 </motion.div>
             </motion.div>
