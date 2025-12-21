@@ -131,18 +131,25 @@ const CropContent = memo(() => {
             </AnimatePresence>
 
             {/* Apply + Cancel */}
-            <AnimatePresence>
-                {isCropMode && (
-                    <motion.div
-                        className="flex items-center justify-between flex-wrap gap-3 pt-4 border-t border-white/10"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 10 }}
-                        transition={{ delay: 0.25, duration: 0.3 }}
-                        layout={true}
-                    >
-                        {showSaveOptions ? (
-                            <motion.div layoutId="save-cropped-img" className="flex">
+            {/* <AnimatePresence> */}
+            {isCropMode && (
+                <motion.div
+                    className="flex items-center justify-between flex-wrap gap-3 mt-4 border-t border-white/10 relative"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    transition={{ delay: 0.25, duration: 0.3 }}
+                    layout={true}
+                >
+                    {showSaveOptions && (
+                        <motion.div
+                            className="flex flex-col items-start gap-4 absolute bottom-[calc(100%+0.3rem)] left-0 right-0 bg-linear-to-t from-zinc-950 to-black ring-1 ring-zinc-900 w-fit p-3 rounded-lg"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ delay: 0.25, duration: 0.3 }}
+                        >
+                            <>
                                 <motion.button
                                     onClick={applyCrop}
                                     className="flex gap-2 flex-1 whitespace-nowrap hover:ring-1 ring-zinc-800 items-center justify-center rounded-md h-9 px-4 py-2 has-[>svg]:px-3"
@@ -159,38 +166,37 @@ const CropContent = memo(() => {
                                     <CheckCheck className="h-4 w-4 mr-2" />
                                     Save as new
                                 </motion.button>
-                            </motion.div>
-                        ) : (
-                            <motion.div
-                                id="save-cropped-img"
-                                onClick={() => setShowSaveOptions(true)}
-                                layoutId="save-cropped-img"
-                                className="flex gap-2 flex-1 hover:ring-1 ring-zinc-800 items-center justify-center rounded-md h-auto px-4 py-2 has-[>svg]:px-3 cursor-pointer"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                type="button"
-                                transition={{ type: 'spring', bounce: 0.25, duration: 0.55 }}
-                            >
-                                <CheckCheck className="h-4 w-4 mr-2" />
-                                Save Image
-                            </motion.div>
-                        )}
+                            </>
+                        </motion.div>
+                    )}
 
-                        <Button
-                            onClick={handleCropCancel}
-                            className="flex gap-2 flex-1"
-                            variant="outline"
-                        >
-                            <X className="h-4 w-4 mr-2" />
-                            Cancel
-                        </Button>
+                    <motion.div
+                        onClick={() => setShowSaveOptions(prev => !prev)}
+                        className="flex gap-2 flex-1 hover:ring-1 ring-zinc-800 items-center justify-center rounded-md h-auto px-4 py-2 has-[>svg]:px-3 cursor-pointer"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        type="button"
+                        transition={{ type: 'spring', bounce: 0.25, duration: 0.55 }}
+                    >
+                        <CheckCheck className="h-4 w-4 mr-2" />
+                        Save Image
                     </motion.div>
-                )}
-            </AnimatePresence>
+
+                    <Button
+                        onClick={handleCropCancel}
+                        className="flex gap-2 flex-1"
+                        variant="outline"
+                    >
+                        <X className="h-4 w-4 mr-2" />
+                        Cancel
+                    </Button>
+                </motion.div>
+            )}
+            {/* </AnimatePresence> */}
 
             {/* Instructions */}
-            <motion.div layout className="bg-slate-700/30 rounded-lg p-3">
+            {/* <motion.div layout className="bg-slate-700/30 rounded-lg p-3">
                 <p className="text-xs text-white/70">
                     <strong>How to crop:</strong>
                     <br />
@@ -202,7 +208,7 @@ const CropContent = memo(() => {
                     <br />
                     4. Click "Apply Crop" to finalize
                 </p>
-            </motion.div>
+            </motion.div> */}
         </div>
     );
 });
