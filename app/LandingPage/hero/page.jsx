@@ -3,26 +3,25 @@
 import { MorphingText } from '@/components/magicui/morphing-text';
 import { HoverBorderGradient } from '@/components/ui/hover-border-gradient';
 import { ChevronRight, Sparkles } from 'lucide-react';
-import { useScroll, useTransform, motion, useAnimationControls } from 'motion/react';
+import {
+    useScroll,
+    useTransform,
+    motion,
+    useAnimationControls,
+    AnimatePresence,
+} from 'motion/react';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 const Hero = () => {
     const router = useRouter();
     const { scrollY } = useScroll();
-    const controls = useAnimationControls();
     const y = useTransform(scrollY, [0, 500], [0, -150]);
     const opacity = useTransform(scrollY, [0, 300], [1, 0]);
 
-    const revealVariants = {
-        hidden: {
-            opacity: 0,
-            width: 0,
-            height: 1,
-        },
-        visible: {
-            opacity: 1,
-        },
-    };
+    const [showToolTipText, setShowToolTipText] = useState(false);
+
+    const tooltipControls = useAnimationControls();
 
     const handleNaviagation = e => {
         e.preventDefault();
@@ -38,9 +37,11 @@ const Hero = () => {
     ];
 
     const handleHoverStart = async () => {
-        await controls.start({
+        setShowToolTipText(false);
+
+        await tooltipControls.start({
             opacity: 1,
-            width: '24rem',
+            width: '100%',
             transition: {
                 duration: 0.5,
                 ease: 'easeOut',
@@ -48,17 +49,21 @@ const Hero = () => {
         });
 
         // runs AFTER width animation finishes
-        await controls.start({
-            height: 200,
+        await tooltipControls.start({
+            height: 100,
             transition: {
                 duration: 0.4,
                 ease: 'easeOut',
             },
         });
+
+        setShowToolTipText(true);
     };
 
     const handleHoverEnd = async () => {
-        await controls.start({
+        setShowToolTipText(false);
+
+        await tooltipControls.start({
             height: 1,
             transition: {
                 duration: 0.3,
@@ -66,7 +71,7 @@ const Hero = () => {
             },
         });
 
-        await controls.start({
+        await tooltipControls.start({
             width: 0,
             opacity: 0,
             transition: {
@@ -76,7 +81,7 @@ const Hero = () => {
         });
     };
 
-    const brandingTexts = ['PixelLift', 'PixelLift', 'PixelLift', 'PixelLift', 'PixelLift'];
+    const brandingTexts = ['PixelLift', 'Elevate Every Pixel', 'Redefining Visual Perfection'];
 
     return (
         <motion.section
@@ -125,17 +130,27 @@ const Hero = () => {
                         </span>
                     </HoverBorderGradient>
 
-                    <div className="h-20 absolute top-0 w-full"/>
+                    <div className="h-20 absolute top-0 w-full" />
 
                     <motion.div
-                        animate={controls}
-                        initial="hidden"
-                        variants={revealVariants}
-                        className="absolute top-11 left-1/2 -translate-x-1/2 overflow-hidden whitespace-nowrap px-4 py-2 rounded-md bg-black text-white"
+                        initial={{ opacity: 0, width: 0, height: 1 }}
+                        animate={tooltipControls}
+                        className="ring-1 ring-slate-800 absolute top-11 left-1/2 -translate-x-1/2 overflow-hidden whitespace-nowrap px-4 py-2 rounded-md bg-linear-to-br from-zinc-950 to-slate-800 text-white"
                     >
-                        <span className="ring -translate-y-1/2">
-                            <MorphingText texts={brandingTexts} />
-                        </span>
+                        <AnimatePresence>
+                            {showToolTipText && (
+                                <motion.span
+                                    key={Date.now()}
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ duration: 0.5 }}
+                                    exit={{ opacity: 0 }}
+                                    className="w-full h-full flex items-center justify-center"
+                                >
+                                    <MorphingText texts={brandingTexts} className={`h-fit`} />
+                                </motion.span>
+                            )}
+                        </AnimatePresence>
                     </motion.div>
                 </motion.div>
             </motion.div>
