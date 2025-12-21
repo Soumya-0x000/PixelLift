@@ -121,7 +121,7 @@ const ProjectCard = React.memo(({ project }) => {
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <div className="flex items-center gap-1.5 text-[0.8rem] text-slate-500">
-                                    <Calendar size={14} className="flex-shrink-0" />
+                                    <Calendar size={14} className="shrink-0" />
                                     <span>{formatDate(updatedAt)}</span>
                                 </div>
                             </TooltipTrigger>

@@ -1,7 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Maximize, RectangleHorizontal, RectangleVertical, Smartphone, Square } from 'lucide-react';
 import useCanvasContext from '@/context/canvasContext/useCanvasContext';
-import { FabricImage, Rect } from 'fabric';
+import { FabricImage, Rect, Canvas } from 'fabric';
+import useAPIContext from '@/context/APIcontext/useAPIContext';
+import { useConvexMutation } from '@/hooks/useConvexQuery';
+import { api } from '@/convex/_generated/api';
+import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
 const ASPECT_RATIOS = [
     { label: 'Freeform', value: null, icon: Maximize },
@@ -11,8 +16,11 @@ const ASPECT_RATIOS = [
     { label: 'Story', value: 9 / 16, icon: Smartphone, ratio: '9:16' },
 ];
 
-export const useImageCrop = () => {
-    const { canvasEditor, activeTool } = useCanvasContext();
+export const useImageCrop = ({ setShowSaveOptions }) => {
+    const { canvasEditor, activeTool, currentProject } = useCanvasContext();
+    const { post } = useAPIContext();
+    const { mutate: createProject } = useConvexMutation(api.projects.create);
+    const router = useRouter();
 
     const [selectedImage, setSelectedImage] = useState(null);
     const [isCropMode, setIsCropMode] = useState(false);
@@ -51,6 +59,15 @@ export const useImageCrop = () => {
             }
         };
     }, []);
+
+    useEffect(() => {
+        if (!isCropMode) {
+            setShowSaveOptions(false);
+        }
+        return () => {
+            setShowSaveOptions(false);
+        };
+    }, [isCropMode]);
 
     const removeAllCropRectangles = () => {
         if (!canvasEditor) return;
@@ -229,7 +246,6 @@ export const useImageCrop = () => {
 
             canvasEditor.remove(selectedImage);
             canvasEditor.add(croppedImage);
-
             canvasEditor.setActiveObject(croppedImage);
             canvasEditor.requestRenderAll();
         } catch (error) {
@@ -240,7 +256,106 @@ export const useImageCrop = () => {
         }
     };
 
-    const saveAsNew = () => {};
+    const saveAsNew = async () => {
+        if (!selectedImage || !cropRect || !isCropMode) {
+            toast.error('No crop area selected');
+            return;
+        }
+
+        try {
+            toast.info('Saving cropped image as new project...');
+
+            // Get crop bounds
+            const cropBounds = cropRect.getBoundingRect();
+            const imageBounds = selectedImage.getBoundingRect();
+
+            // Calculate crop coordinates relative to the image
+            const cropX = Math.max(0, cropBounds.left - imageBounds.left);
+            const cropY = Math.max(0, cropBounds.top - imageBounds.top);
+            const cropWidth = Math.min(cropBounds.width, imageBounds.width - cropX);
+            const cropHeight = Math.min(cropBounds.height, imageBounds.height - cropY);
+
+            const imgScaleX = selectedImage.scaleX || 1;
+            const imgScaleY = selectedImage.scaleY || 1;
+
+            const actualCropX = cropX / imgScaleX;
+            const actualCropY = cropY / imgScaleY;
+            const actualCropWidth = cropWidth / imgScaleX;
+            const actualCropHeight = cropHeight / imgScaleY;
+
+            // Create a temporary canvas with only the cropped portion
+            const tempCanvas = new Canvas(null, {
+                width: actualCropWidth,
+                height: actualCropHeight,
+            });
+
+            // Create a new image with the cropped portion
+            const croppedImage = new FabricImage(selectedImage._element, {
+                left: actualCropWidth / 2,
+                top: actualCropHeight / 2,
+                originX: 'center',
+                originY: 'center',
+                cropX: actualCropX,
+                cropY: actualCropY,
+                width: actualCropWidth,
+                height: actualCropHeight,
+                scaleX: 1,
+                scaleY: 1,
+            });
+
+            tempCanvas.add(croppedImage);
+            tempCanvas.renderAll();
+
+            // Convert canvas to blob
+            const dataURL = tempCanvas.toDataURL({
+                format: 'png',
+                quality: 1,
+            });
+
+            // Convert dataURL to blob
+            const blob = await (await fetch(dataURL)).blob();
+
+            // Create FormData for upload
+            const formData = new FormData();
+            const fileName = `${currentProject?.title || 'Untitled'}_cropped_${Date.now()}.png`;
+            formData.append('file', blob, fileName);
+            formData.append('fileName', fileName);
+
+            // Upload to ImageKit
+            const { data: uploadData, status } = await post('/imagekit/upload', formData);
+
+            if (status !== 200 || !uploadData.success) {
+                throw new Error('Failed to upload image to ImageKit');
+            }
+
+            // Create new project in Convex
+            const newProjectId = await createProject({
+                title: `${currentProject?.title || 'Untitled'} (Cropped)`,
+                description: `Cropped from: ${currentProject?.title || 'Untitled'}`,
+                originalImageUrl: uploadData.url,
+                currentImageUrl: uploadData.url,
+                thumbnailUrl: uploadData.thumbnailUrl,
+                width: Math.round(actualCropWidth),
+                height: Math.round(actualCropHeight),
+                imgKitFileId: uploadData.fileId,
+                size: uploadData.size,
+            });
+
+            // Clean up temporary canvas
+            tempCanvas.dispose();
+
+            toast.success('Cropped image saved as new project!');
+
+            // Navigate to the new project
+            router.push(`/editor/${newProjectId}`);
+
+            // Exit crop mode
+            exitCropMode();
+        } catch (error) {
+            console.error('Error saving cropped image:', error);
+            toast.error('Failed to save cropped image. Please try again.');
+        }
+    };
 
     const cancelCrop = () => {
         exitCropMode();
