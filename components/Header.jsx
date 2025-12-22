@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from './ui/button';
 import { LayoutDashboard, LogIn } from 'lucide-react';
 import { SignInButton, UserButton } from '@clerk/nextjs';
@@ -11,6 +11,7 @@ import { Authenticated, Unauthenticated } from 'convex/react';
 import { AnimatePresence, motion, useMotionValueEvent, useScroll } from 'motion/react';
 import { cn } from '@/lib/utils';
 import useStoreUser from '@/hooks/useStoreUser';
+import useMounted from '@/utils/componentMounted';
 
 const Header = () => {
     const { scrollY } = useScroll();
@@ -18,6 +19,7 @@ const Header = () => {
     const path = usePathname();
     const { isLoading, isAuthenticated, userId, user } = useStoreUser();
     const [isScrolled, setIsScrolled] = useState(false);
+    const mounted = useMounted();
 
     useMotionValueEvent(scrollY, 'change', latest => {
         const scrollThreshold = 100;
@@ -44,6 +46,10 @@ const Header = () => {
             section.scrollIntoView({ behavior: 'smooth' });
         }
     };
+
+    if (!mounted) {
+        return null;
+    }
 
     return (
         <AnimatePresence mode="wait">

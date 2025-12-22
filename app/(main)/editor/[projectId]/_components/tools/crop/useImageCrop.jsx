@@ -2,11 +2,11 @@ import { useEffect, useState } from 'react';
 import { Maximize, RectangleHorizontal, RectangleVertical, Smartphone, Square } from 'lucide-react';
 import useCanvasContext from '@/context/canvasContext/useCanvasContext';
 import { FabricImage, Rect, Canvas } from 'fabric';
-import useAPIContext from '@/context/APIcontext/useAPIContext';
 import { useConvexMutation } from '@/hooks/useConvexQuery';
 import { api } from '@/convex/_generated/api';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import useAPIContext from '@/context/APIcontext/useApiContext';
 
 const ASPECT_RATIOS = [
     { label: 'Freeform', value: null, icon: Maximize },
@@ -17,7 +17,8 @@ const ASPECT_RATIOS = [
 ];
 
 export const useImageCrop = ({ setShowSaveOptions }) => {
-    const { canvasEditor, activeTool, currentProject } = useCanvasContext();
+    const { canvasEditor, activeTool, currentProject, setProcessingMessage, setProcessing } =
+        useCanvasContext();
     const { post } = useAPIContext();
     const { mutate: createProject } = useConvexMutation(api.projects.create);
     const router = useRouter();
@@ -210,6 +211,8 @@ export const useImageCrop = ({ setShowSaveOptions }) => {
         if (!selectedImage || !isCropMode) return;
 
         try {
+            setProcessing(true);
+            setProcessingMessage('Applying crop...');
             const cropBounds = cropRect.getBoundingRect();
             const imageBounds = selectedImage.getBoundingRect();
 
@@ -252,6 +255,8 @@ export const useImageCrop = ({ setShowSaveOptions }) => {
             toast.error('Failed to apply crop, Please try again!');
             console.error(error);
         } finally {
+            setProcessing(false);
+            setProcessingMessage(null);
             exitCropMode();
         }
     };
@@ -263,7 +268,8 @@ export const useImageCrop = ({ setShowSaveOptions }) => {
         }
 
         try {
-            toast.info('Saving cropped image as new project...');
+            setProcessing(true);
+            setProcessingMessage('Saving new project...');
 
             // Get crop bounds
             const cropBounds = cropRect.getBoundingRect();
@@ -293,10 +299,12 @@ export const useImageCrop = ({ setShowSaveOptions }) => {
             const croppedImage = new FabricImage(selectedImage._element, {
                 left: actualCropWidth / 2,
                 top: actualCropHeight / 2,
+
                 originX: 'center',
                 originY: 'center',
                 cropX: actualCropX,
                 cropY: actualCropY,
+
                 width: actualCropWidth,
                 height: actualCropHeight,
                 scaleX: 1,
@@ -339,21 +347,21 @@ export const useImageCrop = ({ setShowSaveOptions }) => {
                 height: Math.round(actualCropHeight),
                 imgKitFileId: uploadData.fileId,
                 size: uploadData.size,
+                canvasState: null,
             });
 
             // Clean up temporary canvas
             tempCanvas.dispose();
 
             toast.success('Cropped image saved as new project!');
-
-            // Navigate to the new project
             router.push(`/editor/${newProjectId}`);
-
-            // Exit crop mode
-            exitCropMode();
         } catch (error) {
             console.error('Error saving cropped image:', error);
             toast.error('Failed to save cropped image. Please try again.');
+        } finally {
+            setProcessing(false);
+            setProcessingMessage(null);
+            exitCropMode();
         }
     };
 
