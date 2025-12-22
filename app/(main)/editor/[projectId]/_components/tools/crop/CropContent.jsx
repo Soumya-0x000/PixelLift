@@ -1,13 +1,58 @@
-import React, { memo, useState } from 'react';
+import React, { memo, useState, useEffect, useRef } from 'react';
 import { useImageCrop } from './useImageCrop';
 import { Button } from '@/components/ui/button';
-import { CheckCheck, Crop, X } from 'lucide-react';
+import { CheckCheck, Crop, FilePlus, RedoDot, X } from 'lucide-react';
 import useCanvasContext from '@/context/canvasContext/useCanvasContext';
 import { AnimatePresence, motion } from 'motion/react';
 
 const CropContent = memo(() => {
     const { canvasEditor } = useCanvasContext();
     const [showSaveOptions, setShowSaveOptions] = useState(false);
+    const saveOptionsRef = useRef(null);
+
+    // Close save options when clicking outside
+    useEffect(() => {
+        const handleClickOutside = event => {
+            if (saveOptionsRef.current && !saveOptionsRef.current.contains(event.target)) {
+                setShowSaveOptions(false);
+            }
+        };
+
+        if (showSaveOptions) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [showSaveOptions]);
+
+    const saveOptionRevealVariants = {
+        hidden: {
+            opacity: 0,
+            scale: 0.85,
+            x: -8,
+            y: 8,
+        },
+        visible: {
+            opacity: 1,
+            scale: 1,
+            x: 0,
+            y: 0,
+        },
+        exit: {
+            opacity: 0,
+            scale: 0.85,
+            x: -8,
+            y: 8,
+        },
+        transition: {
+            type: 'spring',
+            stiffness: 420,
+            damping: 28,
+            mass: 0.6,
+        },
+    };
 
     const {
         ASPECT_RATIOS,
@@ -19,7 +64,7 @@ const CropContent = memo(() => {
         applyCrop,
         cancelCrop,
         saveAsNew,
-    } = useImageCrop();
+    } = useImageCrop({ setShowSaveOptions });
     const activeImage = getActiveImage();
 
     if (!canvasEditor) {
@@ -131,72 +176,82 @@ const CropContent = memo(() => {
             </AnimatePresence>
 
             {/* Apply + Cancel */}
-            {/* <AnimatePresence> */}
-            {isCropMode && (
-                <motion.div
-                    className="flex items-center justify-between flex-wrap gap-3 mt-4 border-t border-white/10 relative"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 10 }}
-                    transition={{ delay: 0.25, duration: 0.3 }}
-                    layout={true}
-                >
-                    {showSaveOptions && (
+            <AnimatePresence>
+                {isCropMode && (
+                    <>
+                        <div className=" w-full h-[0.05rem] my-2 bg-white/10" />
+
                         <motion.div
-                            className="flex flex-col items-start gap-4 absolute bottom-[calc(100%+0.3rem)] left-0 right-0 bg-linear-to-t from-zinc-950 to-black ring-1 ring-zinc-900 w-fit p-3 rounded-lg"
+                            className="flex items-center justify-between flex-wrap gap-3  relative"
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
+                            exit={{ opacity: 0, y: 10 }}
                             transition={{ delay: 0.25, duration: 0.3 }}
+                            layout={true}
                         >
-                            <>
-                                <motion.button
-                                    onClick={applyCrop}
-                                    className="flex gap-2 flex-1 whitespace-nowrap hover:ring-1 ring-zinc-800 items-center justify-center rounded-md h-9 px-4 py-2 has-[>svg]:px-3"
-                                    variant="glass"
+                            <div ref={saveOptionsRef} className="relative flex-1">
+                                <AnimatePresence initial={false}>
+                                    {showSaveOptions && (
+                                        <motion.div
+                                            className="flex flex-col items-start gap-4 absolute bottom-[calc(100%+0.3rem)] left-0 bg-linear-to-t from-zinc-950 to-black ring-1 ring-zinc-900 w-fit p-3 rounded-lg origin-bottom-left"
+                                            style={{ transformOrigin: 'bottom left' }}
+                                            variants={saveOptionRevealVariants}
+                                            initial="hidden"
+                                            animate="visible"
+                                            exit="hidden"
+                                            transition="transition"
+                                        >
+                                            <Button
+                                                variant={'ghost'}
+                                                onClick={applyCrop}
+                                                className="flex gap-2 whitespace-nowrap hover:ring-1 ring-zinc-800 items-center justify-center rounded-md h-9 px-4"
+                                            >
+                                                <RedoDot className="h-4 w-4 mr-2" />
+                                                Overwrite current
+                                            </Button>
+
+                                            <Button
+                                                variant={'ghost'}
+                                                onClick={saveAsNew}
+                                                className="flex gap-2 whitespace-nowrap hover:ring-1 ring-zinc-800 items-center justify-center rounded-md h-9 px-4"
+                                            >
+                                                <FilePlus className="h-4 w-4 mr-2" />
+                                                Save as new
+                                            </Button>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+
+                                <motion.div
+                                    onClick={() => setShowSaveOptions(prev => !prev)}
+                                    layoutId="cropped-img-save-btn"
+                                    className="flex gap-2 w-full hover:ring-1 ring-zinc-800 items-center justify-center rounded-md h-auto px-4 py-2 has-[>svg]:px-3 cursor-pointer"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    type="button"
+                                    transition={{ type: 'spring', bounce: 0.25, duration: 0.55 }}
                                 >
                                     <CheckCheck className="h-4 w-4 mr-2" />
-                                    Overwrite current
-                                </motion.button>
-                                <motion.button
-                                    className="flex gap-2 flex-1 whitespace-nowrap hover:ring-1 ring-zinc-800 items-center justify-center rounded-md h-9 px-4 py-2 has-[>svg]:px-3 cursor-pointer"
-                                    variant="glass"
-                                    onClick={saveAsNew}
-                                >
-                                    <CheckCheck className="h-4 w-4 mr-2" />
-                                    Save as new
-                                </motion.button>
-                            </>
+                                    Save Image
+                                </motion.div>
+                            </div>
+
+                            <Button
+                                onClick={handleCropCancel}
+                                className="flex gap-2 flex-1"
+                                variant="outline"
+                            >
+                                <X className="h-4 w-4 mr-2" />
+                                Cancel
+                            </Button>
                         </motion.div>
-                    )}
-
-                    <motion.div
-                        onClick={() => setShowSaveOptions(prev => !prev)}
-                        className="flex gap-2 flex-1 hover:ring-1 ring-zinc-800 items-center justify-center rounded-md h-auto px-4 py-2 has-[>svg]:px-3 cursor-pointer"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        type="button"
-                        transition={{ type: 'spring', bounce: 0.25, duration: 0.55 }}
-                    >
-                        <CheckCheck className="h-4 w-4 mr-2" />
-                        Save Image
-                    </motion.div>
-
-                    <Button
-                        onClick={handleCropCancel}
-                        className="flex gap-2 flex-1"
-                        variant="outline"
-                    >
-                        <X className="h-4 w-4 mr-2" />
-                        Cancel
-                    </Button>
-                </motion.div>
-            )}
-            {/* </AnimatePresence> */}
+                    </>
+                )}
+            </AnimatePresence>
 
             {/* Instructions */}
-            {/* <motion.div layout className="bg-slate-700/30 rounded-lg p-3">
+            <motion.div layout className="bg-slate-700/30 rounded-lg p-3">
                 <p className="text-xs text-white/70">
                     <strong>How to crop:</strong>
                     <br />
@@ -208,7 +263,7 @@ const CropContent = memo(() => {
                     <br />
                     4. Click "Apply Crop" to finalize
                 </p>
-            </motion.div> */}
+            </motion.div>
         </div>
     );
 });
