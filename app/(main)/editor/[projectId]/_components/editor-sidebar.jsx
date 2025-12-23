@@ -2,12 +2,12 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Crop, Expand, Eye, Loader2, Maximize2, Palette, Sliders, Text } from 'lucide-react';
 import useCanvasContext from '@/context/canvasContext/useCanvasContext';
-import CropContent from './tools/crop/CropContent';
+import CropContent from './tools/_crop/CropContent';
 import ResizeControls from './tools/_resize/ResizeControls';
 import AdjustControls from './tools/_adjust/AdjustControls';
 import BackgroundControls from './tools/BackgroundControls';
 import AIExtenderControls from './tools/AIExtenderControls';
-import TextControls from './tools/TextControls';
+import TextControls from './tools/_text/TextControls';
 import AIEdit from './tools/AIEdit';
 
 const TOOL_CONFIGS = {

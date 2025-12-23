@@ -213,12 +213,12 @@ export const useImageCrop = ({ setShowSaveOptions }) => {
         try {
             setProcessing(true);
             setProcessingMessage('Applying crop...');
+
             const cropBounds = cropRect.getBoundingRect();
             const imageBounds = selectedImage.getBoundingRect();
 
             const cropX = Math.max(0, cropBounds.left - imageBounds.left);
             const cropY = Math.max(0, cropBounds.top - imageBounds.top);
-
             const cropWidth = Math.min(cropBounds.width, imageBounds.width - cropX);
             const cropHeight = Math.min(cropBounds.height, imageBounds.height - cropY);
 
@@ -289,12 +289,6 @@ export const useImageCrop = ({ setShowSaveOptions }) => {
             const actualCropWidth = cropWidth / imgScaleX;
             const actualCropHeight = cropHeight / imgScaleY;
 
-            // Create a temporary canvas with only the cropped portion
-            const tempCanvas = new Canvas(null, {
-                width: actualCropWidth,
-                height: actualCropHeight,
-            });
-
             // Create a new image with the cropped portion
             const croppedImage = new FabricImage(selectedImage._element, {
                 left: actualCropWidth / 2,
@@ -302,9 +296,9 @@ export const useImageCrop = ({ setShowSaveOptions }) => {
 
                 originX: 'center',
                 originY: 'center',
+                
                 cropX: actualCropX,
                 cropY: actualCropY,
-
                 width: actualCropWidth,
                 height: actualCropHeight,
                 scaleX: 1,
