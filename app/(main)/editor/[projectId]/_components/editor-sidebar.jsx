@@ -5,7 +5,7 @@ import useCanvasContext from '@/context/canvasContext/useCanvasContext';
 import CropContent from './tools/_crop/CropContent';
 import ResizeControls from './tools/_resize/ResizeControls';
 import AdjustControls from './tools/_adjust/AdjustControls';
-import BackgroundControls from './tools/BackgroundControls';
+import BackgroundControls from './tools/_background/BackgroundControls';
 import AIExtenderControls from './tools/AIExtenderControls';
 import TextControls from './tools/_text/TextControls';
 import AIEdit from './tools/AIEdit';
