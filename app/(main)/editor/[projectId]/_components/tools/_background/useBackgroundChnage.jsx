@@ -1,16 +1,39 @@
 import useCanvasContext from '@/context/canvasContext/useCanvasContext';
 import { useState } from 'react';
 
+const UNSPLASH_ACCESS_KEY = process.env.NEXT_PUBLIC_UNSPLASH_ACCESS_KEY;
+const UNSPLASH_URL = process.env.NEXT_PUBLIC_UNSPLASH_URL;
+
 export const useBackgroundChange = () => {
-    const UNSPLASH_ACCESS_KEY = process.env.NEXT_PUBLIC_UNSPLASH_ACCESS_KEY;
-    const UNSPLASH_URL = process.env.NEXT_PUBLIC_UNSPLASH_URL;
-    const { canvasEditor, activeTool, currentProject, setProcessingMessage, setProcessing } =
-        useCanvasContext();
+    const { canvasEditor, activeTool, currentProject, setProcessingMessage, setProcessing } = useCanvasContext();
     const [backgroundColor, setBackgroundColor] = useState('#ffffff');
     const [searchQuery, setSearchQuery] = useState('');
     const [unsplashImages, setUnsplashImages] = useState(null);
     const [isSearching, setIsSearching] = useState(false);
     const [selectedImageId, setSelectedImageId] = useState(null);
+
+    const getMainImage = () => {
+        if (!canvasEditor) return null;
+
+        const objects = canvasEditor.getObjects();
+        const mainImage = objects.find(obj => obj.type === 'image');
+        return mainImage;
+    };
+
+    const handleBackgroundRemoval = () => {
+        console.log('first')
+        const mainImage = getMainImage();
+        if (!mainImage || !currentProject) return;
+
+        try {
+            setProcessingMessage('Removing background...');
+            setProcessing(true);
+        } catch {
+        } finally {
+            setProcessingMessage(null);
+            setProcessing(false);
+        }
+    };
 
     return {
         UNSPLASH_ACCESS_KEY,
@@ -18,6 +41,8 @@ export const useBackgroundChange = () => {
         canvasEditor,
         activeTool,
         currentProject,
+        handleBackgroundRemoval,
+        getMainImage,
         setProcessingMessage,
         setProcessing,
         backgroundColor,
