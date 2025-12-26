@@ -21,13 +21,16 @@ export const useBackgroundChange = () => {
     };
 
     const handleBackgroundRemoval = () => {
-        console.log('first')
         const mainImage = getMainImage();
         if (!mainImage || !currentProject) return;
 
         try {
             setProcessingMessage('Removing background...');
             setProcessing(true);
+
+            const currentImgUrl = mainImage.get('src');
+            const bgRemovedUrl = currentImgUrl.includes('ik.imagekit.io') ? `${currentImgUrl?.split('?')[0]}?tr=e-removedotbg` : currentImgUrl;
+            console.log(bgRemovedUrl);
         } catch {
         } finally {
             setProcessingMessage(null);
