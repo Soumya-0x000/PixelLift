@@ -31,6 +31,10 @@ export const useBackgroundChange = () => {
             const currentImgUrl = mainImage.get('src');
             const bgRemovedUrl = currentImgUrl.includes('ik.imagekit.io') ? `${currentImgUrl?.split('?')[0]}?tr=e-removedotbg` : currentImgUrl;
             console.log(bgRemovedUrl);
+
+            canvasEditor?.remove();
+            canvasEditor?.add(new fabric.Image(bgRemovedUrl));
+            canvasEditor?.requestRenderAll();
         } catch {
         } finally {
             setProcessingMessage(null);
