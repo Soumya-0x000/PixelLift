@@ -17,8 +17,7 @@ const ASPECT_RATIOS = [
 ];
 
 export const useImageCrop = ({ setShowSaveOptions }) => {
-    const { canvasEditor, activeTool, currentProject, setProcessingMessage, setProcessing } =
-        useCanvasContext();
+    const { canvasEditor, activeTool, currentProject, setProcessingMessage, setProcessing } = useCanvasContext();
     const { post } = useAPIContext();
     const { mutate: createProject } = useConvexMutation(api.projects.create);
     const router = useRouter();
@@ -296,7 +295,7 @@ export const useImageCrop = ({ setShowSaveOptions }) => {
 
                 originX: 'center',
                 originY: 'center',
-                
+
                 cropX: actualCropX,
                 cropY: actualCropY,
                 width: actualCropWidth,

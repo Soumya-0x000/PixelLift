@@ -1,16 +1,68 @@
-import useCanvasContext from '@/context/canvasContext/useCanvasContext';
+'use client';
+
 import { useState } from 'react';
+import useCanvasContext from '@/context/canvasContext/useCanvasContext';
+import { removeBackground } from '@imgly/background-removal';
+
+const UNSPLASH_ACCESS_KEY = process.env.NEXT_PUBLIC_UNSPLASH_ACCESS_KEY;
+const UNSPLASH_URL = process.env.NEXT_PUBLIC_UNSPLASH_URL;
 
 export const useBackgroundChange = () => {
-    const UNSPLASH_ACCESS_KEY = process.env.NEXT_PUBLIC_UNSPLASH_ACCESS_KEY;
-    const UNSPLASH_URL = process.env.NEXT_PUBLIC_UNSPLASH_URL;
-    const { canvasEditor, activeTool, currentProject, setProcessingMessage, setProcessing } =
-        useCanvasContext();
+    const { canvasEditor, activeTool, currentProject, setProcessingMessage, setProcessing } = useCanvasContext();
     const [backgroundColor, setBackgroundColor] = useState('#ffffff');
     const [searchQuery, setSearchQuery] = useState('');
     const [unsplashImages, setUnsplashImages] = useState(null);
     const [isSearching, setIsSearching] = useState(false);
     const [selectedImageId, setSelectedImageId] = useState(null);
+    const [processedBlob, setProcessedBlob] = useState(null);
+
+    const getMainImage = () => {
+        if (!canvasEditor) return null;
+
+        const objects = canvasEditor.getObjects();
+        const mainImage = objects.find(obj => obj.type === 'image');
+        return mainImage;
+    };
+
+    const handleBackgroundRemoval = async () => {
+        const mainImage = getMainImage();
+        if (!mainImage || !currentProject) return;
+
+        try {
+            setProcessingMessage('Removing background...');
+            setProcessing(true);
+
+            const currentImgUrl = mainImage.get('src');
+
+            const blob = await removeBackground(currentImgUrl, {
+                progress: (key, current, total) => {
+                    const percent = Math.round((current / total) * 100);
+                    setProcessingMessage(`Downloading AI Model: ${percent}%`);
+                },
+            });
+            setProcessedBlob(blob);
+            // const bgRemovedUrl = currentImgUrl.includes('ik.imagekit.io') ? `${currentImgUrl?.split('?')[0]}?tr=e-removedotbg` : currentImgUrl;
+
+            const bgRemovedUrl = URL.createObjectURL(blob);
+            console.log(bgRemovedUrl);
+
+            mainImage.setSrc(bgRemovedUrl, () => {
+                canvasEditor.renderAll();
+                setProcessing(false);
+                setProcessingMessage(null);
+            });
+        } catch (error) {
+            console.error('BG Removal Error:', error);
+            setProcessingMessage('Error removing background');
+            setTimeout(() => {
+                setProcessing(false);
+                setProcessingMessage(null);
+            }, 2000);
+        } finally {
+            setProcessingMessage(null);
+            setProcessing(false);
+        }
+    };
 
     return {
         UNSPLASH_ACCESS_KEY,
@@ -18,6 +70,8 @@ export const useBackgroundChange = () => {
         canvasEditor,
         activeTool,
         currentProject,
+        handleBackgroundRemoval,
+        getMainImage,
         setProcessingMessage,
         setProcessing,
         backgroundColor,
