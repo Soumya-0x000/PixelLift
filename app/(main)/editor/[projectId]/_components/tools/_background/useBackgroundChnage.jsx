@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import useCanvasContext from '@/context/canvasContext/useCanvasContext';
 import { removeBackground } from '@imgly/background-removal';
+import { fabric, FabricImage } from 'fabric';
+import { toast } from 'sonner';
 
 const UNSPLASH_ACCESS_KEY = process.env.NEXT_PUBLIC_UNSPLASH_ACCESS_KEY;
 const UNSPLASH_URL = process.env.NEXT_PUBLIC_UNSPLASH_URL;
@@ -37,30 +39,52 @@ export const useBackgroundChange = () => {
             const blob = await removeBackground(currentImgUrl, {
                 progress: (key, current, total) => {
                     const percent = Math.round((current / total) * 100);
-                    setProcessingMessage(`Downloading AI Model: ${percent}%`);
+                    setProcessingMessage(`Removing background: ${percent}%`);
                 },
             });
+
             setProcessedBlob(blob);
-            // const bgRemovedUrl = currentImgUrl.includes('ik.imagekit.io') ? `${currentImgUrl?.split('?')[0]}?tr=e-removedotbg` : currentImgUrl;
-
             const bgRemovedUrl = URL.createObjectURL(blob);
-            console.log(bgRemovedUrl);
+            console.log('Background removed blob URL:', bgRemovedUrl);
 
-            mainImage.setSrc(bgRemovedUrl, () => {
-                canvasEditor.renderAll();
-                setProcessing(false);
-                setProcessingMessage(null);
+            // Load the new image with background removed
+            setProcessingMessage('Loading image...');
+
+            const processedImage = await FabricImage.fromURL(bgRemovedUrl, {
+                crossOrigin: 'anonymous',
             });
+
+            const commonProps = {
+                left: mainImage.left,
+                top: mainImage.top,
+                scaleX: mainImage.scaleX,
+                scaleY: mainImage.scaleY,
+                angle: mainImage.angle,
+                originX: mainImage.originX,
+                originY: mainImage.originY,
+                flipX: mainImage.flipX,
+                flipY: mainImage.flipY,
+                opacity: mainImage.opacity,
+            };
+
+            canvasEditor.remove(mainImage);
+            processedImage.set(commonProps);
+            canvasEditor.add(processedImage);
+
+            processedImage.setCoords();
+
+            canvasEditor.setActiveObject(processedImage);
+            canvasEditor.calcOffset();
+            canvasEditor.requestRenderAll();
+
+            toast.success('Background removed successfully!');
+            setProcessing(false);
+            setProcessingMessage(null);
         } catch (error) {
             console.error('BG Removal Error:', error);
-            setProcessingMessage('Error removing background');
-            setTimeout(() => {
-                setProcessing(false);
-                setProcessingMessage(null);
-            }, 2000);
-        } finally {
-            setProcessingMessage(null);
+            toast.error('Error removing background');
             setProcessing(false);
+            setProcessingMessage(null);
         }
     };
 
