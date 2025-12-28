@@ -1,5 +1,8 @@
-import useCanvasContext from '@/context/canvasContext/useCanvasContext';
+'use client';
+
 import { useState } from 'react';
+import useCanvasContext from '@/context/canvasContext/useCanvasContext';
+import { removeBackground } from '@imgly/background-removal';
 
 const UNSPLASH_ACCESS_KEY = process.env.NEXT_PUBLIC_UNSPLASH_ACCESS_KEY;
 const UNSPLASH_URL = process.env.NEXT_PUBLIC_UNSPLASH_URL;
@@ -11,6 +14,7 @@ export const useBackgroundChange = () => {
     const [unsplashImages, setUnsplashImages] = useState(null);
     const [isSearching, setIsSearching] = useState(false);
     const [selectedImageId, setSelectedImageId] = useState(null);
+    const [processedBlob, setProcessedBlob] = useState(null);
 
     const getMainImage = () => {
         if (!canvasEditor) return null;
@@ -20,7 +24,7 @@ export const useBackgroundChange = () => {
         return mainImage;
     };
 
-    const handleBackgroundRemoval = () => {
+    const handleBackgroundRemoval = async () => {
         const mainImage = getMainImage();
         if (!mainImage || !currentProject) return;
 
@@ -29,13 +33,31 @@ export const useBackgroundChange = () => {
             setProcessing(true);
 
             const currentImgUrl = mainImage.get('src');
-            const bgRemovedUrl = currentImgUrl.includes('ik.imagekit.io') ? `${currentImgUrl?.split('?')[0]}?tr=e-removedotbg` : currentImgUrl;
+
+            const blob = await removeBackground(currentImgUrl, {
+                progress: (key, current, total) => {
+                    const percent = Math.round((current / total) * 100);
+                    setProcessingMessage(`Downloading AI Model: ${percent}%`);
+                },
+            });
+            setProcessedBlob(blob);
+            // const bgRemovedUrl = currentImgUrl.includes('ik.imagekit.io') ? `${currentImgUrl?.split('?')[0]}?tr=e-removedotbg` : currentImgUrl;
+
+            const bgRemovedUrl = URL.createObjectURL(blob);
             console.log(bgRemovedUrl);
 
-            canvasEditor?.remove();
-            canvasEditor?.add(new fabric.Image(bgRemovedUrl));
-            canvasEditor?.requestRenderAll();
-        } catch {
+            mainImage.setSrc(bgRemovedUrl, () => {
+                canvasEditor.renderAll();
+                setProcessing(false);
+                setProcessingMessage(null);
+            });
+        } catch (error) {
+            console.error('BG Removal Error:', error);
+            setProcessingMessage('Error removing background');
+            setTimeout(() => {
+                setProcessing(false);
+                setProcessingMessage(null);
+            }, 2000);
         } finally {
             setProcessingMessage(null);
             setProcessing(false);
