@@ -418,7 +418,7 @@ const PricingSection = React.memo(
                                 <motion.div
                                     layoutId="pilltab1"
                                     transition={{ type: 'spring', bounce: 0.3, duration: 0.6 }}
-                                    className="absolute inset-0 bg-gradient-to-r from-slate-800/80 via-slate-700/60 to-black/30 rounded-md z-0"
+                                    className="absolute inset-0 bg-linear-to-r from-slate-800/80 via-slate-700/60 to-black/30 rounded-md z-0"
                                 />
                             )}
                             <span className="relative block z-10">{plan}</span>
@@ -457,7 +457,7 @@ const PricingSection = React.memo(
                                                     bounce: 0.3,
                                                     duration: 0.6,
                                                 }}
-                                                className="absolute inset-0 bg-gradient-to-r from-slate-800/80 via-slate-700/60 to-black/30 rounded-md z-0"
+                                                className="absolute inset-0 bg-linear-to-r from-slate-800/80 via-slate-700/60 to-black/30 rounded-md z-0"
                                             />
                                         )}
                                         <span className="relative block z-10">
@@ -479,7 +479,7 @@ const PricingSection = React.memo(
                     {/* Pricing content */}
                     <motion.div
                         layout
-                        className=" max-w-6xl h-[25rem] mx-auto flex justify-between gap-10 ring-1 ring-slate-800 rounded-2xl bg-slate-900/70 backdrop-blur-sm p-8 relative"
+                        className=" max-w-6xl h-100 mx-auto flex justify-between gap-10 ring-1 ring-slate-800 rounded-2xl bg-slate-900/70 backdrop-blur-sm p-8 relative"
                     >
                         {/* Left: Features */}
                         <div className="flex flex-col gap-6 flex-1">
