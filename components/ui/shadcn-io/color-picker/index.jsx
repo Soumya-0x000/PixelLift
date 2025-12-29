@@ -2,25 +2,10 @@
 import Color from 'color';
 import { PipetteIcon } from 'lucide-react';
 import { Slider } from 'radix-ui';
-import {
-    createContext,
-    memo,
-    useCallback,
-    useContext,
-    useEffect,
-    useMemo,
-    useRef,
-    useState,
-} from 'react';
+import { createContext, memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 
 const ColorPickerContext = createContext(undefined);
@@ -40,12 +25,8 @@ export const ColorPicker = ({ value, defaultValue = '#000000', onChange, classNa
     const defaultColor = Color(defaultValue);
 
     const [hue, setHue] = useState(selectedColor.hue() || defaultColor.hue() || 0);
-    const [saturation, setSaturation] = useState(
-        selectedColor.saturationl() || defaultColor.saturationl() || 100
-    );
-    const [lightness, setLightness] = useState(
-        selectedColor.lightness() || defaultColor.lightness() || 50
-    );
+    const [saturation, setSaturation] = useState(selectedColor.saturationl() || defaultColor.saturationl() || 100);
+    const [lightness, setLightness] = useState(selectedColor.lightness() || defaultColor.lightness() || 50);
     const [alpha, setAlpha] = useState(selectedColor.alpha() * 100 || defaultColor.alpha() * 100);
     const [mode, setMode] = useState('hex');
 
@@ -139,7 +120,7 @@ export const ColorPickerSelection = memo(({ className, ...props }) => {
 
     return (
         <div
-            className={cn('relative h-[12rem] cursor-crosshair rounded', className)}
+            className={cn('relative h-48 cursor-crosshair rounded', className)}
             onPointerDown={e => {
                 e.preventDefault();
                 setIsDragging(true);
@@ -267,47 +248,98 @@ export const ColorPickerOutput = ({ className, ...props }) => {
     );
 };
 
-const PercentageInput = ({ className, ...props }) => {
+const PercentageInput = ({ className, readOnly = true, ...props }) => {
     return (
         <div className="relative">
             <Input
-                readOnly
+                readOnly={readOnly}
                 type="text"
                 {...props}
-                className={cn(
-                    'h-8 w-[3.25rem] rounded-l-none bg-secondary px-2 text-xs shadow-none',
-                    className
-                )}
+                onChange={e => props.onChange(e.target.value)}
+                className={cn('h-8 w-14 rounded-l-none bg-secondary px-2 text-xs text-right pr-6 shadow-none', className)}
             />
-            <span className="-translate-y-1/2 absolute top-1/2 right-2 text-muted-foreground text-xs">
-                %
-            </span>
+            <span className="-translate-y-1/2 absolute top-1/2 right-2 text-muted-foreground text-xs">%</span>
         </div>
     );
 };
 
-export const ColorPickerFormat = ({ className, ...props }) => {
-    const { hue, saturation, lightness, alpha, mode } = useColorPicker();
+export const ColorPickerFormat = ({ className, readOnly = true, ...props }) => {
+    const { hue, saturation, lightness, alpha, mode, setHue, setSaturation, setLightness, setAlpha } = useColorPicker();
     const color = Color.hsl(hue, saturation, lightness, alpha / 100);
+
+    const handleHexChange = hexValue => {
+        try {
+            // Remove # if present to check length
+            const cleanHex = hexValue.replace('#', '');
+
+            // Only try to parse if we have a valid hex length (3 or 6 characters)
+            if (cleanHex.length === 3 || cleanHex.length === 6) {
+                const parsedColor = Color(hexValue);
+                const [h, s, l] = parsedColor.hsl().array();
+                setHue(h);
+                setSaturation(s);
+                setLightness(l);
+            }
+        } catch (error) {
+            // Invalid color, ignore
+        }
+    };
+
+    const handleAlphaChange = alphaValue => {
+        const numValue = parseFloat(alphaValue);
+        if (!isNaN(numValue) && numValue >= 0 && numValue <= 100) {
+            setAlpha(numValue);
+        }
+    };
+
+    const handleRgbChange = (index, value) => {
+        const numValue = parseInt(value, 10);
+        if (!isNaN(numValue) && numValue >= 0 && numValue <= 255) {
+            const rgb = color
+                .rgb()
+                .array()
+                .map(v => Math.round(v));
+            rgb[index] = numValue;
+            try {
+                const newColor = Color.rgb(rgb);
+                const [h, s, l] = newColor.hsl().array();
+                setHue(h);
+                setSaturation(s);
+                setLightness(l);
+            } catch (error) {
+                // Invalid color, ignore
+            }
+        }
+    };
+
+    const handleHslChange = (index, value) => {
+        const numValue = parseFloat(value);
+        if (!isNaN(numValue)) {
+            const hsl = [hue, saturation, lightness];
+            hsl[index] = numValue;
+            try {
+                setHue(hsl[0]);
+                setSaturation(hsl[1]);
+                setLightness(hsl[2]);
+            } catch (error) {
+                // Invalid color, ignore
+            }
+        }
+    };
 
     if (mode === 'hex') {
         const hex = color.hex();
 
         return (
-            <div
-                className={cn(
-                    '-space-x-px relative flex w-full items-center rounded-md shadow-sm',
-                    className
-                )}
-                {...props}
-            >
+            <div className={cn('-space-x-px relative flex w-full items-center rounded-md shadow-sm', className)} {...props}>
                 <Input
                     className="h-8 rounded-r-none bg-secondary px-2 text-xs shadow-none"
-                    readOnly
+                    readOnly={readOnly}
                     type="text"
                     value={hex}
+                    onChange={e => handleHexChange(e.target.value)}
                 />
-                <PercentageInput value={alpha} />
+                <PercentageInput readOnly={readOnly} value={Math.round(alpha)} onChange={handleAlphaChange} />
             </div>
         );
     }
@@ -319,24 +351,18 @@ export const ColorPickerFormat = ({ className, ...props }) => {
             .map(value => Math.round(value));
 
         return (
-            <div
-                className={cn('-space-x-px flex items-center rounded-md shadow-sm', className)}
-                {...props}
-            >
+            <div className={cn('-space-x-px flex items-center rounded-md shadow-sm', className)} {...props}>
                 {rgb.map((value, index) => (
                     <Input
-                        className={cn(
-                            'h-8 rounded-r-none bg-secondary px-2 text-xs shadow-none',
-                            index && 'rounded-l-none',
-                            className
-                        )}
+                        className={cn('h-8 rounded-r-none bg-secondary px-2 text-xs shadow-none', index && 'rounded-l-none', className)}
                         key={index}
-                        readOnly
+                        readOnly={readOnly}
                         type="text"
                         value={value}
+                        onChange={e => handleRgbChange(index, e.target.value)}
                     />
                 ))}
-                <PercentageInput value={alpha} />
+                <PercentageInput readOnly={readOnly} value={Math.round(alpha)} onChange={handleAlphaChange} />
             </div>
         );
     }
@@ -367,24 +393,18 @@ export const ColorPickerFormat = ({ className, ...props }) => {
             .map(value => Math.round(value));
 
         return (
-            <div
-                className={cn('-space-x-px flex items-center rounded-md shadow-sm', className)}
-                {...props}
-            >
+            <div className={cn('-space-x-px flex items-center rounded-md shadow-sm', className)} {...props}>
                 {hsl.map((value, index) => (
                     <Input
-                        className={cn(
-                            'h-8 rounded-r-none bg-secondary px-2 text-xs shadow-none',
-                            index && 'rounded-l-none',
-                            className
-                        )}
+                        className={cn('h-8 rounded-r-none bg-secondary px-2 text-xs shadow-none', index && 'rounded-l-none', className)}
                         key={index}
-                        readOnly
+                        readOnly={readOnly}
                         type="text"
                         value={value}
+                        onChange={e => handleHslChange(index, e.target.value)}
                     />
                 ))}
-                <PercentageInput value={alpha} />
+                <PercentageInput readOnly={readOnly} value={Math.round(alpha)} onChange={handleAlphaChange} />
             </div>
         );
     }

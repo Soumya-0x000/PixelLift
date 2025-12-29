@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import useCanvasContext from '@/context/canvasContext/useCanvasContext';
 import { removeBackground } from '@imgly/background-removal';
 import { fabric, FabricImage } from 'fabric';
@@ -26,8 +26,9 @@ export const useBackgroundChange = () => {
         return mainImage;
     };
 
+    const mainImage = useMemo(() => getMainImage(), [getMainImage]);
+
     const handleBackgroundRemoval = async () => {
-        const mainImage = getMainImage();
         if (!mainImage || !currentProject) return;
 
         try {
@@ -35,6 +36,7 @@ export const useBackgroundChange = () => {
             setProcessing(true);
 
             const currentImgUrl = mainImage.get('src');
+            console.log(currentImgUrl);
 
             const blob = await removeBackground(currentImgUrl, {
                 progress: (key, current, total) => {
@@ -108,5 +110,6 @@ export const useBackgroundChange = () => {
         setIsSearching,
         selectedImageId,
         setSelectedImageId,
+        mainImage,
     };
 };
