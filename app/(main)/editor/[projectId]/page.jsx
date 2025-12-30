@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useEffect, useState, useCallback, memo } from 'react';
+import { useEffect, useState, useCallback, memo, useLayoutEffect } from 'react';
 import { CanvasProvider } from '@/context/canvasContext/CanvasContext';
 import useCanvasContext from '@/context/canvasContext/useCanvasContext';
 import GotoDesktopWarning from '@/components/GotoDesktopWarning';
@@ -23,7 +23,12 @@ const EditorContent = memo(() => {
 
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [mounted, setMounted] = useState(false);
 
+    useLayoutEffect(() => {
+        setMounted(true);
+    }, []);
+    
     const fetchProject = useCallback(async () => {
         if (!projectId) return;
 
@@ -46,6 +51,8 @@ const EditorContent = memo(() => {
     useEffect(() => {
         fetchProject();
     }, [fetchProject]);
+
+    if (!mounted) return null;
 
     const showLoader = isLoading;
     const showError = !isLoading && (error || !currentProject);
@@ -91,16 +98,13 @@ const EditorContent = memo(() => {
                                 <Loader className="inline-block mr-2 animate-spin" size={22} />
                                 {processingMessage}
                             </div>
-                            <span className="text-xs w-[50%] text-right hyphens-auto break-after-all">
-                                Don&apos;t close or move from this page.
-                            </span>
+                            <span className="text-xs w-[50%] text-right hyphens-auto break-after-all">Don&apos;t close or move from this page.</span>
                         </motion.div>
                     )}
 
                     <div
                         className={cn('flex flex-col h-screen', {
-                            'pointer-events-none opacity-100 backdrop-blur-md':
-                                deactiveBehindActivity,
+                            'pointer-events-none opacity-100 backdrop-blur-md': deactiveBehindActivity,
                         })}
                     >
                         <EditorTopbar />

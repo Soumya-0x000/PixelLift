@@ -15,6 +15,7 @@ const Dashboard = () => {
     const { data: projectData, loading } = useConvexQuery(api.projects.getUserProjects);
     const [isModalOpen, setIsModalOpen] = useState({ projectCreate: false });
     const [projectCreateBtnText, setProjectCreateBtnText] = useState('New Project');
+    const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
         const handleResize = () => {
@@ -29,6 +30,11 @@ const Dashboard = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
+    useLayoutEffect(() => {
+        setMounted(true);
+    }, []);
+
+    if (!mounted) return null;
 
     return (
         <div className="pt-24 px-4 pb-4 flex flex-col gap-4 h-screen overflow-hidden">

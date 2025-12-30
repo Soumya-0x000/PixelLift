@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 const ColorPickerContext = createContext(undefined);
 
@@ -266,22 +267,45 @@ const PercentageInput = ({ className, readOnly = true, ...props }) => {
 export const ColorPickerFormat = ({ className, readOnly = true, ...props }) => {
     const { hue, saturation, lightness, alpha, mode, setHue, setSaturation, setLightness, setAlpha } = useColorPicker();
     const color = Color.hsl(hue, saturation, lightness, alpha / 100);
+    const currentCanonicalHex = color.hex().toLowerCase();
+
+    // 2. Local state for the input field
+    const [localHex, setLocalHex] = useState(currentCanonicalHex);
+
+    // Update localHex when global color changes (External -> Local)
+    useEffect(() => {
+        if (currentCanonicalHex !== localHex.toLowerCase()) {
+            setLocalHex(currentCanonicalHex);
+        }
+    }, [currentCanonicalHex]);
 
     const handleHexChange = hexValue => {
-        try {
-            // Remove # if present to check length
-            const cleanHex = hexValue.replace('#', '');
+        if (!hexValue.startsWith('#')) {
+            hexValue = '#' + hexValue;
+        }
 
-            // Only try to parse if we have a valid hex length (3 or 6 characters)
-            if (cleanHex.length === 3 || cleanHex.length === 6) {
-                const parsedColor = Color(hexValue);
+        const cleanHex = hexValue.slice(1);
+        const hexRegex = /^[0-9A-Fa-f]{0,6}$/;
+
+        if (!hexRegex.test(cleanHex)) {
+            toast.warning(`${hexValue} is not a valid hex value.`);
+            return;
+        }
+
+        // Always update local state immediately so the input feels responsive
+        setLocalHex(hexValue);
+
+        // Update Global State only if it's a valid 6-digit hex (Local -> External)
+        if (cleanHex.length === 6) {
+            try {
+                const parsedColor = Color(`#${cleanHex}`);
                 const [h, s, l] = parsedColor.hsl().array();
                 setHue(h);
                 setSaturation(s);
                 setLightness(l);
+            } catch (error) {
+                console.error('Invalid color transition', error);
             }
-        } catch (error) {
-            // Invalid color, ignore
         }
     };
 
@@ -328,15 +352,13 @@ export const ColorPickerFormat = ({ className, readOnly = true, ...props }) => {
     };
 
     if (mode === 'hex') {
-        const hex = color.hex();
-
         return (
             <div className={cn('-space-x-px relative flex w-full items-center rounded-md shadow-sm', className)} {...props}>
                 <Input
                     className="h-8 rounded-r-none bg-secondary px-2 text-xs shadow-none"
                     readOnly={readOnly}
                     type="text"
-                    value={hex}
+                    value={localHex}
                     onChange={e => handleHexChange(e.target.value)}
                 />
                 <PercentageInput readOnly={readOnly} value={Math.round(alpha)} onChange={handleAlphaChange} />

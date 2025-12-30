@@ -1,7 +1,7 @@
-import React, { memo, useState } from 'react';
+import React, { memo, useEffect, useState } from 'react';
 import { useBackgroundChange } from './useBackgroundChnage';
 import { Button } from '@/components/ui/button';
-import { Trash2 } from 'lucide-react';
+import { Image, Palette, Trash2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import {
@@ -14,14 +14,21 @@ import {
 } from '@/components/ui/shadcn-io/color-picker';
 
 const bgTabs = [
-    { id: 'color', name: 'Color' },
-    { id: 'background', name: 'Background' },
+    { id: 'color', name: 'Color', icon: <Palette className="w-5 aspect-square" /> },
+    { id: 'background', name: 'Background', icon: <Image className="w-5 aspect-square" /> },
 ];
 
 const BackgroundControls = memo(() => {
-    const { handleBackgroundRemoval, processingMessage, mainImage } = useBackgroundChange();
+    const { canvasEditor, handleBackgroundRemoval, processingMessage, mainImage } = useBackgroundChange();
     const [selectedTab, setSelectedTab] = useState(bgTabs[0]);
     const [canvasBgColor, setCanvasBgColor] = useState('#ffffff');
+
+    useEffect(() => {
+        if (!canvasEditor) return;
+
+        canvasEditor.backgroundColor = canvasBgColor;
+        canvasEditor.requestRenderAll();
+    }, [canvasBgColor]);
 
     return (
         <div className="flex flex-col gap-y-2 relative h-full">
@@ -41,12 +48,12 @@ const BackgroundControls = memo(() => {
             </div>
 
             <div className=" w-full ring-1 ring-white/10 rounded-md overflow-hidden flex items-center">
-                {bgTabs.map(({ id, name }) => (
+                {bgTabs.map(({ id, name, icon }) => (
                     <button
                         key={id}
                         onClick={() => setSelectedTab(prev => ({ ...prev, id }))}
                         className={cn(
-                            'relative px-3 py-1 border-none outline-none text-slate-200 hover:text-slate-300 transition-colors ring-1 ring-transparent cursor-pointer flex-1',
+                            'relative px-3 py-1 border-none outline-none text-slate-200 hover:text-slate-300 transition-colors ring-1 ring-transparent cursor-pointer flex-1 flex items-center justify-center',
                             selectedTab?.id === id && 'text-slate-300 ring-0'
                         )}
                         style={{ transformStyle: 'preserve-3d' }}
@@ -58,7 +65,10 @@ const BackgroundControls = memo(() => {
                                 className="absolute inset-0 bg-linear-to-r from-slate-800/80 via-slate-700/60 to-slate-800/80 z-0"
                             />
                         )}
-                        <span className="relative block z-10">{name}</span>
+                        <span className="relative z-10 flex items-center gap-2">
+                            {icon}
+                            <span className="text-sm">{name}</span>
+                        </span>
                     </button>
                 ))}
             </div>
@@ -68,7 +78,7 @@ const BackgroundControls = memo(() => {
                     <ColorPicker
                         className="max-w-sm rounded-md border bg-background p-4 shadow-sm"
                         defaultValue="#ffffff"
-                        // onChange={setCanvasBgColor}
+                        onChange={setCanvasBgColor}
                     >
                         <ColorPickerSelection />
                         <div className="flex items-center gap-4">
