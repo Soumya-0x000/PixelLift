@@ -16,7 +16,7 @@ import {
 import { Input } from '@/components/ui/input';
 import axios from 'axios';
 import { toast } from 'sonner';
-import Image from 'next/image';
+import LazyLoadImage from '@/components/LazyLoadImage';
 
 const bgTabs = [
     { id: 'color', name: 'Color', icon: <Palette className="w-5 aspect-square" /> },
@@ -29,7 +29,6 @@ const BackgroundControls = memo(() => {
     const [selectedTab, setSelectedTab] = useState(bgTabs[0]);
     const [canvasBgColor, setCanvasBgColor] = useState('#ffffff');
     const [imgSearchQuery, setImgSearchQuery] = useState('');
-    const [debouncedQuery, setDebouncedQuery] = useState('');
     const [isSearching, setIsSearching] = useState(false);
     const [unsplashImages, setUnsplashImages] = useState([]);
     const [selectedImgId, setSelectedImgId] = useState(null);
@@ -45,24 +44,6 @@ const BackgroundControls = memo(() => {
         setImgSearchQuery(e.target.value);
     };
 
-    // Debounce the search query
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setDebouncedQuery(imgSearchQuery);
-        }, 500);
-
-        return () => clearTimeout(timer);
-    }, [imgSearchQuery]);
-
-    // Trigger search when debounced query changes
-    useEffect(() => {
-        if (debouncedQuery && debouncedQuery.trim()) {
-            handleSearchUnsplashImages();
-        } else if (!debouncedQuery) {
-            setUnsplashImages([]);
-        }
-    }, [debouncedQuery]);
-
     const handleSearchKeyPress = e => {
         if (e.key === 'Enter') {
             handleSearchUnsplashImages();
@@ -74,7 +55,7 @@ const BackgroundControls = memo(() => {
 
         try {
             setIsSearching(true);
-            const response = await axios.get(`${UNSPLASH_URL}/search/photos?query=${encodeURIComponent(debouncedQuery)}&per_page=12`, {
+            const response = await axios.get(`${UNSPLASH_URL}/search/photos?query=${encodeURIComponent(imgSearchQuery)}&per_page=12`, {
                 headers: {
                     Authorization: `Client-ID ${UNSPLASH_ACCESS_KEY}`,
                 },
@@ -90,7 +71,10 @@ const BackgroundControls = memo(() => {
             setIsSearching(false);
         }
     };
-    console.log(unsplashImages);
+
+    useEffect(() => {
+        if (!imgSearchQuery.trim()) setUnsplashImages([]);
+    }, [imgSearchQuery]);
 
     return (
         <div className="flex flex-col gap-y-2 relative h-full">
@@ -183,29 +167,27 @@ const BackgroundControls = memo(() => {
 
                         <div className="flex flex-wrap gap-2 flex-1 overflow-auto ring-1 ring-zinc-800 rounded-lg">
                             {isSearching ? (
-                                <motion.div layoutId="image-container" className="flex items-center justify-center flex-1">
+                                <div className="flex items-center justify-center flex-1">
                                     <Loader2 className="animate-spin" />
-                                </motion.div>
+                                </div>
                             ) : (
-                                <motion.div layoutId="image-container" className="grid grid-cols-4 gap-1 overflow-y-auto p-2">
+                                <div className="columns-2 md:columns-3 gap-2 p-2 overflow-y-auto">
                                     {unsplashImages?.length > 0 &&
                                         unsplashImages?.map(image => (
                                             <motion.div
                                                 key={image.id}
-                                                layoutId={`image-${image.id}`}
-                                                className=" w-fit h-fit rounded-sm overflow-hidden bg-zinc-800"
+                                                className="mb-2 break-inside-avoid rounded-sm overflow-hidden bg-zinc-800"
                                                 whileTap={{ scale: 0.95 }}
                                             >
-                                                <img
-                                                    src={image.urls.thumb}
+                                                <LazyLoadImage
+                                                    src={image.urls.small}
                                                     alt={image.alt_description || 'Unsplash image'}
-                                                    // fill
-                                                    // sizes="96px"
-                                                    className="object-cover"
+                                                    loading="lazy"
+                                                    className="w-full h-auto object-cover block"
                                                 />
                                             </motion.div>
                                         ))}
-                                </motion.div>
+                                </div>
                             )}
                         </div>
                     </motion.div>
