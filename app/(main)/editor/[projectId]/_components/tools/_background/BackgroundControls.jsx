@@ -1,7 +1,8 @@
 import React, { memo, useEffect, useState } from 'react';
 import { useBackgroundChange } from './useBackgroundChange';
 import { Button } from '@/components/ui/button';
-import { Image, Palette, Search, Trash2 } from 'lucide-react';
+import { Loader2, Palette, Search, Trash2 } from 'lucide-react';
+import { Image as ImageIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import {
@@ -13,21 +14,24 @@ import {
     ColorPickerSelection,
 } from '@/components/ui/shadcn-io/color-picker';
 import { Input } from '@/components/ui/input';
+import axios from 'axios';
+import { toast } from 'sonner';
+import Image from 'next/image';
 
 const bgTabs = [
     { id: 'color', name: 'Color', icon: <Palette className="w-5 aspect-square" /> },
-    { id: 'background', name: 'Background', icon: <Image className="w-5 aspect-square" /> },
+    { id: 'background', name: 'Background', icon: <ImageIcon className="w-5 aspect-square" /> },
 ];
 
 const BackgroundControls = memo(() => {
-    const { canvasEditor, handleBackgroundRemoval, processingMessage, mainImage } = useBackgroundChange();
+    const { UNSPLASH_ACCESS_KEY, UNSPLASH_URL, canvasEditor, handleBackgroundRemoval, processingMessage, mainImage } = useBackgroundChange();
 
     const [selectedTab, setSelectedTab] = useState(bgTabs[0]);
     const [canvasBgColor, setCanvasBgColor] = useState('#ffffff');
     const [imgSearchQuery, setImgSearchQuery] = useState('');
     const [debouncedQuery, setDebouncedQuery] = useState('');
     const [isSearching, setIsSearching] = useState(false);
-    const [images, setImages] = useState(null);
+    const [unsplashImages, setUnsplashImages] = useState([]);
     const [selectedImgId, setSelectedImgId] = useState(null);
 
     const handleApplyBgColor = () => {
@@ -54,6 +58,8 @@ const BackgroundControls = memo(() => {
     useEffect(() => {
         if (debouncedQuery && debouncedQuery.trim()) {
             handleSearchUnsplashImages();
+        } else if (!debouncedQuery) {
+            setUnsplashImages([]);
         }
     }, [debouncedQuery]);
 
@@ -64,27 +70,35 @@ const BackgroundControls = memo(() => {
     };
 
     const handleSearchUnsplashImages = async () => {
-        if (!imgSearchQuery) return;
+        if (!imgSearchQuery || !UNSPLASH_ACCESS_KEY || !UNSPLASH_URL) return;
 
         try {
             setIsSearching(true);
-            const response = await fetch(`${UNSPLASH_URL}/search/photos?query=${query}&client_id=${UNSPLASH_ACCESS_KEY}`);
-            const data = await response.json();
-            setImages(data.results);
+            const response = await axios.get(`${UNSPLASH_URL}/search/photos?query=${encodeURIComponent(debouncedQuery)}&per_page=12`, {
+                headers: {
+                    Authorization: `Client-ID ${UNSPLASH_ACCESS_KEY}`,
+                },
+            });
+
+            if (response.status !== 200) toast.error('Error fetching images');
+            const data = response.data;
+            setUnsplashImages(data?.results);
         } catch (error) {
             console.error('Error fetching images:', error);
+            toast.error('Error fetching images');
         } finally {
             setIsSearching(false);
         }
     };
+    console.log(unsplashImages);
 
     return (
         <div className="flex flex-col gap-y-2 relative h-full">
             {/* AI Background Removal Button - Outside of tabs */}
             <div className="flex flex-col pb-2 border-b border-white/10">
-                <div>
-                    <h3 className="text-sm font-medium text-white mb-2">AI Background Removal</h3>
-                    <p className="text-xs text-white/70 mb-4">Automatically remove the background from your image using AI</p>
+                <div className="mb-2 space-y-1">
+                    <h3 className="text-sm font-medium text-white">AI Background Removal</h3>
+                    <p className="text-xs text-white/70">Remove the background from your image using AI</p>
                 </div>
 
                 <Button onClick={handleBackgroundRemoval} disabled={processingMessage || !mainImage} className="w-full" variant="outline">
@@ -121,7 +135,7 @@ const BackgroundControls = memo(() => {
                 ))}
             </div>
 
-            <div className="flex-1 ring-1 ring-zinc-800 rounded-md overflow-auto">
+            <div className="flex flex-col flex-1 ring-1 ring-zinc-800 rounded-md overflow-auto">
                 {selectedTab?.id === 'color' ? (
                     <motion.div layoutId="background-selector">
                         <ColorPicker
@@ -142,32 +156,58 @@ const BackgroundControls = memo(() => {
                                 <Button variant="outline" onClick={handleApplyBgColor}>
                                     Apply
                                 </Button>
-                                <span className="w-16 aspect-square rounded-md" style={{ backgroundColor: canvasBgColor }} />
+                                <span className="w-14 aspect-square rounded-md" style={{ backgroundColor: canvasBgColor }} />
                             </div>
                         </ColorPicker>
                     </motion.div>
                 ) : selectedTab?.id === 'background' ? (
-                    <motion.div layoutId="background-selector" className="p-2 flex flex-col gap-y-2">
-                        <div className="flex gap-2">
+                    <motion.div layoutId="background-selector" className="p-2 flex flex-col flex-1 gap-y-2 relative">
+                        <div className="flex gap-2 sticky top-0 left-0">
                             <Input
                                 value={imgSearchQuery}
                                 onChange={handleImgSearchQueryChange}
                                 onKeyPress={handleSearchKeyPress}
                                 placeholder="Search for images..."
-                                className={'flex-1'}
+                                className={'flex-1 bg-zinc-800'}
                             />
 
                             <Button
                                 onClick={handleSearchUnsplashImages}
                                 disabled={isSearching}
                                 variant="outline"
-                                className={'flex items-center justify-center'}
+                                className={'flex items-center justify-center bg-zinc-800'}
                             >
                                 <Search />
                             </Button>
-                            </div>
-                            
-                            <div className=''></div>
+                        </div>
+
+                        <div className="flex flex-wrap gap-2 flex-1 overflow-auto ring-1 ring-zinc-800 rounded-lg">
+                            {isSearching ? (
+                                <motion.div layoutId="image-container" className="flex items-center justify-center flex-1">
+                                    <Loader2 className="animate-spin" />
+                                </motion.div>
+                            ) : (
+                                <motion.div layoutId="image-container" className="grid grid-cols-4 gap-1 overflow-y-auto p-2">
+                                    {unsplashImages?.length > 0 &&
+                                        unsplashImages?.map(image => (
+                                            <motion.div
+                                                key={image.id}
+                                                layoutId={`image-${image.id}`}
+                                                className=" w-fit h-fit rounded-sm overflow-hidden bg-zinc-800"
+                                                whileTap={{ scale: 0.95 }}
+                                            >
+                                                <img
+                                                    src={image.urls.thumb}
+                                                    alt={image.alt_description || 'Unsplash image'}
+                                                    // fill
+                                                    // sizes="96px"
+                                                    className="object-cover"
+                                                />
+                                            </motion.div>
+                                        ))}
+                                </motion.div>
+                            )}
+                        </div>
                     </motion.div>
                 ) : null}
             </div>
