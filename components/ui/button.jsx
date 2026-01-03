@@ -49,7 +49,7 @@ function Button({ className, variant, size, asChild = false, children, ...props 
             {children}
             {variant === 'magic' && (
                 <span className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-                    <div className=" w-40 h-40 opacity-50 blur-[20px] animate-[effect_3s_linear_infinite] bg-gradient-to-r from-indigo-600 via-purple-500 to-cyan-400 transition-all duration-400" />
+                    <div className=" w-40 h-40 opacity-50 blur-[20px] animate-[effect_3s_linear_infinite] bg-linear-to-r from-indigo-600 via-purple-500 to-cyan-400 transition-all duration-400" />
                 </span>
             )}
             {variant === 'badge' && (

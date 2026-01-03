@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useState } from 'react';
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useBackgroundChange } from './useBackgroundChange';
 import { Button } from '@/components/ui/button';
 import { Loader2, Palette, Search, Trash2 } from 'lucide-react';
@@ -23,15 +23,24 @@ const bgTabs = [
     { id: 'background', name: 'Background', icon: <ImageIcon className="w-5 aspect-square" /> },
 ];
 
+const INITIAL_PAGE_INFO = {
+    total: 0,
+    total_pages: 0,
+    per_page: 15,
+    page: 1,
+};
+
 const BackgroundControls = memo(() => {
     const { UNSPLASH_ACCESS_KEY, UNSPLASH_URL, canvasEditor, handleBackgroundRemoval, processingMessage, mainImage } = useBackgroundChange();
-
     const [selectedTab, setSelectedTab] = useState(bgTabs[0]);
     const [canvasBgColor, setCanvasBgColor] = useState('#ffffff');
     const [imgSearchQuery, setImgSearchQuery] = useState('');
     const [isSearching, setIsSearching] = useState(false);
     const [unsplashImages, setUnsplashImages] = useState([]);
+    const [pageInfo, setPageInfo] = useState(INITIAL_PAGE_INFO);
     const [selectedImgId, setSelectedImgId] = useState(null);
+
+    const loaderRef = useRef(null);
 
     const handleApplyBgColor = () => {
         if (!canvasEditor) return;
@@ -50,30 +59,68 @@ const BackgroundControls = memo(() => {
         }
     };
 
-    const handleSearchUnsplashImages = async () => {
-        if (!imgSearchQuery || !UNSPLASH_ACCESS_KEY || !UNSPLASH_URL) return;
+    const handleSearchUnsplashImages = useCallback(
+        async (pageNo = 1, shouldAppend = false) => {
+            if (!imgSearchQuery || !UNSPLASH_ACCESS_KEY || !UNSPLASH_URL) return;
 
-        try {
-            setIsSearching(true);
-            const response = await axios.get(`${UNSPLASH_URL}/search/photos?query=${encodeURIComponent(imgSearchQuery)}&per_page=12`, {
-                headers: {
-                    Authorization: `Client-ID ${UNSPLASH_ACCESS_KEY}`,
-                },
-            });
+            try {
+                setIsSearching(true);
 
-            if (response.status !== 200) toast.error('Error fetching images');
-            const data = response.data;
-            setUnsplashImages(data?.results);
-        } catch (error) {
-            console.error('Error fetching images:', error);
-            toast.error('Error fetching images');
-        } finally {
-            setIsSearching(false);
-        }
-    };
+                const URL = `${UNSPLASH_URL}/search/photos?query=${encodeURIComponent(imgSearchQuery)}&per_page=${pageInfo.per_page}&page=${pageNo}`;
+                const response = await axios.get(URL, {
+                    headers: {
+                        Authorization: `Client-ID ${UNSPLASH_ACCESS_KEY}`,
+                    },
+                });
+
+                if (response.status === 200) {
+                    const data = response.data;
+                    setPageInfo(prev => ({
+                        ...prev,
+                        total: data?.total,
+                        total_pages: data?.total_pages,
+                        page: pageNo,
+                    }));
+                    setUnsplashImages(prev => (shouldAppend ? [...prev, ...data?.results] : data?.results));
+                } else {
+                    toast.error('Error fetching images');
+                }
+            } catch (error) {
+                console.error('Error fetching images:', error);
+                toast.error('Error fetching images');
+            } finally {
+                setIsSearching(false);
+            }
+        },
+        [imgSearchQuery, pageInfo.per_page, pageInfo.page, isSearching]
+    );
 
     useEffect(() => {
-        if (!imgSearchQuery.trim()) setUnsplashImages([]);
+        const observer = new IntersectionObserver(
+            entries => {
+                const first = entries[0];
+                console.log(first);
+                if (first.isIntersecting) {
+                    handleSearchUnsplashImages(pageInfo.page + 1, true);
+                }
+            },
+            { threshold: 0.1 }
+        );
+
+        const imgLoader = loaderRef.current;
+        console.log(imgLoader);
+        if (imgLoader) observer.observe(imgLoader);
+
+        return () => {
+            if (imgLoader) observer.unobserve(imgLoader);
+        };
+    }, [loaderRef]);
+
+    useEffect(() => {
+        if (!imgSearchQuery.trim()) {
+            setUnsplashImages([]);
+            setPageInfo(INITIAL_PAGE_INFO);
+        }
     }, [imgSearchQuery]);
 
     return (
@@ -121,7 +168,7 @@ const BackgroundControls = memo(() => {
 
             <div className="flex flex-col flex-1 ring-1 ring-zinc-800 rounded-md overflow-auto">
                 {selectedTab?.id === 'color' ? (
-                    <motion.div layoutId="background-selector">
+                    <motion.div layoutId="background-selector" className="p-2">
                         <ColorPicker
                             className="max-w-sm rounded-md border bg-background p-4 shadow-sm"
                             defaultValue="#ffffff"
@@ -137,58 +184,54 @@ const BackgroundControls = memo(() => {
                             </div>
                             <div className="flex items-center gap-2">
                                 <ColorPickerFormat readOnly={false} />
-                                <Button variant="outline" onClick={handleApplyBgColor}>
+                                <Button variant="outline" size="sm" onClick={handleApplyBgColor}>
                                     Apply
                                 </Button>
-                                <span className="w-14 aspect-square rounded-md" style={{ backgroundColor: canvasBgColor }} />
+                                <span className="w-12 aspect-square rounded-[0.35rem]" style={{ backgroundColor: canvasBgColor }} />
                             </div>
                         </ColorPicker>
                     </motion.div>
                 ) : selectedTab?.id === 'background' ? (
                     <motion.div layoutId="background-selector" className="p-2 flex flex-col flex-1 gap-y-2 relative">
-                        <div className="flex gap-2 sticky top-0 left-0">
+                        <div className="flex gap-2 sticky top-0 left-0 z-10">
                             <Input
                                 value={imgSearchQuery}
                                 onChange={handleImgSearchQueryChange}
                                 onKeyPress={handleSearchKeyPress}
                                 placeholder="Search for images..."
-                                className={'flex-1 bg-zinc-800'}
+                                className={'flex-1 bg-zinc-900 dark:bg-zinc-900'}
                             />
 
                             <Button
-                                onClick={handleSearchUnsplashImages}
+                                onClick={() => handleSearchUnsplashImages(1)}
                                 disabled={isSearching}
                                 variant="outline"
-                                className={'flex items-center justify-center bg-zinc-800'}
+                                className={'flex items-center justify-center bg-zinc-900 dark:bg-zinc-900'}
                             >
                                 <Search />
                             </Button>
                         </div>
 
                         <div className="flex flex-wrap gap-2 flex-1 overflow-auto ring-1 ring-zinc-800 rounded-lg">
-                            {isSearching ? (
-                                <div className="flex items-center justify-center flex-1">
-                                    <Loader2 className="animate-spin" />
-                                </div>
-                            ) : (
-                                <div className="columns-2 md:columns-3 gap-2 p-2 overflow-y-auto">
-                                    {unsplashImages?.length > 0 &&
-                                        unsplashImages?.map(image => (
-                                            <motion.div
-                                                key={image.id}
-                                                className="mb-2 break-inside-avoid rounded-sm overflow-hidden bg-zinc-800"
-                                                whileTap={{ scale: 0.95 }}
-                                            >
-                                                <LazyLoadImage
-                                                    src={image.urls.small}
-                                                    alt={image.alt_description || 'Unsplash image'}
-                                                    loading="lazy"
-                                                    className="w-full h-auto object-cover block"
-                                                />
-                                            </motion.div>
-                                        ))}
-                                </div>
-                            )}
+                            <div className="columns-2 md:columns-3 gap-2 p-2 overflow-y-auto">
+                                {unsplashImages?.map((image, idx) => (
+                                    <motion.div
+                                        key={`${image.id}-${idx}`}
+                                        className="mb-2 break-inside-avoid rounded-sm overflow-hidden bg-zinc-800"
+                                        whileTap={{ scale: 0.95 }}
+                                    >
+                                        <LazyLoadImage
+                                            src={image.urls.small}
+                                            alt={image.alt_description || 'Unsplash image'}
+                                            loading="lazy"
+                                            className="w-full h-auto object-cover block"
+                                        />
+                                    </motion.div>
+                                ))}
+                            </div>
+                            <div ref={loaderRef} className={`h-auto w-full flex ${isSearching ? 'flex-1' : 'hidden'} items-center justify-center col-span-full row-span-full`}>
+                                {isSearching && <Loader2 className="animate-spin text-white/50" />}
+                            </div>
                         </div>
                     </motion.div>
                 ) : null}
