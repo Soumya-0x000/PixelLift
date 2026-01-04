@@ -1,7 +1,7 @@
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useBackgroundChange } from './useBackgroundChange';
 import { Button } from '@/components/ui/button';
-import { Loader2, Palette, Search, Trash2 } from 'lucide-react';
+import { Download, Loader2, Maximize2, Palette, Search, SearchIcon, Trash2 } from 'lucide-react';
 import { Image as ImageIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -36,11 +36,12 @@ const BackgroundControls = memo(() => {
     const [canvasBgColor, setCanvasBgColor] = useState('#ffffff');
     const [imgSearchQuery, setImgSearchQuery] = useState('');
     const [isSearching, setIsSearching] = useState(false);
-    const [unsplashImages, setUnsplashImages] = useState([]);
+    const [unsplashImages, setUnsplashImages] = useState(null);
     const [pageInfo, setPageInfo] = useState(INITIAL_PAGE_INFO);
     const [selectedImgId, setSelectedImgId] = useState(null);
 
     const loaderRef = useRef(null);
+    const scrollContainerRef = useRef(null);
 
     const handleApplyBgColor = () => {
         if (!canvasEditor) return;
@@ -92,36 +93,55 @@ const BackgroundControls = memo(() => {
                 setIsSearching(false);
             }
         },
-        [imgSearchQuery, pageInfo.per_page, pageInfo.page, isSearching]
+        [imgSearchQuery, pageInfo.per_page, UNSPLASH_ACCESS_KEY, UNSPLASH_URL]
     );
 
     useEffect(() => {
         const observer = new IntersectionObserver(
             entries => {
                 const first = entries[0];
-                console.log(first);
-                if (first.isIntersecting) {
+                if (first.isIntersecting && !isSearching && pageInfo.page < pageInfo.total_pages) {
                     handleSearchUnsplashImages(pageInfo.page + 1, true);
                 }
             },
-            { threshold: 0.1 }
+            { threshold: 0.1, rootMargin: '0px 0px 50px 0px' }
         );
 
         const imgLoader = loaderRef.current;
-        console.log(imgLoader);
         if (imgLoader) observer.observe(imgLoader);
 
         return () => {
             if (imgLoader) observer.unobserve(imgLoader);
         };
-    }, [loaderRef]);
+    }, [handleSearchUnsplashImages, pageInfo.page, pageInfo.total_pages, isSearching]);
 
     useEffect(() => {
         if (!imgSearchQuery.trim()) {
-            setUnsplashImages([]);
+            setUnsplashImages(null);
             setPageInfo(INITIAL_PAGE_INFO);
         }
     }, [imgSearchQuery]);
+
+    const handleImageClick = e => {
+        if (!canvasEditor) return;
+
+        const actionBtn = e.target.closest('[data-action]');
+        if (!actionBtn) return;
+
+        const card = e.target.closest('[data-img-id]');
+        if (!card) return;
+
+        const imgId = card.dataset.imgId;
+        const action = actionBtn.dataset.action;
+
+        setSelectedImgId(imgId);
+        
+        try {
+            
+        } catch (error) {
+            
+        }
+    };
 
     return (
         <div className="flex flex-col gap-y-2 relative h-full">
@@ -166,7 +186,7 @@ const BackgroundControls = memo(() => {
                 ))}
             </div>
 
-            <div className="flex flex-col flex-1 ring-1 ring-zinc-800 rounded-md overflow-auto">
+            <div className="flex flex-col flex-1 ring-1 ring-zinc-800 rounded-md overflow-hidden">
                 {selectedTab?.id === 'color' ? (
                     <motion.div layoutId="background-selector" className="p-2">
                         <ColorPicker
@@ -192,45 +212,91 @@ const BackgroundControls = memo(() => {
                         </ColorPicker>
                     </motion.div>
                 ) : selectedTab?.id === 'background' ? (
-                    <motion.div layoutId="background-selector" className="p-2 flex flex-col flex-1 gap-y-2 relative">
-                        <div className="flex gap-2 sticky top-0 left-0 z-10">
+                    <motion.div
+                        ref={scrollContainerRef}
+                        layoutId="background-selector"
+                        className="flex flex-col flex-1 gap-y-2 relative overflow-y-auto overflow-x-hidden h-full"
+                    >
+                        {/* 1. Sticky Header */}
+                        <div className="flex gap-2 z-10 sticky top-0 left-0 p-2 bg-[#0b0b0b]">
                             <Input
                                 value={imgSearchQuery}
                                 onChange={handleImgSearchQueryChange}
                                 onKeyPress={handleSearchKeyPress}
                                 placeholder="Search for images..."
-                                className={'flex-1 bg-zinc-900 dark:bg-zinc-900'}
+                                className={'flex-1'}
                             />
 
                             <Button
                                 onClick={() => handleSearchUnsplashImages(1)}
                                 disabled={isSearching}
                                 variant="outline"
-                                className={'flex items-center justify-center bg-zinc-900 dark:bg-zinc-900'}
+                                className={'flex items-center justify-center'}
                             >
                                 <Search />
                             </Button>
                         </div>
 
-                        <div className="flex flex-wrap gap-2 flex-1 overflow-auto ring-1 ring-zinc-800 rounded-lg">
-                            <div className="columns-2 md:columns-3 gap-2 p-2 overflow-y-auto">
-                                {unsplashImages?.map((image, idx) => (
-                                    <motion.div
-                                        key={`${image.id}-${idx}`}
-                                        className="mb-2 break-inside-avoid rounded-sm overflow-hidden bg-zinc-800"
-                                        whileTap={{ scale: 0.95 }}
-                                    >
-                                        <LazyLoadImage
-                                            src={image.urls.small}
-                                            alt={image.alt_description || 'Unsplash image'}
-                                            loading="lazy"
-                                            className="w-full h-auto object-cover block"
-                                        />
-                                    </motion.div>
-                                ))}
-                            </div>
-                            <div ref={loaderRef} className={`h-auto w-full flex ${isSearching ? 'flex-1' : 'hidden'} items-center justify-center col-span-full row-span-full`}>
-                                {isSearching && <Loader2 className="animate-spin text-white/50" />}
+                        {/* 2. Content Container */}
+                        <div className="flex-1 p-2">
+                            {unsplashImages?.length > 0 ? (
+                                <div className="columns-2 gap-2" onClick={handleImageClick}>
+                                    {unsplashImages?.map((image, idx) => (
+                                        <div
+                                            key={`${image.id}-${idx}`}
+                                            data-img-id={image.id}
+                                            className="mb-2 break-inside-avoid rounded-sm overflow-hidden bg-[#0b0b0b] relative"
+                                        >
+                                            <LazyLoadImage
+                                                src={image.urls.small}
+                                                alt={image.alt_description || 'Unsplash image'}
+                                                loading="lazy"
+                                                className="w-full h-auto object-cover block"
+                                            />
+                                            <div className="absolute bottom-0 left-0 w-full p-1 line-clamp-2 text-xs bg-black/50 flex items-center justify-start text-white">
+                                                <p>{image.user.name}</p>
+                                            </div>
+
+                                            <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center p-2 opacity-0 backdrop-blur-[1px] hover:opacity-100 transition-opacity">
+                                                <Button data-action="select" variant="outline" className="text-white mb-1">
+                                                    Select
+                                                </Button>
+
+                                                <div className="flex gap-2">
+                                                    <Button data-action="maximize" variant="outline" className="text-white h-8 w-8">
+                                                        <Maximize2 size={16} />
+                                                    </Button>
+                                                    <Button data-action="download" variant="outline" className="text-white h-8 w-8">
+                                                        <Download size={16} />
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : imgSearchQuery && unsplashImages !== null ? (
+                                <div className="text-center text-white/50 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center flex-col w-full">
+                                    <p>No images found for ""{imgSearchQuery}""</p>
+                                    <p>Try a different search term</p>
+                                </div>
+                            ) : (
+                                !isSearching && (
+                                    <div className="text-center text-white/50 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center flex-col w-full">
+                                        <SearchIcon className="w-12 h-12" />
+                                        <p className="mt-3">Search for background Images</p>
+                                        <p className="text-xs mt-1 font-thin">Powered by Unsplash</p>
+                                    </div>
+                                )
+                            )}
+
+                            {/* 3. The Sentinel - Place it outside the 'columns' div */}
+                            <div ref={loaderRef} className="h-24 w-full flex items-center justify-center">
+                                {isSearching && (
+                                    <div className="flex flex-col items-center gap-2">
+                                        <Loader2 className="animate-spin text-white/50" />
+                                        <span className="text-[10px] text-white/30 uppercase tracking-widest">Loading</span>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </motion.div>
