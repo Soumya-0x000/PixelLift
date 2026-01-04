@@ -1,7 +1,8 @@
-import React, { memo, useEffect, useState } from 'react';
-import { useBackgroundChange } from './useBackgroundChnage';
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { useBackgroundChange } from './useBackgroundChange';
 import { Button } from '@/components/ui/button';
-import { Image, Palette, Trash2 } from 'lucide-react';
+import { Download, Loader2, Maximize2, Palette, Search, SearchIcon, Trash2 } from 'lucide-react';
+import { Image as ImageIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import {
@@ -12,31 +13,143 @@ import {
     ColorPickerHue,
     ColorPickerSelection,
 } from '@/components/ui/shadcn-io/color-picker';
+import { Input } from '@/components/ui/input';
+import axios from 'axios';
+import { toast } from 'sonner';
+import LazyLoadImage from '@/components/LazyLoadImage';
 
 const bgTabs = [
     { id: 'color', name: 'Color', icon: <Palette className="w-5 aspect-square" /> },
-    { id: 'background', name: 'Background', icon: <Image className="w-5 aspect-square" /> },
+    { id: 'background', name: 'Background', icon: <ImageIcon className="w-5 aspect-square" /> },
 ];
 
+const INITIAL_PAGE_INFO = {
+    total: 0,
+    total_pages: 0,
+    per_page: 15,
+    page: 1,
+};
+
 const BackgroundControls = memo(() => {
-    const { canvasEditor, handleBackgroundRemoval, processingMessage, mainImage } = useBackgroundChange();
+    const { UNSPLASH_ACCESS_KEY, UNSPLASH_URL, canvasEditor, handleBackgroundRemoval, processingMessage, mainImage } = useBackgroundChange();
     const [selectedTab, setSelectedTab] = useState(bgTabs[0]);
     const [canvasBgColor, setCanvasBgColor] = useState('#ffffff');
+    const [imgSearchQuery, setImgSearchQuery] = useState('');
+    const [isSearching, setIsSearching] = useState(false);
+    const [unsplashImages, setUnsplashImages] = useState(null);
+    const [pageInfo, setPageInfo] = useState(INITIAL_PAGE_INFO);
+    const [selectedImgId, setSelectedImgId] = useState(null);
 
-    useEffect(() => {
+    const loaderRef = useRef(null);
+    const scrollContainerRef = useRef(null);
+
+    const handleApplyBgColor = () => {
         if (!canvasEditor) return;
-
         canvasEditor.backgroundColor = canvasBgColor;
         canvasEditor.requestRenderAll();
-    }, [canvasBgColor]);
+    };
+
+    const handleImgSearchQueryChange = e => {
+        e.preventDefault();
+        setImgSearchQuery(e.target.value);
+    };
+
+    const handleSearchKeyPress = e => {
+        if (e.key === 'Enter') {
+            handleSearchUnsplashImages();
+        }
+    };
+
+    const handleSearchUnsplashImages = useCallback(
+        async (pageNo = 1, shouldAppend = false) => {
+            if (!imgSearchQuery || !UNSPLASH_ACCESS_KEY || !UNSPLASH_URL) return;
+
+            try {
+                setIsSearching(true);
+
+                const URL = `${UNSPLASH_URL}/search/photos?query=${encodeURIComponent(imgSearchQuery)}&per_page=${pageInfo.per_page}&page=${pageNo}`;
+                const response = await axios.get(URL, {
+                    headers: {
+                        Authorization: `Client-ID ${UNSPLASH_ACCESS_KEY}`,
+                    },
+                });
+
+                if (response.status === 200) {
+                    const data = response.data;
+                    setPageInfo(prev => ({
+                        ...prev,
+                        total: data?.total,
+                        total_pages: data?.total_pages,
+                        page: pageNo,
+                    }));
+                    setUnsplashImages(prev => (shouldAppend ? [...prev, ...data?.results] : data?.results));
+                } else {
+                    toast.error('Error fetching images');
+                }
+            } catch (error) {
+                console.error('Error fetching images:', error);
+                toast.error('Error fetching images');
+            } finally {
+                setIsSearching(false);
+            }
+        },
+        [imgSearchQuery, pageInfo.per_page, UNSPLASH_ACCESS_KEY, UNSPLASH_URL]
+    );
+
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            entries => {
+                const first = entries[0];
+                if (first.isIntersecting && !isSearching && pageInfo.page < pageInfo.total_pages) {
+                    handleSearchUnsplashImages(pageInfo.page + 1, true);
+                }
+            },
+            { threshold: 0.1, rootMargin: '0px 0px 50px 0px' }
+        );
+
+        const imgLoader = loaderRef.current;
+        if (imgLoader) observer.observe(imgLoader);
+
+        return () => {
+            if (imgLoader) observer.unobserve(imgLoader);
+        };
+    }, [handleSearchUnsplashImages, pageInfo.page, pageInfo.total_pages, isSearching]);
+
+    useEffect(() => {
+        if (!imgSearchQuery.trim()) {
+            setUnsplashImages(null);
+            setPageInfo(INITIAL_PAGE_INFO);
+        }
+    }, [imgSearchQuery]);
+
+    const handleImageClick = e => {
+        if (!canvasEditor) return;
+
+        const actionBtn = e.target.closest('[data-action]');
+        if (!actionBtn) return;
+
+        const card = e.target.closest('[data-img-id]');
+        if (!card) return;
+
+        const imgId = card.dataset.imgId;
+        const action = actionBtn.dataset.action;
+
+        setSelectedImgId(imgId);
+        
+        try {
+            
+        } catch (error) {
+            
+        }
+    };
 
     return (
         <div className="flex flex-col gap-y-2 relative h-full">
             {/* AI Background Removal Button - Outside of tabs */}
             <div className="flex flex-col pb-2 border-b border-white/10">
-                <div>
-                    <h3 className="text-sm font-medium text-white mb-2">AI Background Removal</h3>
-                    <p className="text-xs text-white/70 mb-4">Automatically remove the background from your image using AI</p>
+                <div className="mb-2 space-y-1">
+                    <h3 className="text-sm font-medium text-white">AI Background Removal</h3>
+                    <p className="text-xs text-white/70">Remove the background from your image using AI</p>
                 </div>
 
                 <Button onClick={handleBackgroundRemoval} disabled={processingMessage || !mainImage} className="w-full" variant="outline">
@@ -73,29 +186,121 @@ const BackgroundControls = memo(() => {
                 ))}
             </div>
 
-            <div className="flex-1 ring-1 ring-zinc-800 rounded-md overflow-auto">
-                {selectedTab?.id === 'color' && (
-                    <ColorPicker
-                        className="max-w-sm rounded-md border bg-background p-4 shadow-sm"
-                        defaultValue="#ffffff"
-                        onChange={setCanvasBgColor}
-                    >
-                        <ColorPickerSelection />
-                        <div className="flex items-center gap-4">
-                            <ColorPickerEyeDropper />
-                            <div className="grid w-full gap-1">
-                                <ColorPickerHue />
-                                <ColorPickerAlpha />
+            <div className="flex flex-col flex-1 ring-1 ring-zinc-800 rounded-md overflow-hidden">
+                {selectedTab?.id === 'color' ? (
+                    <motion.div layoutId="background-selector" className="p-2">
+                        <ColorPicker
+                            className="max-w-sm rounded-md border bg-background p-4 shadow-sm"
+                            defaultValue="#ffffff"
+                            onChange={setCanvasBgColor}
+                        >
+                            <ColorPickerSelection />
+                            <div className="flex items-center gap-4">
+                                <ColorPickerEyeDropper />
+                                <div className="grid w-full gap-1">
+                                    <ColorPickerHue />
+                                    <ColorPickerAlpha />
+                                </div>
                             </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <ColorPickerFormat readOnly={false} />
-                            <Button variant="outline" className="py-1">
-                                Apply
+                            <div className="flex items-center gap-2">
+                                <ColorPickerFormat readOnly={false} />
+                                <Button variant="outline" size="sm" onClick={handleApplyBgColor}>
+                                    Apply
+                                </Button>
+                                <span className="w-12 aspect-square rounded-[0.35rem]" style={{ backgroundColor: canvasBgColor }} />
+                            </div>
+                        </ColorPicker>
+                    </motion.div>
+                ) : selectedTab?.id === 'background' ? (
+                    <motion.div
+                        ref={scrollContainerRef}
+                        layoutId="background-selector"
+                        className="flex flex-col flex-1 gap-y-2 relative overflow-y-auto overflow-x-hidden h-full"
+                    >
+                        {/* 1. Sticky Header */}
+                        <div className="flex gap-2 z-10 sticky top-0 left-0 p-2 bg-[#0b0b0b]">
+                            <Input
+                                value={imgSearchQuery}
+                                onChange={handleImgSearchQueryChange}
+                                onKeyPress={handleSearchKeyPress}
+                                placeholder="Search for images..."
+                                className={'flex-1'}
+                            />
+
+                            <Button
+                                onClick={() => handleSearchUnsplashImages(1)}
+                                disabled={isSearching}
+                                variant="outline"
+                                className={'flex items-center justify-center'}
+                            >
+                                <Search />
                             </Button>
                         </div>
-                    </ColorPicker>
-                )}
+
+                        {/* 2. Content Container */}
+                        <div className="flex-1 p-2">
+                            {unsplashImages?.length > 0 ? (
+                                <div className="columns-2 gap-2" onClick={handleImageClick}>
+                                    {unsplashImages?.map((image, idx) => (
+                                        <div
+                                            key={`${image.id}-${idx}`}
+                                            data-img-id={image.id}
+                                            className="mb-2 break-inside-avoid rounded-sm overflow-hidden bg-[#0b0b0b] relative"
+                                        >
+                                            <LazyLoadImage
+                                                src={image.urls.small}
+                                                alt={image.alt_description || 'Unsplash image'}
+                                                loading="lazy"
+                                                className="w-full h-auto object-cover block"
+                                            />
+                                            <div className="absolute bottom-0 left-0 w-full p-1 line-clamp-2 text-xs bg-black/50 flex items-center justify-start text-white">
+                                                <p>{image.user.name}</p>
+                                            </div>
+
+                                            <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center p-2 opacity-0 backdrop-blur-[1px] hover:opacity-100 transition-opacity">
+                                                <Button data-action="select" variant="outline" className="text-white mb-1">
+                                                    Select
+                                                </Button>
+
+                                                <div className="flex gap-2">
+                                                    <Button data-action="maximize" variant="outline" className="text-white h-8 w-8">
+                                                        <Maximize2 size={16} />
+                                                    </Button>
+                                                    <Button data-action="download" variant="outline" className="text-white h-8 w-8">
+                                                        <Download size={16} />
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : imgSearchQuery && unsplashImages !== null ? (
+                                <div className="text-center text-white/50 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center flex-col w-full">
+                                    <p>No images found for ""{imgSearchQuery}""</p>
+                                    <p>Try a different search term</p>
+                                </div>
+                            ) : (
+                                !isSearching && (
+                                    <div className="text-center text-white/50 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center flex-col w-full">
+                                        <SearchIcon className="w-12 h-12" />
+                                        <p className="mt-3">Search for background Images</p>
+                                        <p className="text-xs mt-1 font-thin">Powered by Unsplash</p>
+                                    </div>
+                                )
+                            )}
+
+                            {/* 3. The Sentinel - Place it outside the 'columns' div */}
+                            <div ref={loaderRef} className="h-24 w-full flex items-center justify-center">
+                                {isSearching && (
+                                    <div className="flex flex-col items-center gap-2">
+                                        <Loader2 className="animate-spin text-white/50" />
+                                        <span className="text-[10px] text-white/30 uppercase tracking-widest">Loading</span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </motion.div>
+                ) : null}
             </div>
         </div>
     );
