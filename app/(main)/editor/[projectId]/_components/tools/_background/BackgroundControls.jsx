@@ -1,9 +1,9 @@
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useBackgroundChange } from './useBackgroundChange';
 import { Button } from '@/components/ui/button';
-import { Download, Loader2, Maximize2, Palette, Search, SearchIcon, Trash2 } from 'lucide-react';
+import { Download, Loader2, Maximize2, Palette, Search, SearchIcon, Trash2, X } from 'lucide-react';
 import { Image as ImageIcon } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import {
     ColorPicker,
@@ -148,9 +148,9 @@ const BackgroundControls = memo(() => {
         const action = actionBtn.dataset.action;
 
         setSelectedImgId(imgId);
-        
+
         if (action === 'maximize') {
-            setMaximizedImg(url)
+            setMaximizedImg(url);
             return;
         }
 
@@ -167,7 +167,7 @@ const BackgroundControls = memo(() => {
 
             if (action === 'select') {
                 setProcessingMessage('Applying image...');
-                
+
                 const fabricImage = await FabricImage.fromURL(data.url, {
                     crossOrigin: 'anonymous',
                 });
@@ -222,7 +222,7 @@ const BackgroundControls = memo(() => {
             setProcessingMessage(null);
         }
     };
-    console.log(unsplashImages)
+    console.log(unsplashImages);
     return (
         <div className="flex flex-col gap-y-2 relative h-full">
             {/* AI Background Removal Button - Outside of tabs */}
@@ -387,7 +387,45 @@ const BackgroundControls = memo(() => {
                 ) : null}
             </div>
 
+            {/* Animated Modal with layoutId */}
+            <AnimatePresence>
+                {maximizedImg && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md"
+                        onClick={() => setMaximizedImg(null)}
+                    >
+                        <motion.div
+                            layoutId={selectedImgId}
+                            className="relative max-w-[90vw] max-h-[90vh] rounded-lg overflow-hidden shadow-2xl"
+                            onClick={e => e.stopPropagation()}
+                        >
+                            <motion.img
+                                src={maximizedImg}
+                                alt="Maximized view"
+                                className="w-full h-full object-contain"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ delay: 0.2, duration: 0.3 }}
+                            />
 
+                            {/* Close button */}
+                            <motion.button
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ delay: 0.3, duration: 0.2 }}
+                                onClick={() => setMaximizedImg(null)}
+                                className="absolute top-4 right-4 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white backdrop-blur-sm transition-colors"
+                            >
+                                <X size={24} />
+                            </motion.button>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 });
