@@ -28,43 +28,14 @@ const CropContent = memo(() => {
     }, [showSaveOptions]);
 
     const saveOptionRevealVariants = {
-        hidden: {
-            opacity: 0,
-            scale: 0.85,
-            x: -8,
-            y: 8,
-        },
-        visible: {
-            opacity: 1,
-            scale: 1,
-            x: 0,
-            y: 0,
-        },
-        exit: {
-            opacity: 0,
-            scale: 0.85,
-            x: -8,
-            y: 8,
-        },
-        transition: {
-            type: 'spring',
-            stiffness: 420,
-            damping: 28,
-            mass: 0.6,
-        },
+        hidden: { opacity: 0, scale: 0.85, x: -8, y: 8 },
+        visible: { opacity: 1, scale: 1, x: 0, y: 0 },
+        exit: { opacity: 0, scale: 0.85, x: -8, y: 8 },
+        transition: { type: 'spring', stiffness: 420, damping: 28, mass: 0.6 },
     };
 
-    const {
-        ASPECT_RATIOS,
-        isCropMode,
-        selectedRatio,
-        getActiveImage,
-        initializeCropMode,
-        applyAspectRatio,
-        applyCrop,
-        cancelCrop,
-        saveAsNew,
-    } = useImageCrop({ setShowSaveOptions });
+    const { ASPECT_RATIOS, isCropMode, selectedRatio, getActiveImage, initializeCropMode, applyAspectRatio, applyCrop, cancelCrop, saveAsNew } =
+        useImageCrop({ setShowSaveOptions });
     const activeImage = getActiveImage();
 
     if (!canvasEditor) {
@@ -117,9 +88,7 @@ const CropContent = memo(() => {
                         transition={{ type: 'spring', bounce: 0.25, duration: 0.55 }}
                     >
                         <p className="text-cyan-400 text-sm font-medium">Crop Mode Active</p>
-                        <p className="text-cyan-300/80 text-xs mt-1">
-                            Adjust the blue rectangle to set crop area
-                        </p>
+                        <p className="text-cyan-300/80 text-xs mt-1">Adjust the blue rectangle to set crop area</p>
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -155,15 +124,11 @@ const CropContent = memo(() => {
                                         <IconComponent
                                             className={`h-6 w-6 mx-auto mb-2 ${selectedRatio === ratio.value ? 'text-cyan-500' : 'text-white'}`}
                                         />
-                                        <div
-                                            className={`text-xs ${selectedRatio === ratio.value ? 'text-cyan-500' : 'text-white'}`}
-                                        >
+                                        <div className={`text-xs ${selectedRatio === ratio.value ? 'text-cyan-500' : 'text-white'}`}>
                                             {ratio.label}
                                         </div>
                                         {ratio.ratio && (
-                                            <div
-                                                className={`text-xs ${selectedRatio === ratio.value ? 'text-cyan-700' : 'text-white/70'}`}
-                                            >
+                                            <div className={`text-xs ${selectedRatio === ratio.value ? 'text-cyan-700' : 'text-white/70'}`}>
                                                 {ratio.ratio}
                                             </div>
                                         )}
@@ -237,11 +202,7 @@ const CropContent = memo(() => {
                                 </motion.div>
                             </div>
 
-                            <Button
-                                onClick={handleCropCancel}
-                                className="flex gap-2 flex-1"
-                                variant="outline"
-                            >
+                            <Button onClick={handleCropCancel} className="flex gap-2 flex-1" variant="outline">
                                 <X className="h-4 w-4 mr-2" />
                                 Cancel
                             </Button>

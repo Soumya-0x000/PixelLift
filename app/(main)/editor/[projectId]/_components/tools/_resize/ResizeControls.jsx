@@ -85,11 +85,7 @@ const ResizeControls = () => {
                         onClick={() => setLockAspectRatio(!lockAspectRatio)}
                         className="text-white/70 hover:text-white p-1"
                     >
-                        {lockAspectRatio ? (
-                            <Lock className="h-4 w-4" />
-                        ) : (
-                            <Unlock className="h-4 w-4" />
-                        )}
+                        {lockAspectRatio ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
                     </Button>
                 </div>
 
@@ -118,9 +114,7 @@ const ResizeControls = () => {
                     </div>
                 </div>
 
-                <div className="text-xs text-white/70 text-right">
-                    {lockAspectRatio ? 'Aspect ratio locked' : 'Free resize'}
-                </div>
+                <div className="text-xs text-white/70 text-right">{lockAspectRatio ? 'Aspect ratio locked' : 'Free resize'}</div>
             </div>
 
             {/* Aspect Ratio Presets */}
@@ -128,28 +122,21 @@ const ResizeControls = () => {
                 <h3 className="text-sm font-medium text-white">Aspect Ratios</h3>
                 <div className="grid grid-cols-1 gap-2 max-h-60 overflow-y-auto">
                     {ASPECT_RATIOS.map(aspectRatio => {
-                        const calculatedDimensions = calculateAspectRatioDimensions(
-                            aspectRatio.ratio
-                        );
+                        const calculatedDimensions = calculateAspectRatioDimensions(aspectRatio.ratio);
                         return (
                             <Button
                                 key={aspectRatio.name}
-                                variant={
-                                    selectedPreset === aspectRatio.name ? 'default' : 'outline'
-                                }
+                                variant={selectedPreset === aspectRatio.name ? 'default' : 'outline'}
                                 size="sm"
                                 onClick={() => applyAspectRatio(aspectRatio)}
                                 className={`text-left justify-between h-auto py-2 ${
-                                    selectedPreset === aspectRatio.name
-                                        ? 'bg-slate-600/50 hover:bg-slate-700/90 text-zinc-100'
-                                        : ''
+                                    selectedPreset === aspectRatio.name ? 'bg-slate-600/50 hover:bg-slate-700/90 text-zinc-100' : ''
                                 }`}
                             >
                                 <div className="flex flex-col gap-y-1">
                                     <div className="font-medium">{aspectRatio.name}</div>
                                     <div className="text-xs opacity-70">
-                                        {calculatedDimensions.width} × {calculatedDimensions.height}{' '}
-                                        ({aspectRatio.label})
+                                        {calculatedDimensions.width} × {calculatedDimensions.height} ({aspectRatio.label})
                                     </div>
                                 </div>
                                 <Monitor className="h-4 w-4" />
@@ -173,14 +160,11 @@ const ResizeControls = () => {
                             New Canvas: {dimensions.newWidth} × {dimensions.newHeight} pixels
                         </div>
                         <div className="text-cyan-400">
-                            {dimensions.newWidth > currentProject.width ||
-                            dimensions.newHeight > currentProject.height
+                            {dimensions.newWidth > currentProject.width || dimensions.newHeight > currentProject.height
                                 ? 'Canvas will be expanded'
                                 : 'Canvas will be cropped'}
                         </div>
-                        <div className="text-white/50 mt-1">
-                            Objects will maintain their current size and position
-                        </div>
+                        <div className="text-white/50 mt-1">Objects will maintain their current size and position</div>
                     </div>
                 </motion.div>
             )}

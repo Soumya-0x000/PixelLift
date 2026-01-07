@@ -222,7 +222,15 @@ const BackgroundControls = memo(() => {
             setProcessingMessage(null);
         }
     };
-    console.log(unsplashImages);
+
+    const handleRemoveCanvasBackground = () => {
+        if (!canvasEditor) return;
+
+        canvasEditor.backgroundColor = null;
+        canvasEditor.backgroundImage = null;
+        canvasEditor.requestRenderAll();
+    };
+
     return (
         <div className="flex flex-col gap-y-2 relative h-full">
             {/* AI Background Removal Button - Outside of tabs */}
@@ -386,6 +394,11 @@ const BackgroundControls = memo(() => {
                     </motion.div>
                 ) : null}
             </div>
+
+            <Button onClick={handleRemoveCanvasBackground} disabled={processingMessage || !mainImage} className="w-full" variant="outline">
+                <Trash2 className="h-4 w-4 mr-2" />
+                Remove Canvas Background
+            </Button>
 
             {/* Animated Modal with layoutId */}
             <AnimatePresence>
