@@ -50,7 +50,10 @@ const BackgroundControls = memo(() => {
     const [isSearching, setIsSearching] = useState(false);
     const [unsplashImages, setUnsplashImages] = useState(null);
     const [pageInfo, setPageInfo] = useState(INITIAL_PAGE_INFO);
-    const [maximizedImg, setMaximizedImg] = useState(null);
+    const [maximizedImg, setMaximizedImg] = useState({
+        url: null,
+        layoutId: null,
+    });
     const [selectedImgId, setSelectedImgId] = useState(null);
 
     const loaderRef = useRef(null);
@@ -144,13 +147,13 @@ const BackgroundControls = memo(() => {
         const imageCard = e.target.closest('[data-img-id]');
         if (!imageCard) return;
 
-        const { imgId, author, url } = imageCard.dataset;
+        const { imgId, url } = imageCard.dataset;
         const action = actionBtn.dataset.action;
 
         setSelectedImgId(imgId);
 
         if (action === 'maximize') {
-            setMaximizedImg(url);
+            setMaximizedImg(prev => ({ ...prev, url, layoutId: `card-${imgId}` }));
             return;
         }
 
@@ -202,7 +205,7 @@ const BackgroundControls = memo(() => {
                 const blob = await fetch(data.url).then(res => res.blob());
                 const blobUrl = URL.createObjectURL(blob);
 
-                const filename = `${imgSearchQuery}-${author}-${imgId}.jpg`;
+                const filename = `${imgSearchQuery}-${imgId}.jpg`;
                 const a = document.createElement('a');
                 a.href = blobUrl;
                 a.download = filename;
@@ -333,9 +336,8 @@ const BackgroundControls = memo(() => {
                                     {unsplashImages?.map((image, idx) => (
                                         <motion.div
                                             key={`${image.id}-${idx}`}
-                                            layoutId={image.id}
+                                            layoutId={`card-${image.id}`}
                                             data-img-id={image.id}
-                                            data-author={image.user.username}
                                             data-url={image.urls.full}
                                             className="mb-2 break-inside-avoid rounded-sm overflow-hidden bg-[#0b0b0b] relative"
                                         >
@@ -402,41 +404,38 @@ const BackgroundControls = memo(() => {
 
             {/* Animated Modal with layoutId */}
             <AnimatePresence>
-                {maximizedImg && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md"
-                        onClick={() => setMaximizedImg(null)}
-                    >
+                {maximizedImg?.layoutId && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center">
+                        {/* 1. Dark Overlay */}
                         <motion.div
-                            layoutId={selectedImgId}
-                            className="relative max-w-[90vw] max-h-[90vh] rounded-lg overflow-hidden shadow-2xl"
-                            onClick={e => e.stopPropagation()}
-                        >
-                            <motion.img
-                                src={maximizedImg}
-                                alt="Maximized view"
-                                className="w-full h-full object-contain"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                transition={{ delay: 0.2, duration: 0.3 }}
-                            />
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            layoutId={maximizedImg.layoutId}
+                            className="absolute inset-0 bg-black/80 backdrop-blur-md"
+                            onClick={() => setMaximizedImg(null)}
+                        />
 
-                            {/* Close button */}
-                            <motion.button
-                                initial={{ opacity: 0, scale: 0.8 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                transition={{ delay: 0.3, duration: 0.2 }}
-                                onClick={() => setMaximizedImg(null)}
-                                className="absolute top-4 right-4 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white backdrop-blur-sm transition-colors"
-                            >
-                                <X size={24} />
-                            </motion.button>
+                        {/* 2. The Morphing Card */}
+                        <motion.div
+                            layoutId={maximizedImg.layoutId} // Matches the ID in the grid
+                            className="relative max-w-[60vw] max-h-[60vh] bg-[#1a1a1a] rounded-xl overflow-hidden shadow-2xl z-10"
+                        >
+                            <motion.div layoutId={maximizedImg.layoutId}>
+                                <LazyLoadImage src={maximizedImg.url} alt="Maximized" className="w-full h-full object-contain" />
+                            </motion.div>
+
+                            {/* 3. Modal Content (Fades in after expansion) */}
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="p-6 text-white">
+                                <h3 className="text-lg font-bold">Image Details</h3>
+                                <p className="text-neutral-400">Captured by the Unsplash community.</p>
+                            </motion.div>
+
+                            <button onClick={() => setMaximizedImg(null)} className="absolute top-4 right-4 p-2 rounded-full bg-black/50 text-white">
+                                <X size={20} />
+                            </button>
                         </motion.div>
-                    </motion.div>
+                    </div>
                 )}
             </AnimatePresence>
         </div>
