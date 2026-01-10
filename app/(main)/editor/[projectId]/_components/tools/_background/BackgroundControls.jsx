@@ -1,7 +1,7 @@
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useBackgroundChange } from './useBackgroundChange';
 import { Button } from '@/components/ui/button';
-import { Download, Loader2, Maximize2, Palette, Search, SearchIcon, Trash2, X } from 'lucide-react';
+import { Download, Loader2, Maximize2, Palette, Search, SearchIcon, Trash2, TypeOutline, X } from 'lucide-react';
 import { Image as ImageIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -19,9 +19,10 @@ import { toast } from 'sonner';
 import LazyLoadImage from '@/components/LazyLoadImage';
 import { FabricImage } from 'fabric';
 
-const bgTabs = [
-    { id: 'color', name: 'Color', icon: <Palette className="w-5 aspect-square" /> },
-    { id: 'background', name: 'Background', icon: <ImageIcon className="w-5 aspect-square" /> },
+const BG_TABS = [
+    { id: 'color', name: 'Color', icon: <Palette size={15} className="w-5 aspect-square" /> },
+    { id: 'background', name: 'Background', icon: <ImageIcon size={15} className="w-5 aspect-square" /> },
+    { id: 'prompt', name: 'Prompt', icon: <TypeOutline size={15} className="w-5 aspect-square" /> },
 ];
 
 const INITIAL_PAGE_INFO = {
@@ -44,7 +45,7 @@ const BackgroundControls = memo(() => {
         setProcessingMessage,
     } = useBackgroundChange();
 
-    const [selectedTab, setSelectedTab] = useState(bgTabs[0]);
+    const [selectedTab, setSelectedTab] = useState(BG_TABS[0]);
     const [canvasBgColor, setCanvasBgColor] = useState('#ffffff');
     const [imgSearchQuery, setImgSearchQuery] = useState('');
     const [isSearching, setIsSearching] = useState(false);
@@ -244,15 +245,15 @@ const BackgroundControls = memo(() => {
                 </div>
 
                 <Button onClick={handleBackgroundRemoval} disabled={processingMessage || !mainImage} className="w-full" variant="outline">
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Remove Image Background
+                    <Trash2 className=" mr-2" />
+                    <span className="text-[0.85rem]">Remove Image Background</span>
                 </Button>
 
                 {!mainImage && <p className="text-xs text-amber-400">Please add an image to the canvas first to remove its background</p>}
             </div>
 
             <div className=" w-full ring-1 ring-white/10 rounded-md overflow-hidden flex items-center">
-                {bgTabs.map(({ id, name, icon }) => (
+                {BG_TABS.map(({ id, name, icon }) => (
                     <button
                         key={id}
                         onClick={() => setSelectedTab(prev => ({ ...prev, id }))}
@@ -271,7 +272,7 @@ const BackgroundControls = memo(() => {
                         )}
                         <span className="relative z-10 flex items-center gap-2">
                             {icon}
-                            <span className="text-sm">{name}</span>
+                            <span className="text-[0.8rem]">{name}</span>
                         </span>
                     </button>
                 ))}
@@ -392,6 +393,25 @@ const BackgroundControls = memo(() => {
                                     </div>
                                 )}
                             </div>
+                        </div>
+                    </motion.div>
+                ) : selectedTab?.id === 'prompt' ? (
+                    <motion.div
+                        layoutId="background-selector"
+                        className="flex flex-col flex-1 gap-y-2 relative overflow-y-auto overflow-x-hidden h-full"
+                    >
+                        {/* 1. Sticky Header */}
+                        <div className="flex gap-2 z-10 sticky top-0 left-0 p-2 bg-[#0b0b0b]">
+                            
+
+                            <Button
+                                onClick={() => handleSearchUnsplashImages(1)}
+                                disabled={isSearching}
+                                variant="outline"
+                                className={'flex items-center justify-center'}
+                            >
+                                <Search />
+                            </Button>
                         </div>
                     </motion.div>
                 ) : null}
