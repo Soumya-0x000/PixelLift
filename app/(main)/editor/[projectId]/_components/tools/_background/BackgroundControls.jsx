@@ -1,7 +1,7 @@
-import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useBackgroundChange } from './useBackgroundChange';
 import { Button } from '@/components/ui/button';
-import { Download, Loader2, Maximize2, Palette, Search, SearchIcon, Trash2, TypeOutline, X } from 'lucide-react';
+import { Brush, Download, Loader2, Maximize2, Palette, Search, SearchIcon, Sparkles, Trash2, TypeOutline, X } from 'lucide-react';
 import { Image as ImageIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -18,6 +18,7 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import LazyLoadImage from '@/components/LazyLoadImage';
 import { FabricImage } from 'fabric';
+import ColorChangingText from '@/components/ui/color-changing-text';
 
 const BG_TABS = [
     { id: 'color', name: 'Color', icon: <Palette size={15} className="w-5 aspect-square" /> },
@@ -31,6 +32,9 @@ const INITIAL_PAGE_INFO = {
     per_page: 15,
     page: 1,
 };
+
+const MotionInput = motion(Input);
+const MotionButton = motion(Button);
 
 const BackgroundControls = memo(() => {
     const {
@@ -56,6 +60,7 @@ const BackgroundControls = memo(() => {
         layoutId: null,
     });
     const [selectedImgId, setSelectedImgId] = useState(null);
+    const [isPromptOpen, setIsPromptOpen] = useState(false);
 
     const loaderRef = useRef(null);
     const scrollContainerRef = useRef(null);
@@ -235,6 +240,11 @@ const BackgroundControls = memo(() => {
         canvasEditor.requestRenderAll();
     };
 
+    const handleTabChange = id => {
+        setSelectedTab(prev => ({ ...prev, id }));
+        setIsPromptOpen(false);
+    };
+
     return (
         <div className="flex flex-col gap-y-2 relative h-full">
             {/* AI Background Removal Button - Outside of tabs */}
@@ -256,7 +266,7 @@ const BackgroundControls = memo(() => {
                 {BG_TABS.map(({ id, name, icon }) => (
                     <button
                         key={id}
-                        onClick={() => setSelectedTab(prev => ({ ...prev, id }))}
+                        onClick={() => handleTabChange(id)}
                         className={cn(
                             'relative px-3 py-1 border-none outline-none text-slate-200 hover:text-slate-300 transition-colors ring-1 ring-transparent cursor-pointer flex-1 flex items-center justify-center',
                             selectedTab?.id === id && 'text-slate-300 ring-0'
@@ -398,20 +408,77 @@ const BackgroundControls = memo(() => {
                 ) : selectedTab?.id === 'prompt' ? (
                     <motion.div
                         layoutId="background-selector"
-                        className="flex flex-col flex-1 gap-y-2 relative overflow-y-auto overflow-x-hidden h-full"
+                        className="flex flex-col flex-1 gap-y-2 relative overflow-y-auto overflow-x-hidden h-full p-3"
                     >
-                        {/* 1. Sticky Header */}
-                        <div className="flex gap-2 z-10 sticky top-0 left-0 p-2 bg-[#0b0b0b]">
-                            
+                        <div className="flex items-start flex-col gap-3">
+                            <motion.p initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} className="text-xs text-zinc-400">
+                                Unsplash images not matching your requirement?
+                                <br />
+                                Describe your imagination and create your own background.
+                            </motion.p>
 
-                            <Button
-                                onClick={() => handleSearchUnsplashImages(1)}
-                                disabled={isSearching}
-                                variant="outline"
-                                className={'flex items-center justify-center'}
-                            >
-                                <Search />
-                            </Button>
+                            {/* INPUT STATE / BUTTON STATE */}
+                            <AnimatePresence mode="wait">
+                                {isPromptOpen ? (
+                                    <motion.div
+                                        key="prompt"
+                                        initial={{ opacity: 0, y: 6 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: 6 }}
+                                        transition={{ duration: 0.2 }}
+                                        className="flex flex-col gap-3"
+                                    >
+                                        <MotionInput
+                                            layoutId="background-creating-prompt"
+                                            type="textarea"
+                                            placeholder="Describe your background..."
+                                            rows={10}
+                                        />
+
+                                        <MotionButton variant="outline" onClick={() => setIsPromptOpen(false)}>
+                                            <motion.span
+                                                animate={{
+                                                    color: ['#00ffff', '#0080ff', '#8000ff', '#ff0080', '#00ffff'],
+                                                }}
+                                                transition={{
+                                                    duration: 6,
+                                                    repeat: Infinity,
+                                                    ease: 'linear',
+                                                }}
+                                            >
+                                                <Sparkles />
+                                            </motion.span>
+                                        </MotionButton>
+                                    </motion.div>
+                                ) : (
+                                    <motion.div
+                                        key="button"
+                                        initial={{ opacity: 0, scale: 0.95 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        exit={{ opacity: 0, scale: 0.95 }}
+                                        transition={{ duration: 0.2 }}
+                                        className="m-auto"
+                                    >
+                                        <MotionButton layoutId="background-creating-prompt" variant="outline" onClick={() => setIsPromptOpen(true)}>
+                                            <motion.span
+                                                className="flex items-center gap-3"
+                                                animate={{
+                                                    color: ['#00ffff', '#0080ff', '#8000ff', '#ff0080', '#00ffff'],
+                                                }}
+                                                transition={{
+                                                    duration: 6,
+                                                    repeat: Infinity,
+                                                    ease: 'linear',
+                                                }}
+                                            >
+                                                <span>Your Imagination</span>
+                                                |
+                                                <Brush />
+                                            </motion.span>
+                                        </MotionButton>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </div>
                     </motion.div>
                 ) : null}

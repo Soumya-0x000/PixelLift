@@ -1,7 +1,6 @@
-import * as React from 'react';
+import { forwardRef } from 'react';
 import { Slot } from '@radix-ui/react-slot';
 import { cva } from 'class-variance-authority';
-
 import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
@@ -37,11 +36,12 @@ const buttonVariants = cva(
     }
 );
 
-function Button({ className, variant, size, asChild = false, children, ...props }) {
+const Button = forwardRef(({ className, variant, size, asChild = false, children, ...props }, ref) => {
     const Comp = asChild ? Slot : 'button';
 
     return (
         <Comp
+            ref={ref}
             data-slot="button"
             className={cn(buttonVariants({ variant, size, className }))}
             {...props}
@@ -91,6 +91,7 @@ function Button({ className, variant, size, asChild = false, children, ...props 
             )}
         </Comp>
     );
-}
+});
+Button.displayName = 'Button';
 
 export { Button, buttonVariants };
