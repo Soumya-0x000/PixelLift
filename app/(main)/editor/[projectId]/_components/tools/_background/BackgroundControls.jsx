@@ -1,24 +1,14 @@
-import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { lazy, memo, Suspense, useState } from 'react';
 import { useBackgroundChange } from './useBackgroundChange';
 import { Button } from '@/components/ui/button';
-import { Brush, Download, Loader2, Maximize2, Palette, Search, SearchIcon, Sparkles, Trash2, TypeOutline, X } from 'lucide-react';
+import { Palette, Trash2, TypeOutline } from 'lucide-react';
 import { Image as ImageIcon } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'motion/react';
 import { cn } from '@/lib/utils';
-import {
-    ColorPicker,
-    ColorPickerAlpha,
-    ColorPickerEyeDropper,
-    ColorPickerFormat,
-    ColorPickerHue,
-    ColorPickerSelection,
-} from '@/components/ui/shadcn-io/color-picker';
-import { Input } from '@/components/ui/input';
-import axios from 'axios';
-import { toast } from 'sonner';
-import LazyLoadImage from '@/components/LazyLoadImage';
-import { FabricImage } from 'fabric';
-import ColorChangingText from '@/components/ui/color-changing-text';
+
+const ColorBackgroundControl = lazy(() => import('./ColorBackgroundControl'));
+const ImageBackgroundControl = lazy(() => import('./ImageBackgroundControl'));
+const PromptBackgroundControl = lazy(() => import('./PromptBackgroundControl'));
 
 const BG_TABS = [
     { id: 'color', name: 'Color', icon: <Palette size={15} className="w-5 aspect-square" /> },
@@ -26,211 +16,10 @@ const BG_TABS = [
     { id: 'prompt', name: 'Prompt', icon: <TypeOutline size={15} className="w-5 aspect-square" /> },
 ];
 
-const INITIAL_PAGE_INFO = {
-    total: 0,
-    total_pages: 0,
-    per_page: 15,
-    page: 1,
-};
-
-const MotionInput = motion(Input);
-const MotionButton = motion(Button);
-
 const BackgroundControls = memo(() => {
-    const {
-        UNSPLASH_ACCESS_KEY,
-        UNSPLASH_URL,
-        canvasEditor,
-        handleBackgroundRemoval,
-        processingMessage,
-        mainImage,
-        currentProject,
-        setProcessing,
-        setProcessingMessage,
-    } = useBackgroundChange();
+    const { canvasEditor, handleBackgroundRemoval, processingMessage, mainImage } = useBackgroundChange();
 
     const [selectedTab, setSelectedTab] = useState(BG_TABS[0]);
-    const [canvasBgColor, setCanvasBgColor] = useState('#ffffff');
-    const [imgSearchQuery, setImgSearchQuery] = useState('');
-    const [isSearching, setIsSearching] = useState(false);
-    const [unsplashImages, setUnsplashImages] = useState(null);
-    const [pageInfo, setPageInfo] = useState(INITIAL_PAGE_INFO);
-    const [maximizedImg, setMaximizedImg] = useState({
-        url: null,
-        layoutId: null,
-    });
-    const [selectedImgId, setSelectedImgId] = useState(null);
-    const [isPromptOpen, setIsPromptOpen] = useState(false);
-
-    const loaderRef = useRef(null);
-    const scrollContainerRef = useRef(null);
-
-    const handleApplyBgColor = () => {
-        if (!canvasEditor) return;
-        canvasEditor.backgroundColor = canvasBgColor;
-        canvasEditor.requestRenderAll();
-    };
-
-    const handleImgSearchQueryChange = e => {
-        e.preventDefault();
-        setImgSearchQuery(e.target.value);
-    };
-
-    const handleSearchKeyPress = e => {
-        if (e.key === 'Enter') {
-            handleSearchUnsplashImages();
-        }
-    };
-
-    const handleSearchUnsplashImages = useCallback(
-        async (pageNo = 1, shouldAppend = false) => {
-            if (!imgSearchQuery || !UNSPLASH_ACCESS_KEY || !UNSPLASH_URL) return;
-
-            try {
-                setIsSearching(true);
-
-                const URL = `${UNSPLASH_URL}/search/photos?query=${encodeURIComponent(imgSearchQuery)}&per_page=${pageInfo.per_page}&page=${pageNo}`;
-                const response = await axios.get(URL, {
-                    headers: {
-                        Authorization: `Client-ID ${UNSPLASH_ACCESS_KEY}`,
-                    },
-                });
-
-                if (response.status === 200) {
-                    const data = response.data;
-                    setPageInfo(prev => ({
-                        ...prev,
-                        total: data?.total,
-                        total_pages: data?.total_pages,
-                        page: pageNo,
-                    }));
-                    setUnsplashImages(prev => (shouldAppend ? [...prev, ...data?.results] : data?.results));
-                } else {
-                    toast.error('Error fetching images');
-                }
-            } catch (error) {
-                console.error('Error fetching images:', error);
-                toast.error('Error fetching images');
-            } finally {
-                setIsSearching(false);
-            }
-        },
-        [imgSearchQuery, pageInfo.per_page, UNSPLASH_ACCESS_KEY, UNSPLASH_URL]
-    );
-
-    useEffect(() => {
-        const observer = new IntersectionObserver(
-            entries => {
-                const first = entries[0];
-                if (first.isIntersecting && !isSearching && pageInfo.page < pageInfo.total_pages) {
-                    handleSearchUnsplashImages(pageInfo.page + 1, true);
-                }
-            },
-            { threshold: 0.1, rootMargin: '0px 0px 50px 0px' }
-        );
-
-        const imgLoader = loaderRef.current;
-        if (imgLoader) observer.observe(imgLoader);
-
-        return () => {
-            if (imgLoader) observer.unobserve(imgLoader);
-        };
-    }, [handleSearchUnsplashImages, pageInfo.page, pageInfo.total_pages, isSearching]);
-
-    useEffect(() => {
-        if (!imgSearchQuery.trim()) {
-            setUnsplashImages(null);
-            setPageInfo(INITIAL_PAGE_INFO);
-        }
-    }, [imgSearchQuery]);
-
-    const handleImageClick = async e => {
-        if (!canvasEditor) return;
-
-        const actionBtn = e.target.closest('[data-action]');
-        if (!actionBtn) return;
-
-        const imageCard = e.target.closest('[data-img-id]');
-        if (!imageCard) return;
-
-        const { imgId, url } = imageCard.dataset;
-        const action = actionBtn.dataset.action;
-
-        setSelectedImgId(imgId);
-
-        if (action === 'maximize') {
-            setMaximizedImg(prev => ({ ...prev, url, layoutId: `card-${imgId}` }));
-            return;
-        }
-
-        try {
-            setProcessing(true);
-            setProcessingMessage('Downloading image...');
-            const response = await axios.get(`${UNSPLASH_URL}/photos/${imgId}/download`, {
-                headers: {
-                    Authorization: `Client-ID ${UNSPLASH_ACCESS_KEY}`,
-                },
-            });
-
-            const data = response.data;
-
-            if (action === 'select') {
-                setProcessingMessage('Applying image...');
-
-                const fabricImage = await FabricImage.fromURL(data.url, {
-                    crossOrigin: 'anonymous',
-                });
-
-                // USE PROJECT DIMENSIONS instead of canvas dimensions for proper scaling
-                const { width: canvasWidth, height: canvasHeight } = currentProject;
-
-                // Calculate scales
-                const scaleX = canvasWidth / fabricImage.width;
-                const scaleY = canvasHeight / fabricImage.height;
-
-                // Use Math.max to FILL the entire canvas (ensures no empty space)
-                const scale = Math.max(scaleX, scaleY);
-
-                fabricImage.set({
-                    scaleX: scale,
-                    scaleY: scale,
-                    originX: 'center',
-                    originY: 'center',
-                    left: canvasWidth / 2,
-                    top: canvasHeight / 2,
-                });
-
-                // Set background and render
-                canvasEditor.backgroundImage = fabricImage;
-                canvasEditor.requestRenderAll();
-                setSelectedImgId(null);
-            }
-
-            if (action === 'download') {
-                // Fetch the image as a blob to bypass CORS restrictions
-                const blob = await fetch(data.url).then(res => res.blob());
-                const blobUrl = URL.createObjectURL(blob);
-
-                const filename = `${imgSearchQuery}-${imgId}.jpg`;
-                const a = document.createElement('a');
-                a.href = blobUrl;
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-
-                // Clean up the blob URL
-                URL.revokeObjectURL(blobUrl);
-                setSelectedImgId(null);
-            }
-        } catch (error) {
-            console.error('Error fetching image:', error);
-            toast.error('Error fetching image');
-        } finally {
-            setProcessing(false);
-            setProcessingMessage(null);
-        }
-    };
 
     const handleRemoveCanvasBackground = () => {
         if (!canvasEditor) return;
@@ -242,7 +31,49 @@ const BackgroundControls = memo(() => {
 
     const handleTabChange = id => {
         setSelectedTab(prev => ({ ...prev, id }));
-        setIsPromptOpen(false);
+    };
+
+    const TabSkeleton = () => (
+        <div className="flex-1 p-4 space-y-3 animate-pulse">
+            <div className="h-4 bg-zinc-800 rounded w-1/3" />
+            <div className="h-20 bg-zinc-800 rounded" />
+            <div className="h-20 bg-zinc-800 rounded" />
+        </div>
+    );
+
+    const BackgroundUpdateRenderer = () => {
+        if (!canvasEditor) return null;
+
+        let Content = null;
+
+        switch (selectedTab?.id) {
+            case 'color':
+                Content = <ColorBackgroundControl />;
+                break;
+            case 'background':
+                Content = <ImageBackgroundControl />;
+                break;
+            case 'prompt':
+                Content = <PromptBackgroundControl />;
+                break;
+            default:
+                Content = null;
+        }
+
+        return (
+            <AnimatePresence mode="wait">
+                <motion.div
+                    key={selectedTab?.id}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.25, ease: 'easeOut' }}
+                    className="flex flex-col flex-1"
+                >
+                    <Suspense fallback={<TabSkeleton />}>{Content}</Suspense>
+                </motion.div>
+            </AnimatePresence>
+        );
     };
 
     return (
@@ -289,242 +120,13 @@ const BackgroundControls = memo(() => {
             </div>
 
             <div className="flex flex-col flex-1 ring-1 ring-zinc-800 rounded-md overflow-hidden">
-                {selectedTab?.id === 'color' ? (
-                    <motion.div layoutId="background-selector" className="p-2">
-                        <ColorPicker
-                            className="max-w-sm rounded-md border bg-background p-4 shadow-sm"
-                            defaultValue="#ffffff"
-                            onChange={setCanvasBgColor}
-                        >
-                            <ColorPickerSelection />
-                            <div className="flex items-center gap-4">
-                                <ColorPickerEyeDropper />
-                                <div className="grid w-full gap-1">
-                                    <ColorPickerHue />
-                                    <ColorPickerAlpha />
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <ColorPickerFormat readOnly={false} />
-                                <Button variant="outline" size="sm" onClick={handleApplyBgColor}>
-                                    Apply
-                                </Button>
-                                <span className="w-12 aspect-square rounded-[0.35rem]" style={{ backgroundColor: canvasBgColor }} />
-                            </div>
-                        </ColorPicker>
-                    </motion.div>
-                ) : selectedTab?.id === 'background' ? (
-                    <motion.div
-                        ref={scrollContainerRef}
-                        layoutId="background-selector"
-                        className="flex flex-col flex-1 gap-y-2 relative overflow-y-auto overflow-x-hidden h-full"
-                    >
-                        {/* 1. Sticky Header */}
-                        <div className="flex gap-2 z-10 sticky top-0 left-0 p-2 bg-[#0b0b0b]">
-                            <Input
-                                value={imgSearchQuery}
-                                onChange={handleImgSearchQueryChange}
-                                onKeyPress={handleSearchKeyPress}
-                                placeholder="Search for images..."
-                                className={'flex-1'}
-                                autoFocus
-                            />
-
-                            <Button
-                                onClick={() => handleSearchUnsplashImages(1)}
-                                disabled={isSearching}
-                                variant="outline"
-                                className={'flex items-center justify-center'}
-                            >
-                                <Search />
-                            </Button>
-                        </div>
-
-                        {/* 2. Content Container */}
-                        <div className="flex-1 p-2">
-                            {unsplashImages?.length > 0 ? (
-                                <div className="columns-2 gap-2" onClick={handleImageClick}>
-                                    {unsplashImages?.map((image, idx) => (
-                                        <motion.div
-                                            key={`${image.id}-${idx}`}
-                                            layoutId={`card-${image.id}`}
-                                            data-img-id={image.id}
-                                            data-url={image.urls.full}
-                                            className="mb-2 break-inside-avoid rounded-sm overflow-hidden bg-[#0b0b0b] relative"
-                                        >
-                                            <LazyLoadImage
-                                                src={image.urls.small}
-                                                alt={image.alt_description || 'Unsplash image'}
-                                                loading="lazy"
-                                                className="w-full h-auto object-cover block"
-                                            />
-                                            <div className="absolute bottom-0 left-0 w-full p-1 line-clamp-2 text-xs bg-black/50 flex items-center justify-start text-white">
-                                                <p>{image.user.name}</p>
-                                            </div>
-
-                                            <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center p-2 opacity-0 backdrop-blur-[1px] hover:opacity-100 transition-opacity">
-                                                <Button data-action="select" variant="outline" className="text-white mb-1">
-                                                    Select
-                                                </Button>
-
-                                                <div className="flex gap-2">
-                                                    <Button data-action="maximize" variant="outline" className="text-white h-8 w-8">
-                                                        <Maximize2 size={16} />
-                                                    </Button>
-                                                    <Button data-action="download" variant="outline" className="text-white h-8 w-8">
-                                                        <Download size={16} />
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        </motion.div>
-                                    ))}
-                                </div>
-                            ) : imgSearchQuery && unsplashImages !== null ? (
-                                <div className="text-center text-white/50 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center flex-col w-full">
-                                    <p>No images found for ""{imgSearchQuery}""</p>
-                                    <p>Try a different search term</p>
-                                </div>
-                            ) : (
-                                !isSearching && (
-                                    <div className="text-center text-white/50 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center flex-col w-full">
-                                        <SearchIcon className="w-12 h-12" />
-                                        <p className="mt-3">Search for background Images</p>
-                                        <p className="text-xs mt-1 font-thin">Powered by Unsplash</p>
-                                    </div>
-                                )
-                            )}
-
-                            {/* 3. The Sentinel - Place it outside the 'columns' div */}
-                            <div ref={loaderRef} className="h-24 w-full flex items-center justify-center">
-                                {isSearching && (
-                                    <div className="flex flex-col items-center gap-2">
-                                        <Loader2 className="animate-spin text-white/50" />
-                                        <span className="text-[10px] text-white/30 uppercase tracking-widest">Loading</span>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </motion.div>
-                ) : selectedTab?.id === 'prompt' ? (
-                    <motion.div
-                        layoutId="background-selector"
-                        className="flex flex-col flex-1 gap-y-2 relative overflow-y-auto overflow-x-hidden h-full p-3"
-                    >
-                        <div className="flex items-start flex-col gap-3">
-                            <motion.p initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} className="text-xs text-zinc-400">
-                                Unsplash images not matching your requirement?
-                                <br />
-                                Describe your imagination and create your own background.
-                            </motion.p>
-
-                            {/* INPUT STATE / BUTTON STATE */}
-                            <AnimatePresence mode="wait">
-                                {isPromptOpen ? (
-                                    <motion.div
-                                        key="prompt"
-                                        initial={{ opacity: 0, y: 6 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: 6 }}
-                                        transition={{ duration: 0.2 }}
-                                        className="flex flex-col gap-3"
-                                    >
-                                        <MotionInput
-                                            layoutId="background-creating-prompt"
-                                            type="textarea"
-                                            placeholder="Describe your background..."
-                                            rows={10}
-                                        />
-
-                                        <MotionButton variant="outline" onClick={() => setIsPromptOpen(false)}>
-                                            <motion.span
-                                                animate={{
-                                                    color: ['#00ffff', '#0080ff', '#8000ff', '#ff0080', '#00ffff'],
-                                                }}
-                                                transition={{
-                                                    duration: 6,
-                                                    repeat: Infinity,
-                                                    ease: 'linear',
-                                                }}
-                                            >
-                                                <Sparkles />
-                                            </motion.span>
-                                        </MotionButton>
-                                    </motion.div>
-                                ) : (
-                                    <motion.div
-                                        key="button"
-                                        initial={{ opacity: 0, scale: 0.95 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        exit={{ opacity: 0, scale: 0.95 }}
-                                        transition={{ duration: 0.2 }}
-                                        className="m-auto"
-                                    >
-                                        <MotionButton layoutId="background-creating-prompt" variant="outline" onClick={() => setIsPromptOpen(true)}>
-                                            <motion.span
-                                                className="flex items-center gap-3"
-                                                animate={{
-                                                    color: ['#00ffff', '#0080ff', '#8000ff', '#ff0080', '#00ffff'],
-                                                }}
-                                                transition={{
-                                                    duration: 6,
-                                                    repeat: Infinity,
-                                                    ease: 'linear',
-                                                }}
-                                            >
-                                                <span>Your Imagination</span>
-                                                |
-                                                <Brush />
-                                            </motion.span>
-                                        </MotionButton>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-                        </div>
-                    </motion.div>
-                ) : null}
+                <BackgroundUpdateRenderer />
             </div>
 
             <Button onClick={handleRemoveCanvasBackground} disabled={processingMessage || !mainImage} className="w-full" variant="outline">
                 <Trash2 className="h-4 w-4 mr-2" />
                 Remove Canvas Background
             </Button>
-
-            {/* Animated Modal with layoutId */}
-            <AnimatePresence>
-                {maximizedImg?.layoutId && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center">
-                        {/* 1. Dark Overlay */}
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            layoutId={maximizedImg.layoutId}
-                            className="absolute inset-0 bg-black/80 backdrop-blur-md"
-                            onClick={() => setMaximizedImg(null)}
-                        />
-
-                        {/* 2. The Morphing Card */}
-                        <motion.div
-                            layoutId={maximizedImg.layoutId} // Matches the ID in the grid
-                            className="relative max-w-[60vw] max-h-[60vh] bg-[#1a1a1a] rounded-xl overflow-hidden shadow-2xl z-10"
-                        >
-                            <motion.div layoutId={maximizedImg.layoutId}>
-                                <LazyLoadImage src={maximizedImg.url} alt="Maximized" className="w-full h-full object-contain" />
-                            </motion.div>
-
-                            {/* 3. Modal Content (Fades in after expansion) */}
-                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="p-6 text-white">
-                                <h3 className="text-lg font-bold">Image Details</h3>
-                                <p className="text-neutral-400">Captured by the Unsplash community.</p>
-                            </motion.div>
-
-                            <button onClick={() => setMaximizedImg(null)} className="absolute top-4 right-4 p-2 rounded-full bg-black/50 text-white">
-                                <X size={20} />
-                            </button>
-                        </motion.div>
-                    </div>
-                )}
-            </AnimatePresence>
         </div>
     );
 });
