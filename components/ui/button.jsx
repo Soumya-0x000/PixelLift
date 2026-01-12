@@ -36,14 +36,14 @@ const buttonVariants = cva(
     }
 );
 
-const Button = forwardRef(({ className, variant, size, asChild = false, children, ...props }, ref) => {
+const Button = forwardRef(({ className, variant, size, asChild = false, disableActiveScale = false, children, ...props }, ref) => {
     const Comp = asChild ? Slot : 'button';
 
     return (
         <Comp
             ref={ref}
             data-slot="button"
-            className={cn(buttonVariants({ variant, size, className }))}
+            className={cn(buttonVariants({ variant, size }), !disableActiveScale && 'active:scale-95', className)}
             {...props}
         >
             {children}
@@ -55,36 +55,16 @@ const Button = forwardRef(({ className, variant, size, asChild = false, children
             {variant === 'badge' && (
                 <>
                     <span className="absolute inset-0 border border-dashed border-sky-300/60 bg-sky-400/10 group-hover:bg-sky-400/15 dark:border-sky-300/30"></span>
-                    <svg
-                        width="4"
-                        height="4"
-                        viewBox="0 0 5 5"
-                        className="absolute top-[-8] left-[-8] fill-sky-300 dark:fill-sky-300/50"
-                    >
+                    <svg width="4" height="4" viewBox="0 0 5 5" className="absolute top-[-8] left-[-8] fill-sky-300 dark:fill-sky-300/50">
                         <path d="M2 0h1v2h2v1h-2v2h-1v-2h-2v-1h2z"></path>
                     </svg>
-                    <svg
-                        width="4"
-                        height="4"
-                        viewBox="0 0 5 5"
-                        className="absolute top-[-8] right-[-8] fill-sky-300 dark:fill-sky-300/50"
-                    >
+                    <svg width="4" height="4" viewBox="0 0 5 5" className="absolute top-[-8] right-[-8] fill-sky-300 dark:fill-sky-300/50">
                         <path d="M2 0h1v2h2v1h-2v2h-1v-2h-2v-1h2z"></path>
                     </svg>
-                    <svg
-                        width="4"
-                        height="4"
-                        viewBox="0 0 5 5"
-                        className="absolute bottom-[-8] left-[-8] fill-sky-300 dark:fill-sky-300/50"
-                    >
+                    <svg width="4" height="4" viewBox="0 0 5 5" className="absolute bottom-[-8] left-[-8] fill-sky-300 dark:fill-sky-300/50">
                         <path d="M2 0h1v2h2v1h-2v2h-1v-2h-2v-1h2z"></path>
                     </svg>
-                    <svg
-                        width="4"
-                        height="4"
-                        viewBox="0 0 5 5"
-                        className="absolute right-[-8] bottom-[-8] fill-sky-300 dark:fill-sky-300/50"
-                    >
+                    <svg width="4" height="4" viewBox="0 0 5 5" className="absolute right-[-8] bottom-[-8] fill-sky-300 dark:fill-sky-300/50">
                         <path d="M2 0h1v2h2v1h-2v2h-1v-2h-2v-1h2z"></path>
                     </svg>
                 </>
