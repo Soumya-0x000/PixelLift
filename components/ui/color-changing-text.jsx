@@ -4,11 +4,15 @@ import { cn } from '@/lib/utils';
 import { motion } from 'motion/react';
 import React from 'react';
 
-const ColorChangingText = React.memo(({ text, className }) => {
+const ColorChangingText = React.memo(({ text, className, children }) => {
+    const content = children ?? text;
+
+    if (!content) return null;
+
     return (
         <motion.span
             className={cn(
-                'text-5xl md:text-7xl lg:text-8xl font-black mb-8 leading-tight',
+                'text-5xl md:text-7xl lg:text-8xl font-black leading-tight',
                 className
             )}
             style={{
@@ -28,7 +32,8 @@ const ColorChangingText = React.memo(({ text, className }) => {
                 ease: 'linear',
             }}
         >
-            {text}
+
+            {content}
         </motion.span>
     );
 });
