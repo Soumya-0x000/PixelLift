@@ -138,9 +138,7 @@ const ImageBackgroundControl = memo(() => {
             if (action === 'select') {
                 setProcessingMessage('Applying image...');
 
-                const fabricImage = await FabricImage.fromURL(data.url, {
-                    crossOrigin: 'anonymous',
-                });
+                const fabricImage = await FabricImage.fromURL(data.url, { crossOrigin: 'anonymous' });
 
                 // USE PROJECT DIMENSIONS instead of canvas dimensions for proper scaling
                 const { width: canvasWidth, height: canvasHeight } = currentProject;

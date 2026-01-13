@@ -3,11 +3,13 @@
 import { useState, useMemo } from 'react';
 import useCanvasContext from '@/context/canvasContext/useCanvasContext';
 import { removeBackground } from '@imgly/background-removal';
-import { fabric, FabricImage } from 'fabric';
+import { FabricImage } from 'fabric';
 import { toast } from 'sonner';
 
 const UNSPLASH_ACCESS_KEY = process.env.NEXT_PUBLIC_UNSPLASH_ACCESS_KEY;
 const UNSPLASH_URL = process.env.NEXT_PUBLIC_UNSPLASH_URL;
+const HF_MODEL_ID = process.env.NEXT_PUBLIC_HF_MODEL_ID;
+const HF_API_URL = process.env.NEXT_PUBLIC_HF_API_URL;
 
 export const useBackgroundChange = () => {
     const { canvasEditor, activeTool, currentProject, setProcessingMessage, setProcessing } = useCanvasContext();
@@ -93,6 +95,8 @@ export const useBackgroundChange = () => {
     return {
         UNSPLASH_ACCESS_KEY,
         UNSPLASH_URL,
+        HF_MODEL_ID,
+        HF_API_URL,
         canvasEditor,
         activeTool,
         currentProject,

@@ -3,17 +3,103 @@ import { Button } from '@/components/ui/button';
 import { Brush, RefreshCcw, Sparkles } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Input } from '@/components/ui/input';
+import { useBackgroundChange } from './useBackgroundChange';
+import { FabricImage } from 'fabric';
+import axios from 'axios';
 
 const MotionInput = motion(Input);
 const MotionButton = motion(Button);
 
 const PromptBackgroundControl = memo(() => {
-    const [isPromptOpen, setIsPromptOpen] = useState(true);
+    const { HF_MODEL_ID, HF_API_URL, currentProject } = useBackgroundChange();
+
+    const [isPromptOpen, setIsPromptOpen] = useState(false);
     const [prompt, setPrompt] = useState('');
 
-    const handleGenerateBackground = () => {
-        // TODO: Implement AI background generation
-        console.log('Generating background with prompt:', prompt);
+    // Utility for waiting
+    const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+    // Standard Fetch with Recursive Retry logic
+    async function fetchWithRetry(url, options, retries = 5, delay = 2000) {
+        try {
+            const response = await axios.get(url, {
+                headers: {
+                    Authorization: `Bearer ${process.env.NEXT_PUBLIC_HF_TOKEN}`,
+                    'Content-Type': 'application/json',
+                },
+                method: 'POST',
+                body: JSON.stringify({ inputs: prompt }),
+            });
+
+            // 503 = Model is still loading; 429 = Rate limited
+            if ((response.status === 503 || response.status === 429) && retries > 0) {
+                console.warn(`Server busy (${response.status}). Retrying in ${delay}ms...`);
+                await sleep(delay);
+                // Double the wait time for next attempt
+                return fetchWithRetry(url, options, retries - 1, delay * 2);
+            }
+
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({ error: 'Unknown Error' }));
+                throw new Error(error.error || `HTTP ${response.status}`);
+            }
+
+            return response;
+        } catch (error) {
+            if (retries > 0) {
+                await sleep(delay);
+                return fetchWithRetry(url, options, retries - 1, delay * 2);
+            }
+            throw error;
+        }
+    }
+
+    const handleGenerateBackground = async () => {
+        if (!prompt) return;
+
+        const API_URL = `${HF_API_URL}/${HF_MODEL_ID}`;
+
+        try {
+            setProcessing(true);
+            setProcessingMessage('Preparing your background...');
+
+            const response = await fetchWithRetry(API_URL);
+
+            const blob = await response.blob();
+            const aiImageUrl = URL.createObjectURL(blob);
+
+            // Rest of your existing Fabric.js logic to set background...
+            const fabricImage = await FabricImage.fromURL(aiImageUrl, { crossOrigin: 'anonymous' });
+
+            // USE PROJECT DIMENSIONS instead of canvas dimensions for proper scaling
+            const { width: canvasWidth, height: canvasHeight } = currentProject;
+
+            // Calculate scales
+            const scaleX = canvasWidth / fabricImage.width;
+            const scaleY = canvasHeight / fabricImage.height;
+
+            // Use Math.max to FILL the entire canvas (ensures no empty space)
+            const scale = Math.max(scaleX, scaleY);
+
+            fabricImage.set({
+                scaleX: scale,
+                scaleY: scale,
+                originX: 'center',
+                originY: 'center',
+                left: canvasWidth / 2,
+                top: canvasHeight / 2,
+            });
+
+            canvasEditor.backgroundImage = fabricImage;
+            canvasEditor.requestRenderAll();
+            toast.success('Background applied!');
+        } catch (error) {
+            console.error('Background Error:', error);
+            toast.error(`Background failed: ${error.message}`);
+        } finally {
+            setProcessing(false);
+            setProcessingMessage(null);
+        }
     };
 
     return (
