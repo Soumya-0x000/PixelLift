@@ -6,12 +6,13 @@ import { Input } from '@/components/ui/input';
 import { useBackgroundChange } from './useBackgroundChange';
 import { FabricImage } from 'fabric';
 import axios from 'axios';
+import { toast } from 'sonner';
 
 const MotionInput = motion(Input);
 const MotionButton = motion(Button);
 
 const PromptBackgroundControl = memo(() => {
-    const { HF_MODEL_ID, HF_API_URL, currentProject } = useBackgroundChange();
+    const { HF_MODEL_ID, HF_API_URL, currentProject, setProcessing, setProcessingMessage } = useBackgroundChange();
 
     const [isPromptOpen, setIsPromptOpen] = useState(false);
     const [prompt, setPrompt] = useState('');
@@ -20,37 +21,51 @@ const PromptBackgroundControl = memo(() => {
     const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
     // Standard Fetch with Recursive Retry logic
-    async function fetchWithRetry(url, options, retries = 5, delay = 2000) {
+    async function fetchWithRetry(url, payload, retries = 5, delay = 2000) {
         try {
-            const response = await axios.get(url, {
+            const response = await axios.post(url, payload, {
                 headers: {
                     Authorization: `Bearer ${process.env.NEXT_PUBLIC_HF_TOKEN}`,
                     'Content-Type': 'application/json',
                 },
-                method: 'POST',
-                body: JSON.stringify({ inputs: prompt }),
+                responseType: 'blob',
             });
+            console.log(response);
 
-            // 503 = Model is still loading; 429 = Rate limited
-            if ((response.status === 503 || response.status === 429) && retries > 0) {
-                console.warn(`Server busy (${response.status}). Retrying in ${delay}ms...`);
-                await sleep(delay);
-                // Double the wait time for next attempt
-                return fetchWithRetry(url, options, retries - 1, delay * 2);
-            }
-
-            if (!response.ok) {
-                const error = await response.json().catch(() => ({ error: 'Unknown Error' }));
-                throw new Error(error.error || `HTTP ${response.status}`);
-            }
-
-            return response;
+            return response.data;
         } catch (error) {
-            if (retries > 0) {
+            const status = error.response?.status;
+
+            // 503 = Loading, 429 = Rate Limit
+            if ((status === 503 || status === 429) && retries > 0) {
+                console.warn(`Server busy (${status}). Retrying in ${delay}ms...`);
                 await sleep(delay);
-                return fetchWithRetry(url, options, retries - 1, delay * 2);
+                return fetchWithRetry(url, payload, retries - 1, delay * 2);
             }
-            throw error;
+
+            let errorMessage = error.message;
+
+            // SPECIAL CASE: If response is a Blob, we must convert it to text to see the error
+            if (error.response?.data instanceof Blob) {
+                try {
+                    const errorText = await error.response.data.text();
+                    const errorJson = JSON.parse(errorText);
+                    errorMessage = errorJson.error || errorMessage;
+                } catch {
+                    // If parsing fails, try to use the text directly
+                    try {
+                        const errorText = await error.response.data.text();
+                        errorMessage = errorText || errorMessage;
+                    } catch {
+                        // If even text conversion fails, use the original error message
+                        errorMessage = error.message;
+                    }
+                }
+            } else if (error.response?.data?.error) {
+                errorMessage = error.response.data.error;
+            }
+
+            throw new Error(errorMessage);
         }
     }
 
@@ -63,9 +78,10 @@ const PromptBackgroundControl = memo(() => {
             setProcessing(true);
             setProcessingMessage('Preparing your background...');
 
-            const response = await fetchWithRetry(API_URL);
+            const payload = { inputs: prompt };
+            const blob = await fetchWithRetry(API_URL, payload);
 
-            const blob = await response.blob();
+            // fetchWithRetry now returns the blob directly
             const aiImageUrl = URL.createObjectURL(blob);
 
             // Rest of your existing Fabric.js logic to set background...
