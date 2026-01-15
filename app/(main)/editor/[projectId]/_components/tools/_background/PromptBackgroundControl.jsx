@@ -12,8 +12,8 @@ const MotionInput = motion(Input);
 const MotionButton = motion(Button);
 
 const PromptBackgroundControl = memo(() => {
-    const { HF_MODEL_ID, HF_API_URL, currentProject, setProcessing, setProcessingMessage } = useBackgroundChange();
-
+    const { HF_MODEL_ID, HF_API_URL, currentProject, setProcessing, setProcessingMessage, canvasEditor } = useBackgroundChange();
+    console.log(currentProject);
     const [isPromptOpen, setIsPromptOpen] = useState(false);
     const [prompt, setPrompt] = useState('');
 
@@ -27,10 +27,10 @@ const PromptBackgroundControl = memo(() => {
                 headers: {
                     Authorization: `Bearer ${process.env.NEXT_PUBLIC_HF_TOKEN}`,
                     'Content-Type': 'application/json',
+                    Accept: 'image/png',
                 },
                 responseType: 'blob',
             });
-            console.log(response);
 
             return response.data;
         } catch (error) {
@@ -109,6 +109,9 @@ const PromptBackgroundControl = memo(() => {
             canvasEditor.backgroundImage = fabricImage;
             canvasEditor.requestRenderAll();
             toast.success('Background applied!');
+
+            // Reset prompt but keep it open
+            setPrompt('');
         } catch (error) {
             console.error('Background Error:', error);
             toast.error(`Background failed: ${error.message}`);
