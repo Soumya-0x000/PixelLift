@@ -34,7 +34,7 @@ const Header = () => {
 
     const [activeTab, setActiveTab] = useState('');
 
-    if (path.includes('editor')) {
+    if (path.includes('editor') || path.includes('sign-in') || path.includes('sign-up')) {
         return null;
     }
 
@@ -92,19 +92,14 @@ const Header = () => {
                     </motion.span>
                 </Link>
 
-                <motion.nav
-                    className="flex gap-x-2"
-                    layout
-                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                >
+                <motion.nav className="flex gap-x-2" layout transition={{ type: 'spring', stiffness: 400, damping: 30 }}>
                     {tabs.map((tab, idx) => (
                         <motion.button
                             key={tab.name + idx}
                             onClick={e => scrollToSection(e, tab)}
                             className={cn(
                                 'relative px-3 py-1 rounded-xl border-none outline-none text-slate-200 hover:text-slate-300 transition-colors ring-1 ring-transparent hover:ring-slate-600 hover:bg-slate-700',
-                                activeTab === tab.name &&
-                                    'text-slate-300 ring-slate-600 bg-slate-700'
+                                activeTab === tab.name && 'text-slate-300 ring-slate-600 bg-slate-700'
                             )}
                             style={{ transformStyle: 'preserve-3d' }}
                             layout
@@ -155,14 +150,7 @@ const Header = () => {
                                         animate={{ opacity: 1, x: 0 }}
                                         transition={{ duration: 0.4, delay: 0.1 }}
                                     >
-                                        <Button
-                                            variant={'glass'}
-                                            onClick={() =>
-                                                router.push(
-                                                    isAuthenticated ? '/dashboard' : '/sign-in'
-                                                )
-                                            }
-                                        >
+                                        <Button variant={'glass'} onClick={() => router.push(isAuthenticated ? '/dashboard' : '/sign-in')}>
                                             <LayoutDashboard size={28} strokeWidth={1.5} />
                                             <span className="hidden sm:flex">Dashboard</span>
                                         </Button>
@@ -179,16 +167,9 @@ const Header = () => {
                                 </div>
                             </Authenticated>
                             <Unauthenticated>
-                                <motion.div
-                                    initial={{ opacity: 0, x: 20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ duration: 0.4, delay: 0.1 }}
-                                >
+                                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4, delay: 0.1 }}>
                                     <SignInButton>
-                                        <Button
-                                            variant={'magic'}
-                                            className={`hidden sm:inline-flex`}
-                                        >
+                                        <Button variant={'magic'} className={`hidden sm:inline-flex`}>
                                             <LogIn />
                                             Sign In
                                         </Button>
