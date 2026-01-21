@@ -2,24 +2,20 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSignIn } from '@clerk/nextjs';
-import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import { Loader2, Mail, Clock, Edit } from 'lucide-react';
 
 const SignInPage = () => {
     const { isLoaded, signIn } = useSignIn();
-    const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [emailLinkSent, setEmailLinkSent] = useState(false);
-    const [timeRemaining, setTimeRemaining] = useState(60); // 60 seconds = 1 minute
-    const [formData, setFormData] = useState({
-        emailAddress: '',
-    });
+    const [timeRemaining, setTimeRemaining] = useState(60);
+    const [formData, setFormData] = useState({emailAddress: ''});
 
     const handleChange = e => {
         setFormData({
@@ -45,8 +41,8 @@ const SignInPage = () => {
     };
 
     const openGmailToast = (openFor = 6000) => {
-        toast.success('Verification link sent!',{
-            description: 'Login with  link within next 60seconds',
+        toast.success('Link sent!', {
+            description: 'Check your email — expires in 60s',
             action: {
                 label: 'Open Gmail',
                 onClick: openGmail
@@ -137,7 +133,7 @@ const SignInPage = () => {
     // Email link sent confirmation screen
     if (emailLinkSent) {
         return (
-            <div className="w-[45rem] p-8">
+            <div className="w-116 p-8">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -171,9 +167,18 @@ const SignInPage = () => {
                                     <Clock className="w-4 h-4" />
                                     <span className="text-sm">Please wait</span>
                                 </div>
-                                <div className="text-4xl font-bold text-blue-400 mb-2">
-                                    {formatTime(timeRemaining)}
-                                </div>
+                                <AnimatePresence mode="wait">
+                                    <motion.div
+                                        key={timeRemaining}
+                                        initial={{ scale: 1.2, opacity: 0 }}
+                                        animate={{ scale: 1, opacity: 1 }}
+                                        exit={{ scale: 0.8, opacity: 0 }}
+                                        transition={{ duration: 0.3, ease: 'easeOut' }}
+                                        className="text-4xl font-bold text-blue-400 mb-2"
+                                    >
+                                        {formatTime(timeRemaining)}
+                                    </motion.div>
+                                </AnimatePresence>
                                 <p className="text-slate-500 text-sm">
                                     You can resend or edit your email after the timer expires
                                 </p>
@@ -229,7 +234,7 @@ const SignInPage = () => {
     }
 
     return (
-        <div className="w-full min-w-106 max-w-xl">
+        <div className="w-full min-w-100 max-w-xl">
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
