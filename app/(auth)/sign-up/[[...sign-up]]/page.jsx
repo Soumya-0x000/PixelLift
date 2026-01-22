@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useSignUp } from '@clerk/nextjs';
+import { SignUp, useSignUp } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -137,7 +137,7 @@ const SignUpPage = () => {
     }
 
     return (
-        <div className="w-full">
+        <div className="w-full flex items-center justify-center">
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -191,7 +191,7 @@ const SignUpPage = () => {
                         />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    {/* <div className="grid grid-cols-2 gap-4"> */}
                         <div className="space-y-2">
                             <Label htmlFor="emailAddress">Email address</Label>
                             <Input
@@ -226,7 +226,7 @@ const SignUpPage = () => {
                                 </button>
                             </div>
                         </div>
-                    </div>
+                    {/* </div> */}
 
                     <Button
                         type="submit"
@@ -298,6 +298,8 @@ const SignUpPage = () => {
                     </Link>
                 </div>
             </motion.div>
+
+            <SignUp/>
         </div>
     );
 };
