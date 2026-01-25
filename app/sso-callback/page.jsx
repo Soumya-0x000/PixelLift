@@ -13,7 +13,7 @@ import { Loader2 } from 'lucide-react';
 
 export default function SSOCallback() {
     const { isLoaded: signUpLoaded, signUp, setActive } = useSignUp();
-    const { isLoaded: signInLoaded } = useSignIn();
+    const { isLoaded: signInLoaded, signIn } = useSignIn();
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [needsUsername, setNeedsUsername] = useState(false);
@@ -27,16 +27,33 @@ export default function SSOCallback() {
             try {
                 // Check if we have a signup in progress
                 if (signUp && signUp.status === 'missing_requirements') {
-                    // User signed up with OAuth but needs to provide username
-                    setNeedsUsername(true);
-                    setIsProcessing(false);
+                    console.log('Missing fields:', signUp.missingFields);
+                    console.log('Required fields:', signUp.requiredFields);
+
+                    // Check if username is in the missing fields
+                    const missingUsername = signUp.missingFields?.includes('username');
+
+                    // For OAuth signups, we should only need to collect username
+                    // If other fields like password are required, there's a Clerk config issue
+                    if (missingUsername) {
+                        setNeedsUsername(true);
+                        setIsProcessing(false);
+                    } else {
+                        // Username is not missing, but signup is incomplete
+                        // This might be a configuration issue
+                        console.error('Unexpected missing fields for OAuth signup:', signUp.missingFields);
+                        setIsProcessing(false);
+                        toast.error('Account setup incomplete. Please contact support.');
+                        router.push('/sign-up');
+                    }
                 } else if (signUp && signUp.status === 'complete') {
                     // Signup is complete, activate session and redirect
                     await setActive({ session: signUp.createdSessionId });
                     router.push('/dashboard');
+                } else if (signIn && signIn.status === 'needs_identifier') {
+                    setIsProcessing(false);
+                    router.push('/sign-up');
                 } else {
-                    // No signup in progress, might be a sign-in
-                    // Let Clerk handle it or redirect
                     setIsProcessing(false);
                     router.push('/dashboard');
                 }

@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useSignIn } from '@clerk/nextjs';
+import { useSignIn, useUser } from '@clerk/nextjs';
+import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -12,10 +13,27 @@ import { Loader2, Mail, Clock, Edit } from 'lucide-react';
 
 const SignInPage = () => {
     const { isLoaded, signIn } = useSignIn();
+    const { isSignedIn, isLoaded: userLoaded } = useUser();
+    const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [emailLinkSent, setEmailLinkSent] = useState(false);
     const [timeRemaining, setTimeRemaining] = useState(60);
-    const [formData, setFormData] = useState({emailAddress: ''});
+    const [formData, setFormData] = useState({ emailAddress: '' });
+
+    // Check if user is already signed in and redirect
+    useEffect(() => {
+        if (userLoaded && isSignedIn) {
+            // Check URL params for Clerk status
+            const params = new URLSearchParams(window.location.search);
+            const clerkStatus = params.get('__clerk_status');
+
+            if (clerkStatus === 'verified') {
+                toast.success('Successfully signed in!');
+            }
+
+            router.push('/dashboard');
+        }
+    }, [isSignedIn, userLoaded, router]);
 
     const handleChange = e => {
         setFormData({
@@ -45,9 +63,9 @@ const SignInPage = () => {
             description: 'Check your email — expires in 60s',
             action: {
                 label: 'Open Gmail',
-                onClick: openGmail
+                onClick: openGmail,
             },
-            duration: openFor
+            duration: openFor,
         });
     };
 
@@ -65,9 +83,7 @@ const SignInPage = () => {
             });
 
             // Prepare the first factor (email link)
-            const { emailAddressId } = signIn.supportedFirstFactors.find(
-                ff => ff.strategy === 'email_link' && ff.emailAddressId
-            );
+            const { emailAddressId } = signIn.supportedFirstFactors.find(ff => ff.strategy === 'email_link' && ff.emailAddressId);
 
             await signIn.prepareFirstFactor({
                 strategy: 'email_link',
@@ -77,12 +93,25 @@ const SignInPage = () => {
 
             setEmailLinkSent(true);
             setTimeRemaining(60); // Reset timer
-            
+
             // Show custom toast with "Open Gmail" button
             openGmailToast();
         } catch (err) {
             console.error('Error:', err);
+
+            // Check if user is already signed in
+            if (err.errors?.[0]?.code === 'identifier_already_signed_in') {
+                toast.success('You are already signed in!');
+                router.push('/dashboard');
+                return;
+            }
+
             toast.error(err.errors?.[0]?.message || 'Failed to send verification link!');
+            if (err.errors?.[0]?.code === 'form_identifier_not_found') {
+                setTimeout(() => {
+                    toast.info('We prefer you to sign up first!');
+                }, 1500);
+            }
         } finally {
             setIsLoading(false);
         }
@@ -97,9 +126,7 @@ const SignInPage = () => {
                 identifier: formData.emailAddress,
             });
 
-            const { emailAddressId } = signIn.supportedFirstFactors.find(
-                ff => ff.strategy === 'email_link' && ff.emailAddressId
-            );
+            const { emailAddressId } = signIn.supportedFirstFactors.find(ff => ff.strategy === 'email_link' && ff.emailAddressId);
 
             await signIn.prepareFirstFactor({
                 strategy: 'email_link',
@@ -156,9 +183,7 @@ const SignInPage = () => {
                                 {formData.emailAddress}
                             </button>
                         </p>
-                        <p className="text-slate-500 text-sm mb-8">
-                            Click the link in the email to sign in to your account.
-                        </p>
+                        <p className="text-slate-500 text-sm mb-8">Click the link in the email to sign in to your account.</p>
 
                         {/* Timer Display */}
                         {timeRemaining > 0 ? (
@@ -179,9 +204,7 @@ const SignInPage = () => {
                                         {formatTime(timeRemaining)}
                                     </motion.div>
                                 </AnimatePresence>
-                                <p className="text-slate-500 text-sm">
-                                    You can resend or edit your email after the timer expires
-                                </p>
+                                <p className="text-slate-500 text-sm">You can resend or edit your email after the timer expires</p>
                             </div>
                         ) : (
                             <div className="space-y-3 mb-6">
@@ -191,6 +214,7 @@ const SignInPage = () => {
                                         onClick={handleResend}
                                         disabled={isLoading}
                                         className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-semibold"
+                                        suppressHydrationWarning
                                     >
                                         {isLoading ? (
                                             <>
@@ -208,6 +232,7 @@ const SignInPage = () => {
                                         onClick={handleEditEmail}
                                         variant="outline"
                                         className="flex-1 bg-slate-700/50 hover:bg-slate-700 border-slate-600 text-white"
+                                        suppressHydrationWarning
                                     >
                                         <Edit className="mr-2 h-4 w-4" />
                                         Edit Email
@@ -222,6 +247,7 @@ const SignInPage = () => {
                                 onClick={openGmail}
                                 variant="outline"
                                 className="w-full bg-slate-700/50 hover:bg-slate-700 border-slate-600 text-white"
+                                suppressHydrationWarning
                             >
                                 <Mail className="mr-2 h-4 w-4" />
                                 Open Gmail
@@ -248,7 +274,9 @@ const SignInPage = () => {
 
                 <form onSubmit={handleEmailLinkSignIn} className="space-y-6">
                     <div className="space-y-2">
-                        <Label htmlFor="emailAddress" className="text-slate-400 pl-1">Email address</Label>
+                        <Label htmlFor="emailAddress" className="text-slate-400 pl-1">
+                            Email address
+                        </Label>
                         <Input
                             id="emailAddress"
                             name="emailAddress"
@@ -264,6 +292,7 @@ const SignInPage = () => {
                         type="submit"
                         disabled={isLoading}
                         className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-semibold py-3 rounded-lg transition-all duration-300"
+                        suppressHydrationWarning
                     >
                         {isLoading ? (
                             <>

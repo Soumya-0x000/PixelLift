@@ -96,6 +96,7 @@ const SignUpPage = () => {
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-300 transition-colors"
+                        suppressHydrationWarning
                     >
                         {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                     </button>
@@ -135,7 +136,9 @@ const SignUpPage = () => {
             toast.success('Verification code sent to your email!');
         } catch (err) {
             console.error('Error:', err);
-            toast.error(err.errors?.[0]?.message || 'Something went wrong!');
+            let errMsg = err.errors?.[0]?.message || 'Something went wrong!';
+            let duration = errMsg.length * 50;
+            toast.error(errMsg, { duration });
         } finally {
             setIsLoading(false);
         }
@@ -173,7 +176,6 @@ const SignUpPage = () => {
             await signUp?.authenticateWithRedirect({
                 strategy: 'oauth_google',
                 redirectUrl: window.location.origin + '/sso-callback',
-                redirectUrlComplete: window.location.origin + '/dashboard',
             });
         } catch (err) {
             console.error('OAuth error:', err);
@@ -189,7 +191,7 @@ const SignUpPage = () => {
                     transition={{ duration: 0.5 }}
                     className="bg-slate-800/50 backdrop-blur-xl rounded-2xl p-8 shadow-2xl border border-slate-700"
                 >
-                    <h1 className="text-3xl font-bold text-center mb-2 bg-gradient-to-r from-blue-400 to-indigo-300 bg-clip-text text-transparent">
+                    <h1 className="text-3xl font-bold text-center mb-2 bg-linear-to-r from-blue-400 to-indigo-300 bg-clip-text text-transparent">
                         Verify your email
                     </h1>
                     <p className="text-slate-400 text-center mb-8">We sent a verification code to {formData.emailAddress}</p>
@@ -213,6 +215,7 @@ const SignUpPage = () => {
                             type="submit"
                             disabled={isLoading}
                             className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-semibold py-3 rounded-lg transition-all duration-300"
+                            suppressHydrationWarning
                         >
                             {isLoading ? (
                                 <>
@@ -249,10 +252,14 @@ const SignUpPage = () => {
                     {/* Regular fields (username, email, password) */}
                     {formFields.filter(field => !field.gridCol).map(renderField)}
 
+                    {/* Clerk CAPTCHA mounting point */}
+                    <div id="clerk-captcha" />
+
                     <Button
                         type="submit"
                         disabled={isLoading}
-                        className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-semibold py-3 rounded-lg transition-all duration-300"
+                        className="w-full bg-linear-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-semibold py-3 rounded-lg transition-all duration-300"
+                        suppressHydrationWarning
                     >
                         {isLoading ? (
                             <>
@@ -280,6 +287,7 @@ const SignUpPage = () => {
                     variant="outline"
                     onClick={handleGoogleLogin}
                     className="w-full bg-slate-700/50 hover:bg-slate-700 border-slate-600 text-white"
+                    suppressHydrationWarning
                 >
                     <svg className="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path
@@ -310,7 +318,7 @@ const SignUpPage = () => {
                 </div>
             </motion.div>
 
-            <SignUp />
+            {/* <SignUp /> */}
         </div>
     );
 };
