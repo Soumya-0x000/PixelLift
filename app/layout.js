@@ -7,6 +7,7 @@ import { ClerkProvider } from '@clerk/nextjs';
 import { shadcn } from '@clerk/themes';
 import Header from '@/components/Header';
 import { APIProvider } from '../context/APIcontext/APIContext';
+import AuthLoadingWrapper from '@/components/AuthLoadingWrapper';
 
 const geistSans = Geist({
     variable: '--font-geist-sans',
@@ -37,13 +38,11 @@ const poppins = Poppins({
 
 export const metadata = {
     title: 'PixelLift',
-    description:
-        'Created by Soumya Sankar Das, Frontend Developer. Transform your images with advanced AI tools.',
+    description: 'Created by Soumya Sankar Das, Frontend Developer. Transform your images with advanced AI tools.',
     metadataBase: new URL('https://pixellift.vercel.app'),
     openGraph: {
         title: 'PixelLift — AI Image Tools',
-        description:
-            'Created by Soumya Sankar Das, Frontend Developer. Explore AI-powered tools to enhance and transform your images instantly.',
+        description: 'Created by Soumya Sankar Das, Frontend Developer. Explore AI-powered tools to enhance and transform your images instantly.',
         url: 'https://pixellift.vercel.app',
         siteName: 'PixelLift',
         images: [
@@ -60,8 +59,7 @@ export const metadata = {
     twitter: {
         card: 'summary_large_image',
         title: 'PixelLift — AI Image Tools',
-        description:
-            'Created by Soumya Sankar Das, Frontend Developer. Transform your images with advanced AI tools.',
+        description: 'Created by Soumya Sankar Das, Frontend Developer. Transform your images with advanced AI tools.',
         images: ['/og-image.png'],
         // creator: '@SoumyaSankarDas',
     },
@@ -81,9 +79,7 @@ export default function RootLayout({ children }) {
             <head>
                 <link rel="icon" href="/app/favicon.ico" />
             </head>
-            <body
-                className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${roboto.variable} ${poppins.variable} antialiased`}
-            >
+            <body className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${roboto.variable} ${poppins.variable} antialiased`}>
                 <ThemeProvider
                     attribute="class"
                     defaultTheme="dark"
@@ -105,12 +101,14 @@ export default function RootLayout({ children }) {
                     >
                         <ConvexClientProvider>
                             <APIProvider>
-                                <main className="min-h-screen text-slate-50 overflow-x-hidden">
-                                    <div className="fixed top-0 z-[-2] h-screen w-screen bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.3),rgba(255,255,255,0))] bg-neutral-950"></div>
-                                    <Toaster richColors position="bottom-center" />
-                                    <Header />
-                                    {children}
-                                </main>
+                                <AuthLoadingWrapper>
+                                    <main className="min-h-screen text-slate-50 overflow-x-hidden">
+                                        <div className="fixed top-0 z-[-2] h-screen w-screen bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.3),rgba(255,255,255,0))] bg-neutral-950"></div>
+                                        <Toaster richColors position="bottom-center" />
+                                        <Header />
+                                        {children}
+                                    </main>
+                                </AuthLoadingWrapper>
                             </APIProvider>
                         </ConvexClientProvider>
                     </ClerkProvider>

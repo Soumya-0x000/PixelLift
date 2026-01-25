@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useSignUp } from '@clerk/nextjs';
+import { SignUp, useSignUp } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -26,12 +26,94 @@ const SignUpPage = () => {
         code: '',
     });
 
+    // Form fields configuration
+    const formFields = [
+        {
+            id: 'firstName',
+            name: 'firstName',
+            label: 'First name',
+            type: 'text',
+            placeholder: 'First name',
+            gridCol: true, // Part of 2-column grid
+        },
+        {
+            id: 'lastName',
+            name: 'lastName',
+            label: 'Last name',
+            type: 'text',
+            placeholder: 'Last name',
+            gridCol: true, // Part of 2-column grid
+        },
+        {
+            id: 'username',
+            name: 'username',
+            label: 'Username',
+            type: 'text',
+            placeholder: 'Choose a username',
+        },
+        {
+            id: 'emailAddress',
+            name: 'emailAddress',
+            label: 'Email address',
+            type: 'email',
+            placeholder: 'Enter your email address',
+        },
+        {
+            id: 'password',
+            name: 'password',
+            label: 'Password',
+            type: 'password',
+            placeholder: 'Enter your password',
+            hasToggle: true, // Has password visibility toggle
+        },
+    ];
+
     const handleChange = e => {
         setFormData({
             ...formData,
             [e.target.name]: e.target.value,
         });
     };
+
+    // Helper function to render individual field
+    const renderField = field => (
+        <div key={field.id} className="space-y-2">
+            <Label htmlFor={field.id} className="pl-2">
+                {field.label}
+            </Label>
+            {field.hasToggle ? (
+                <div className="relative">
+                    <Input
+                        id={field.id}
+                        name={field.name}
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder={field.placeholder}
+                        value={formData[field.name]}
+                        onChange={handleChange}
+                        required
+                    />
+                    <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-300 transition-colors"
+                        suppressHydrationWarning
+                    >
+                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    </button>
+                </div>
+            ) : (
+                <Input
+                    id={field.id}
+                    name={field.name}
+                    type={field.type}
+                    placeholder={field.placeholder}
+                    value={formData[field.name]}
+                    onChange={handleChange}
+                    required
+                />
+            )}
+        </div>
+    );
 
     const handleSubmit = async e => {
         e.preventDefault();
@@ -54,7 +136,9 @@ const SignUpPage = () => {
             toast.success('Verification code sent to your email!');
         } catch (err) {
             console.error('Error:', err);
-            toast.error(err.errors?.[0]?.message || 'Something went wrong!');
+            let errMsg = err.errors?.[0]?.message || 'Something went wrong!';
+            let duration = errMsg.length * 50;
+            toast.error(errMsg, { duration });
         } finally {
             setIsLoading(false);
         }
@@ -87,6 +171,17 @@ const SignUpPage = () => {
         }
     };
 
+    const handleGoogleLogin = async () => {
+        try {
+            await signUp?.authenticateWithRedirect({
+                strategy: 'oauth_google',
+                redirectUrl: window.location.origin + '/sso-callback',
+            });
+        } catch (err) {
+            console.error('OAuth error:', err);
+        }
+    };
+
     if (pendingVerification) {
         return (
             <div className="w-full max-w-lg mx-auto p-8">
@@ -96,7 +191,7 @@ const SignUpPage = () => {
                     transition={{ duration: 0.5 }}
                     className="bg-slate-800/50 backdrop-blur-xl rounded-2xl p-8 shadow-2xl border border-slate-700"
                 >
-                    <h1 className="text-3xl font-bold text-center mb-2 bg-gradient-to-r from-blue-400 to-indigo-300 bg-clip-text text-transparent">
+                    <h1 className="text-3xl font-bold text-center mb-2 bg-linear-to-r from-blue-400 to-indigo-300 bg-clip-text text-transparent">
                         Verify your email
                     </h1>
                     <p className="text-slate-400 text-center mb-8">We sent a verification code to {formData.emailAddress}</p>
@@ -120,6 +215,7 @@ const SignUpPage = () => {
                             type="submit"
                             disabled={isLoading}
                             className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-semibold py-3 rounded-lg transition-all duration-300"
+                            suppressHydrationWarning
                         >
                             {isLoading ? (
                                 <>
@@ -137,101 +233,33 @@ const SignUpPage = () => {
     }
 
     return (
-        <div className="w-full">
+        <div className="w-full flex items-center justify-center gap-5">
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
-                className="bg-slate-800/50 backdrop-blur-xl rounded-2xl p-8 shadow-2xl border border-slate-700"
+                className="bg-slate-800/50 backdrop-blur-xl rounded-2xl p-8 shadow-2xl border border-slate-700 w-116"
             >
-                <h1 className="text-3xl font-bold text-center mb-2 bg-gradient-to-r from-blue-400 to-indigo-300 bg-clip-text text-transparent">
+                <h1 className="text-3xl font-bold text-center mb-2 bg-linear-to-r from-blue-400 to-indigo-300 bg-clip-text text-transparent">
                     Create your account
                 </h1>
                 <p className="text-slate-400 text-center mb-8">Welcome! Please fill in the details to get started.</p>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="firstName">First name</Label>
-                            <Input
-                                id="firstName"
-                                name="firstName"
-                                type="text"
-                                placeholder="First name"
-                                value={formData.firstName}
-                                onChange={handleChange}
-                                required
-                            />
-                        </div>
+                <form onSubmit={handleSubmit} className="space-y-5">
+                    {/* Two-column grid for firstName and lastName */}
+                    <div className="grid grid-cols-2 gap-4">{formFields.filter(field => field.gridCol).map(renderField)}</div>
 
-                        <div className="space-y-2">
-                            <Label htmlFor="lastName">Last name</Label>
-                            <Input
-                                id="lastName"
-                                name="lastName"
-                                type="text"
-                                placeholder="Last name"
-                                value={formData.lastName}
-                                onChange={handleChange}
-                                required
-                            />
-                        </div>
-                    </div>
+                    {/* Regular fields (username, email, password) */}
+                    {formFields.filter(field => !field.gridCol).map(renderField)}
 
-                    <div className="space-y-2">
-                        <Label htmlFor="username">Username</Label>
-                        <Input
-                            id="username"
-                            name="username"
-                            type="text"
-                            placeholder="Choose a username"
-                            value={formData.username}
-                            onChange={handleChange}
-                            required
-                        />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="emailAddress">Email address</Label>
-                            <Input
-                                id="emailAddress"
-                                name="emailAddress"
-                                type="email"
-                                placeholder="Enter your email address"
-                                value={formData.emailAddress}
-                                onChange={handleChange}
-                                required
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="password">Password</Label>
-                            <div className="relative">
-                                <Input
-                                    id="password"
-                                    name="password"
-                                    type={showPassword ? 'text' : 'password'}
-                                    placeholder="Enter your password"
-                                    value={formData.password}
-                                    onChange={handleChange}
-                                    required
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-300 transition-colors"
-                                >
-                                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                    {/* Clerk CAPTCHA mounting point */}
+                    <div id="clerk-captcha" />
 
                     <Button
                         type="submit"
                         disabled={isLoading}
-                        className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-semibold py-3 rounded-lg transition-all duration-300"
+                        className="w-full bg-linear-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-semibold py-3 rounded-lg transition-all duration-300"
+                        suppressHydrationWarning
                     >
                         {isLoading ? (
                             <>
@@ -243,7 +271,7 @@ const SignUpPage = () => {
                         )}
                     </Button>
 
-                    <div className="relative my-6">
+                    <div className="relative my-4">
                         <div className="absolute inset-0 flex items-center">
                             <div className="w-full border-t border-slate-700"></div>
                         </div>
@@ -257,18 +285,9 @@ const SignUpPage = () => {
                 <Button
                     type="button"
                     variant="outline"
-                    onClick={async () => {
-                        try {
-                            await signUp?.authenticateWithRedirect({
-                                strategy: 'oauth_google',
-                                redirectUrl: window.location.origin + '/sso-callback',
-                                redirectUrlComplete: window.location.origin + '/dashboard',
-                            });
-                        } catch (err) {
-                            console.error('OAuth error:', err);
-                        }
-                    }}
+                    onClick={handleGoogleLogin}
                     className="w-full bg-slate-700/50 hover:bg-slate-700 border-slate-600 text-white"
+                    suppressHydrationWarning
                 >
                     <svg className="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path
@@ -298,6 +317,8 @@ const SignUpPage = () => {
                     </Link>
                 </div>
             </motion.div>
+
+            {/* <SignUp /> */}
         </div>
     );
 };

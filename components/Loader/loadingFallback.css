@@ -1,0 +1,108 @@
+/* Loading Fallback Component Styles - Scoped to prevent conflicts */
+
+/* Container */
+.loading-fallback-container .loading-fallback-loader {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    position: relative;
+}
+
+.loading-fallback-container .loading-fallback-loader svg {
+    width: 40px;
+    height: 60px;
+}
+
+.loading-fallback-container .loading-fallback-svg-defs {
+    position: absolute;
+    width: 0;
+    height: 0;
+}
+
+.loading-fallback-container .loading-fallback-spacer {
+    width: 0.5em;
+}
+
+/* Animations */
+.loading-fallback-container .loading-fallback-dash {
+    animation: loadingFallbackDashArray 2s ease-in-out infinite, loadingFallbackDashOffset 2s linear infinite;
+}
+
+.loading-fallback-container .loading-fallback-spin {
+    animation: loadingFallbackSpinDashArray 2s ease-in-out infinite, loadingFallbackSpin 8s ease-in-out infinite,
+        loadingFallbackDashOffset 2s linear infinite;
+    transform-origin: center;
+}
+
+@keyframes loadingFallbackDashArray {
+    0% {
+        stroke-dasharray: 0 1 359 0;
+    }
+    50% {
+        stroke-dasharray: 0 359 1 0;
+    }
+    100% {
+        stroke-dasharray: 359 1 0 0;
+    }
+}
+
+@keyframes loadingFallbackSpinDashArray {
+    0% {
+        stroke-dasharray: 270 90;
+    }
+    50% {
+        stroke-dasharray: 0 360;
+    }
+    100% {
+        stroke-dasharray: 270 90;
+    }
+}
+
+@keyframes loadingFallbackDashOffset {
+    0% {
+        stroke-dashoffset: 365;
+    }
+    100% {
+        stroke-dashoffset: 5;
+    }
+}
+
+@keyframes loadingFallbackSpin {
+    0% {
+        transform: rotate(0deg);
+    }
+    12.5%,
+    25% {
+        transform: rotate(270deg);
+    }
+    37.5%,
+    50% {
+        transform: rotate(540deg);
+    }
+    62.5%,
+    75% {
+        transform: rotate(810deg);
+    }
+    87.5%,
+    100% {
+        transform: rotate(1080deg);
+    }
+}
+
+/* Gradients */
+.loading-fallback-container .loading-fallback-gradient-1 {
+    stroke: url(#loading-fallback-gradient-1);
+}
+
+.loading-fallback-container .loading-fallback-gradient-2 {
+    stroke: url(#loading-fallback-gradient-2);
+}
+
+.loading-fallback-container .loading-fallback-gradient-3 {
+    stroke: url(#loading-fallback-gradient-3);
+}
+
+.loading-fallback-container .loading-fallback-gradient-4 {
+    stroke: url(#loading-fallback-gradient-4);
+}

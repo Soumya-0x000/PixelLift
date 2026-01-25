@@ -49,7 +49,7 @@ export default function useStoreUser() {
     }, [isAuthenticated, currentUserPlan, storeUser, user?.id]);
 
     return {
-        isLoading: user && (isLoading || (isAuthenticated && userId === null)),
+        isLoading: convexAuthLoading || (user && (isLoading || (isAuthenticated && userId === null))),
         isAuthenticated: isAuthenticated && !!userId,
         userId,
         user,
