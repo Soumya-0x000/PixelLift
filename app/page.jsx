@@ -27,14 +27,34 @@ const TitleComponent = ({ title, avatar }) => (
     </div>
 );
 
+const FIRST_TIME_FALLBACK_LOAD_TIME = 2000;
+
 function HomeContent() {
     const mainRef = useRef(null);
     const [isMobile, setIsMobile] = useState(false);
+    const [showFirstLoadFallback, setShowFirstLoadFallback] = useState(false);
     const { user, isLoading } = useStoreUser();
     const searchParams = useSearchParams();
     const router = useRouter();
     const pathname = usePathname();
     const scrollTo = searchParams.get('scrollto');
+
+    // Check if this is the first load
+    useEffect(() => {
+        const hasLoadedBefore = sessionStorage.getItem('pixellift_has_loaded');
+
+        if (!hasLoadedBefore) {
+            // First load - show fallback for 2 seconds
+            setShowFirstLoadFallback(true);
+
+            const timer = setTimeout(() => {
+                setShowFirstLoadFallback(false);
+                sessionStorage.setItem('pixellift_has_loaded', 'true');
+            }, FIRST_TIME_FALLBACK_LOAD_TIME);
+
+            return () => clearTimeout(timer);
+        }
+    }, []);
 
     useEffect(() => {
         const checkMobile = () => {
@@ -62,8 +82,8 @@ function HomeContent() {
         }
     }, [scrollTo]);
 
-    // Show loading state while user data is being fetched
-    if (isLoading) {
+    // Show loading fallback on first load or while user data is being fetched
+    if (showFirstLoadFallback || isLoading) {
         return <LoadingFallback />;
     }
 
