@@ -21,6 +21,8 @@ const buttonVariants = cva(
                 glass: 'bg-white/20 text-white shadow-xs backdrop-blur-sm hover:bg-white/30 ring-1 ring-slate-200/30 dark:bg-white/10 dark:ring-slate-800/50 dark:hover:bg-white/20',
                 magic: 'relative overflow-hidden rounded-lg font-semibold inline-flex items-center justify-center duration-75 shadow-sm z-0 text-white bg-blue-500 border-0 transition-all ease-in-out z-10',
                 badge: 'relative font-mono text-[0.625rem]/[1.125rem] font-medium tracking-widest text-sky-800 uppercase dark:text-sky-300 group transition-all duration-200 cursor-pointer',
+                gradientBorder:
+                    'bg-slate-800 no-underline group cursor-pointer relative shadow-2xl shadow-zinc-900 rounded-full p-px text-xs font-semibold leading-6  text-white inline-block',
             },
             size: {
                 default: 'h-9 px-4 py-2 has-[>svg]:px-3',
@@ -46,7 +48,7 @@ const Button = forwardRef(({ className, variant, size, asChild = false, disableA
             className={cn(buttonVariants({ variant, size }), !disableActiveScale && 'active:scale-95', className)}
             {...props}
         >
-            {children}
+            {variant !== 'gradientBorder' && children}
             {variant === 'magic' && (
                 <span className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
                     <div className=" w-40 h-40 opacity-50 blur-[20px] animate-[effect_3s_linear_infinite] bg-linear-to-r from-indigo-600 via-purple-500 to-cyan-400 transition-all duration-400" />
@@ -55,18 +57,29 @@ const Button = forwardRef(({ className, variant, size, asChild = false, disableA
             {variant === 'badge' && (
                 <>
                     <span className="absolute inset-0 border border-dashed border-sky-300/60 bg-sky-400/10 group-hover:bg-sky-400/15 dark:border-sky-300/30"></span>
-                    <svg width="4" height="4" viewBox="0 0 5 5" className="absolute top-[-8] left-[-8] fill-sky-300 dark:fill-sky-300/50">
+                    <svg width="4" height="4" viewBox="0 0 5 5" className="absolute top-[-8px] left-[-8px] fill-sky-300 dark:fill-sky-300/50">
                         <path d="M2 0h1v2h2v1h-2v2h-1v-2h-2v-1h2z"></path>
                     </svg>
-                    <svg width="4" height="4" viewBox="0 0 5 5" className="absolute top-[-8] right-[-8] fill-sky-300 dark:fill-sky-300/50">
+                    <svg width="4" height="4" viewBox="0 0 5 5" className="absolute top-[-8px] right-[-8px] fill-sky-300 dark:fill-sky-300/50">
                         <path d="M2 0h1v2h2v1h-2v2h-1v-2h-2v-1h2z"></path>
                     </svg>
-                    <svg width="4" height="4" viewBox="0 0 5 5" className="absolute bottom-[-8] left-[-8] fill-sky-300 dark:fill-sky-300/50">
+                    <svg width="4" height="4" viewBox="0 0 5 5" className="absolute bottom-[-8px] left-[-8px] fill-sky-300 dark:fill-sky-300/50">
                         <path d="M2 0h1v2h2v1h-2v2h-1v-2h-2v-1h2z"></path>
                     </svg>
-                    <svg width="4" height="4" viewBox="0 0 5 5" className="absolute right-[-8] bottom-[-8] fill-sky-300 dark:fill-sky-300/50">
+                    <svg width="4" height="4" viewBox="0 0 5 5" className="absolute right-[-8px] bottom-[-8px] fill-sky-300 dark:fill-sky-300/50">
                         <path d="M2 0h1v2h2v1h-2v2h-1v-2h-2v-1h2z"></path>
                     </svg>
+                </>
+            )}
+            {variant === 'gradientBorder' && (
+                <>
+                    <span className="absolute inset-0 overflow-hidden rounded-full">
+                        <span className="absolute inset-0 rounded-full bg-[radial-gradient(75%_100%_at_50%_0%,rgba(56,189,248,0.6)_0%,rgba(56,189,248,0)_75%)] opacity-0 transition-opacity duration-500 group-hover:opacity-100"></span>
+                    </span>
+                    <div className="relative flex space-x-2 items-center z-10 rounded-full bg-zinc-950 px-8 py-1 ring-1 ring-white/10 ">
+                        {children}
+                    </div>
+                    <span className="absolute bottom-0 left-4.5 h-px w-[calc(100%-2.25rem)] bg-linear-to-r from-emerald-400/0 via-emerald-400/90 to-emerald-400/0 transition-opacity duration-500 group-hover:opacity-40"></span>
                 </>
             )}
         </Comp>

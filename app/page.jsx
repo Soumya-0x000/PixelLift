@@ -10,6 +10,7 @@ import ParticleBackground from '@/components/ParticleBackground';
 import ScrollToTop from '@/components/ScrollToTop';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import LoadingFallback from '@/components/Loader/LoadingFallback';
+import { CircleUser } from 'lucide-react';
 
 const TitleComponent = ({ title, avatar }) => (
     <div className="flex items-center space-x-2">
@@ -17,27 +18,42 @@ const TitleComponent = ({ title, avatar }) => (
             <Image src={avatar} height="20" width="20" alt="thumbnail" className="rounded-full ring-1 ring-white w-6 h-6 object-cover" />
         ) : (
             <div className="rounded-full ring-1 ring-white w-6 h-6 bg-gray-400 flex items-center justify-center">
-                <span className="text-xs text-white">?</span>
+                <span className="text-xs text-white">
+                    <CircleUser />
+                </span>
             </div>
         )}
-        <p>{title}</p>
+        <p>{title || 'PIXELLIFT'}</p>
     </div>
 );
+
+const FIRST_TIME_FALLBACK_LOAD_TIME = 2000;
 
 function HomeContent() {
     const mainRef = useRef(null);
     const [isMobile, setIsMobile] = useState(false);
-    const [loadParticles, setLoadParticles] = useState(false);
+    const [showFirstLoadFallback, setShowFirstLoadFallback] = useState(false);
     const { user, isLoading } = useStoreUser();
     const searchParams = useSearchParams();
     const router = useRouter();
     const pathname = usePathname();
     const scrollTo = searchParams.get('scrollto');
 
+    // Check if this is the first load
     useEffect(() => {
-        setTimeout(() => {
-            setLoadParticles(true);
-        }, 1000);
+        const hasLoadedBefore = sessionStorage.getItem('pixellift_has_loaded');
+
+        if (!hasLoadedBefore) {
+            // First load - show fallback for 2 seconds
+            setShowFirstLoadFallback(true);
+
+            const timer = setTimeout(() => {
+                setShowFirstLoadFallback(false);
+                sessionStorage.setItem('pixellift_has_loaded', 'true');
+            }, FIRST_TIME_FALLBACK_LOAD_TIME);
+
+            return () => clearTimeout(timer);
+        }
     }, []);
 
     useEffect(() => {
@@ -66,14 +82,14 @@ function HomeContent() {
         }
     }, [scrollTo]);
 
-    // Show loading state while user data is being fetched
-    if (isLoading) {
+    // Show loading fallback on first load or while user data is being fetched
+    if (showFirstLoadFallback || isLoading) {
         return <LoadingFallback />;
     }
 
     return (
-        <div ref={mainRef} className="relative">
-            {loadParticles && <ParticleBackground count={50} />}
+        <div ref={mainRef} className="relative z-10">
+            <ParticleBackground count={50} />
 
             <FollowerPointerCard title={<TitleComponent title={user?.username} avatar={user?.imageUrl} />} isMobile={isMobile}>
                 <HeroSection />
