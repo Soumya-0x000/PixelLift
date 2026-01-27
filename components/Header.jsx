@@ -15,8 +15,11 @@ import useMounted from '@/utils/componentMounted';
 import HeaderNav from './HeaderNav';
 
 // Local component for gradient auth buttons
-const GradientButton = ({ label }) => (
-    <button className="group relative cursor-pointer flex items-center justify-center rounded-full bg-slate-700/80 px-4 py-2 font-medium overflow-hidden">
+const GradientButton = ({ label, ...props }) => (
+    <button
+        {...props}
+        className="group relative cursor-pointer flex items-center justify-center rounded-full bg-slate-700/80 px-4 py-2 font-medium overflow-hidden active:scale-90 transition-all duration-400 ease-out"
+    >
         {/* Background gradient */}
         <span className="pointer-events-none absolute inset-0 -m-[2px] rounded-full bg-linear-to-r from-blue-400 to-indigo-300 scale-0 opacity-0 transition-all duration-200 ease-out group-hover:scale-100 group-hover:opacity-100" />
 
@@ -40,7 +43,7 @@ const Header = () => {
         setIsScrolled(latest > scrollThreshold);
     });
 
-    if (path.includes('editor') || path.includes('sign-in') || path.includes('sign-up')) {
+    if (path.includes('editor') || path.includes('sign-in') || path.includes('sign-up') || path.includes('sso-callback')) {
         return null;
     }
 
