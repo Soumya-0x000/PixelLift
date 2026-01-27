@@ -1,6 +1,6 @@
 'use client';
 
-import HeroSection from '@/app/LandingPage/HeroSection';
+import LandingPage from '@/app/LandingPage/LandingPage';
 import { FollowerPointerCard } from '@/components/ui/following-pointer';
 import useStoreUser from '@/hooks/useStoreUser';
 import Image from 'next/image';
@@ -92,7 +92,7 @@ function HomeContent() {
             <ParticleBackground count={50} />
 
             <FollowerPointerCard title={<TitleComponent title={user?.username} avatar={user?.imageUrl} />} isMobile={isMobile}>
-                <HeroSection />
+                <LandingPage />
                 <ScrollToTop containerRef={mainRef} />
                 <Footer />
             </FollowerPointerCard>
