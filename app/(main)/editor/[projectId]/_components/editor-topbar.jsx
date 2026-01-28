@@ -2,24 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import {
-    ArrowLeft,
-    Crop,
-    Expand,
-    Eye,
-    Maximize2,
-    Palette,
-    Sliders,
-    Text,
-    Icon,
-    Lock,
-    RotateCcw,
-    RotateCw,
-    SendToBack,
-    WandSparkles,
-    Undo2,
-    Redo2,
-} from 'lucide-react';
+import { ArrowLeft, Crop, Expand, Maximize2, Palette, Sliders, Text, Lock, WandSparkles, Undo2, Redo2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import useCanvasContext from '@/context/canvasContext/useCanvasContext';
 import { usePlanAccess } from '@/hooks/usePlanAccess';
@@ -122,7 +105,7 @@ const EXPORT_FORMATS = [
 ];
 
 const EditorTopbar = () => {
-    const { canvasEditor, activeTool, onToolChange, currentProject: project } = useCanvasContext();
+    const { activeTool, onToolChange, currentProject: project } = useCanvasContext();
     const router = useRouter();
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
     const [restrictedTool, setRestrictedTool] = useState(null);
@@ -155,12 +138,12 @@ const EditorTopbar = () => {
     };
 
     const handleToolChange = toolId => {
-        if (!hasAccess(toolId)) {
-            setRestrictedTool(toolId);
-            formatUpgradeMsg(toolId);
-            setShowUpgradeModal(true);
-            return;
-        }
+        // if (!hasAccess(toolId)) {
+        //     setRestrictedTool(toolId);
+        //     formatUpgradeMsg(toolId);
+        //     setShowUpgradeModal(true);
+        //     return;
+        // }
         onToolChange(toolId);
     };
 
@@ -188,12 +171,7 @@ const EditorTopbar = () => {
                 {/* Header Row */}
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-4">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={handleBackToDashboard}
-                            className="text-white hover:text-gray-300"
-                        >
+                        <Button variant="ghost" size="sm" onClick={handleBackToDashboard} className="text-white hover:text-gray-300">
                             <ArrowLeft className="h-4 w-4 mr-2" />
                             All Projects
                         </Button>
@@ -225,16 +203,12 @@ const EditorTopbar = () => {
                                         size="sm"
                                         onClick={() => handleToolChange(tool.id)}
                                         className={`gap-2 relative ${
-                                            isActive
-                                                ? 'bg-blue-600 text-white hover:bg-blue-700'
-                                                : 'text-white hover:text-gray-300 hover:bg-gray-100'
+                                            isActive ? 'bg-blue-600 text-white hover:bg-blue-700' : 'text-white hover:text-gray-300 hover:bg-gray-100'
                                         } ${!hasToolAccess ? 'opacity-60' : ''}`}
                                     >
                                         <Icon className="h-4 w-4" />
                                         {tool.label}
-                                        {!hasToolAccess && (
-                                            <Lock className="h-3 w-3 text-amber-400" />
-                                        )}
+                                        {!hasToolAccess && <Lock className="h-3 w-3 text-amber-400" />}
                                     </Button>
                                 </div>
                             );
@@ -271,11 +245,7 @@ const EditorTopbar = () => {
             </div>
 
             {/* Upgrade Plan Modal */}
-            <UpgradePlanModal
-                openModal={showUpgradeModal}
-                closeModal={() => setShowUpgradeModal(false)}
-                upgradeMsg={upgradeMsg}
-            />
+            <UpgradePlanModal openModal={showUpgradeModal} closeModal={() => setShowUpgradeModal(false)} upgradeMsg={upgradeMsg} />
         </>
     );
 };

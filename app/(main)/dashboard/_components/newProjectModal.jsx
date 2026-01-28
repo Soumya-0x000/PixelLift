@@ -245,7 +245,7 @@ const NewProjectModal = ({ isOpen, onClose }) => {
                                 className={`h-full `}
                             />
                             {selectedFile && previewUrl && (
-                                <div className="hidden w-[40rem] md:flex items-center justify-center border border-neutral-200 dark:border-neutral-700 overflow-hidden relative">
+                                <div className="hidden w-160 md:flex items-center justify-center border border-neutral-200 dark:border-neutral-700 overflow-hidden relative">
                                     <DraggableImage imageUrl={previewUrl} />
                                 </div>
                             )}
@@ -266,6 +266,7 @@ const NewProjectModal = ({ isOpen, onClose }) => {
                                         handleProjectCreate();
                                     }
                                 }}
+                                className="flex-1"
                             />
                         ))}
                     </div>

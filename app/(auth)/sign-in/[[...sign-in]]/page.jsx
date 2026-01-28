@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSignIn, useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
-import { Input } from '@/components/ui/input';
+import { AnimatedInput } from '@/components/ui/animated-input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'motion/react';
@@ -268,7 +268,7 @@ const SignInPage = () => {
                 transition={{ duration: 0.5 }}
                 className="bg-slate-800/50 backdrop-blur-xl rounded-2xl p-8 shadow-2xl border border-slate-700"
             >
-                <h1 className="text-3xl font-bold text-center mb-2 bg-gradient-to-r from-blue-400 to-indigo-300 bg-clip-text text-transparent">
+                <h1 className="text-3xl font-bold text-center mb-2 bg-linear-to-r from-blue-400 to-indigo-300 bg-clip-text text-transparent">
                     Welcome back
                 </h1>
                 <p className="text-slate-400 text-center mb-8">Sign in to your account to continue</p>
@@ -278,7 +278,7 @@ const SignInPage = () => {
                         <Label htmlFor="emailAddress" className="text-slate-400 pl-1">
                             Email address
                         </Label>
-                        <Input
+                        <AnimatedInput
                             id="emailAddress"
                             name="emailAddress"
                             type="email"
