@@ -10,7 +10,7 @@ import ImageMaximizeModal from './ImageMaximizeModal';
 const ImageBackgroundControl = memo(() => {
     const {
         imgSearchQuery,
-        setImgSearchQuery,
+        handleImgSearchQueryChange,
         isSearching,
         unsplashImages,
         maximizedImg,
@@ -20,12 +20,6 @@ const ImageBackgroundControl = memo(() => {
         handleSearchUnsplashImages,
         handleImageClick,
     } = useUnsplashImages();
-
-    // Simple internal handlers (kept in component)
-    const handleImgSearchQueryChange = e => {
-        e.preventDefault();
-        setImgSearchQuery(e.target.value);
-    };
 
     const handleSearchKeyPress = e => {
         if (e.key === 'Enter') {

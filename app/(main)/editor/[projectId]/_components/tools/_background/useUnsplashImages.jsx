@@ -28,6 +28,11 @@ export const useUnsplashImages = () => {
     const loaderRef = useRef(null);
     const scrollContainerRef = useRef(null);
 
+    const handleImgSearchQueryChange = e => {
+        e.preventDefault();
+        setImgSearchQuery(e.target.value);
+    };
+
     // Complex API logic: Search Unsplash images with pagination
     const handleSearchUnsplashImages = useCallback(
         async (pageNo = 1, shouldAppend = false) => {
@@ -182,7 +187,7 @@ export const useUnsplashImages = () => {
 
     return {
         imgSearchQuery,
-        setImgSearchQuery,
+        handleImgSearchQueryChange,
         isSearching,
         unsplashImages,
         pageInfo,
