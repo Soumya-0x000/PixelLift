@@ -239,7 +239,7 @@ const NewProjectModal = ({ isOpen, onClose }) => {
                             <FileUpload
                                 allowedFormats={allowedImageFormats}
                                 maxFiles={1}
-                                maxFileSize={15 * 1024 * 1024} // 5MB
+                                maxFileSize={5 * 1024 * 1024}
                                 setSelectedFile={setSelectedFile}
                                 setPreviewUrl={setPreviewUrl}
                                 className={`h-full `}
