@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as createProjectWithVersion from "../createProjectWithVersion.js";
 import type * as cronHelpers_imageKit from "../cronHelpers/imageKit.js";
 import type * as cronHelpers_projectCleanup from "../cronHelpers/projectCleanup.js";
 import type * as cronHelpers_projectMutations from "../cronHelpers/projectMutations.js";
@@ -24,6 +25,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  createProjectWithVersion: typeof createProjectWithVersion;
   "cronHelpers/imageKit": typeof cronHelpers_imageKit;
   "cronHelpers/projectCleanup": typeof cronHelpers_projectCleanup;
   "cronHelpers/projectMutations": typeof cronHelpers_projectMutations;
