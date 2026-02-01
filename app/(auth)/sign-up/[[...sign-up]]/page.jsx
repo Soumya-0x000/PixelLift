@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { SignUp, useSignUp } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
-import { Input } from '@/components/ui/input';
+import { AnimatedInput } from '@/components/ui/animated-input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { motion } from 'motion/react';
@@ -84,7 +84,7 @@ const SignUpPage = () => {
             </Label>
             {field.hasToggle ? (
                 <div className="relative">
-                    <Input
+                    <AnimatedInput
                         id={field.id}
                         name={field.name}
                         type={showPassword ? 'text' : 'password'}
@@ -103,7 +103,7 @@ const SignUpPage = () => {
                     </button>
                 </div>
             ) : (
-                <Input
+                <AnimatedInput
                     id={field.id}
                     name={field.name}
                     type={field.type}
@@ -202,7 +202,7 @@ const SignUpPage = () => {
                     <form onSubmit={handleVerify} className="space-y-6">
                         <div className="space-y-2">
                             <Label htmlFor="code">Verification Code</Label>
-                            <Input
+                            <AnimatedInput
                                 id="code"
                                 name="code"
                                 type="text"

@@ -68,7 +68,7 @@ const BackgroundControls = memo(() => {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -6 }}
                     transition={{ duration: 0.25, ease: 'easeOut' }}
-                    className="flex flex-col flex-1"
+                    className="flex flex-col flex-1 min-h-0"
                 >
                     <Suspense fallback={<TabSkeleton />}>{Content}</Suspense>
                 </motion.div>
@@ -119,7 +119,7 @@ const BackgroundControls = memo(() => {
                 ))}
             </div>
 
-            <div className="flex flex-col flex-1 ring-1 ring-zinc-800 rounded-md overflow-hidden">
+            <div className="flex flex-col flex-1 ring-1 ring-zinc-800 rounded-md overflow-hidden min-h-0">
                 <BackgroundUpdateRenderer />
             </div>
 
