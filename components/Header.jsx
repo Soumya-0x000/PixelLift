@@ -14,6 +14,8 @@ import useStoreUser from '@/hooks/useStoreUser';
 import useMounted from '@/utils/componentMounted';
 import HeaderNav from './HeaderNav';
 
+const NOT_RENDERING_ROUTES = ['/editor', '/dashboard'];
+
 // Local component for gradient auth buttons
 const GradientButton = ({ label, ...props }) => (
     <button
@@ -92,7 +94,7 @@ const Header = () => {
                     </motion.span>
                 </Link>
 
-                <HeaderNav />
+                {NOT_RENDERING_ROUTES.includes(path) ? <div className="w-20" /> : <HeaderNav />}
 
                 <motion.div
                     className="flex items-center justify-center gap-x-2 overflow-hidden"
