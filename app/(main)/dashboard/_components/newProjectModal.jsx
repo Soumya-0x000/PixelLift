@@ -4,14 +4,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { FileUpload } from '@/components/ui/file-upload';
 import { api } from '@/convex/_generated/api';
 import { useConvexMutation, useConvexQuery } from '@/hooks/useConvexQuery';
@@ -47,11 +40,11 @@ const projectInfoInputs = {
 };
 
 const NewProjectModal = ({ isOpen, onClose }) => {
-    const { isApprenticeUser, isMasterUser, isDeityUser, planWiseLimit, checkLimit } =
-        usePlanAccess();
+    const { isApprenticeUser, isMasterUser, isDeityUser, planWiseLimit, checkLimit } = usePlanAccess();
     const { data: projectData, loading } = useConvexQuery(api.projects.getUserProjects);
     const { user } = useStoreUser();
-    const { mutate: createProject } = useConvexMutation(api.projects.create);
+    const { mutate: reserveProject } = useConvexMutation(api.reserveProject.reserveProjectId);
+    const { mutate: createProjectWithVersion } = useConvexMutation(api.projects.createProjectWithVersion);
     const router = useRouter();
 
     const [isUploading, setIsUploading] = useState(false);
@@ -130,44 +123,56 @@ const NewProjectModal = ({ isOpen, onClose }) => {
         try {
             setIsUploading(true);
 
+            // STEP 1: Reserve project ID and get folder path
+            const reservationData = await reserveProject({
+                title: projectInfo.title.value,
+                description: projectInfo.description.value || undefined,
+            });
+
+            if (!reservationData?.imagekitFolder) {
+                throw new Error('Failed to reserve project');
+            }
+            console.log(reservationData);
+
+            // STEP 2: Upload to ImageKit with nested folder structure
             const formData = new FormData();
             formData.append('file', selectedFile);
             formData.append('fileName', selectedFile?.name);
+            formData.append('imagekitFolder', reservationData.imagekitFolder);
 
-            const { data: { success = false, ...response } = {}, status = 0 } = await post(
-                '/imagekit/upload',
-                formData
-            );
+            const { data: { success = false, ...uploadResponse } = {}, status = 0 } = await post('/imagekit/upload', formData);
 
             if (!success || status !== 200) {
-                throw new Error(response?.error || 'Image upload failed');
+                throw new Error(uploadResponse?.error || 'Image upload failed');
             }
 
-            const formattedInfo = Object.entries(projectInfo)?.reduce((acc, [key, val]) => {
-                acc[key] = val?.value;
-                return acc;
-            }, {});
+            // STEP 3: Create project with versioning
+            const projectResult = await createProjectWithVersion({
+                // Project metadata
+                title: projectInfo.title.value,
+                description: projectInfo.description.value || undefined,
+                canvasState: undefined,
 
-            const projectDetails = {
-                ...formattedInfo,
-                originalImageUrl: response?.url || '',
-                currentImageUrl: response?.url || '',
-                thumbnailUrl: response?.thumbnailUrl || '',
-                width: response?.width || 800,
-                height: response?.height || 600,
-                imgKitFileId: response?.fileId || '',
-                size: response?.size || 0,
-                canvasState: null,
-            };
+                // Image dimensions and size
+                width: uploadResponse.width,
+                height: uploadResponse.height,
+                size: uploadResponse.size,
 
-            if (success && status === 200) {
-                const projectId = await createProject(projectDetails);
+                // ImageKit data
+                imgKitFileId: uploadResponse.fileId,
+                imagekitUrl: uploadResponse.url,
+                imagekitFolder: reservationData.imagekitFolder,
+                fileName: uploadResponse.fileName,
+                thumbnailUrl: uploadResponse.thumbnailUrl,
+                format: uploadResponse.format,
+                mimeType: uploadResponse.mimeType,
+            });
 
-                router.push(`/editor/${projectId}`);
-                toast.success('Project created successfully');
-            }
+            // Navigate to editor
+            router.push(`/editor/${projectResult.projectId}`);
+            toast.success('Project created successfully');
         } catch (error) {
-            toast.info(error?.message || 'Error creating project');
+            toast.error(error?.message || 'Error creating project');
         } finally {
             setIsUploading(false);
         }
@@ -196,30 +201,20 @@ const NewProjectModal = ({ isOpen, onClose }) => {
                         <DialogTitle>Create your first project</DialogTitle>
 
                         <div className="flex gap-2 flex-wrap mt-2">
-                            <Badge
-                                className={` bg-slate-700/30 text-slate-300 border-slate-700/50`}
-                            >
+                            <Badge className={` bg-slate-700/30 text-slate-300 border-slate-700/50`}>
                                 <Avatar className={`w-6 h-6 mr-2 ring-1 ring-slate-700/50`}>
                                     <AvatarImage src={user?.imageUrl} className={` object-cover`} />
                                     <AvatarFallback>{user?.username}</AvatarFallback>
                                 </Avatar>
-                                {isApprenticeUser
-                                    ? 'Apprentice'
-                                    : isMasterUser
-                                      ? 'Master'
-                                      : isDeityUser
-                                        ? 'Deity'
-                                        : 'Apprentice'}
+                                {isApprenticeUser ? 'Apprentice' : isMasterUser ? 'Master' : isDeityUser ? 'Deity' : 'Apprentice'}
                             </Badge>
 
-                            <Badge
-                                className={` bg-slate-700/30 text-slate-300 border-slate-700/50`}
-                            >
+                            <Badge className={` bg-slate-700/30 text-slate-300 border-slate-700/50`}>
                                 {isApprenticeUser
                                     ? `${currentProjectCount} / ${planWiseLimit?.projects} projects used`
                                     : isMasterUser || isDeityUser
-                                      ? `${formatNumberPrefix(currentProjectCount + 1)} project`
-                                      : `${currentProjectCount} / ${planWiseLimit?.projects} projects used`}
+                                    ? `${formatNumberPrefix(currentProjectCount + 1)} project`
+                                    : `${currentProjectCount} / ${planWiseLimit?.projects} projects used`}
                             </Badge>
 
                             <Alert className={` basis-full`} variant={planWiseAlertVariant()}>
@@ -273,9 +268,7 @@ const NewProjectModal = ({ isOpen, onClose }) => {
 
                     <DialogFooter>
                         <Button
-                            disabled={
-                                isUploading || !projectInfo?.title?.value?.trim() || !selectedFile
-                            }
+                            disabled={isUploading || !projectInfo?.title?.value?.trim() || !selectedFile}
                             className={`${!canCreateProject && 'cursor-not-allowed pointer-events-none opacity-50'}`}
                             variant={'secondary'}
                             onClick={handleProjectCreate}
@@ -293,11 +286,7 @@ const NewProjectModal = ({ isOpen, onClose }) => {
                             )}
                         </Button>
 
-                        <Button
-                            onClick={handleDialogCLose}
-                            variant="destructive"
-                            disabled={isUploading}
-                        >
+                        <Button onClick={handleDialogCLose} variant="destructive" disabled={isUploading}>
                             Cancel
                         </Button>
                     </DialogFooter>
@@ -305,10 +294,7 @@ const NewProjectModal = ({ isOpen, onClose }) => {
             </Dialog>
 
             {/* Upgrade Plan Modal */}
-            <UpgradePlanModal
-                openModal={openPlanUpgradeModal}
-                closeModal={() => setOpenPlanUpgradeModal(false)}
-            />
+            <UpgradePlanModal openModal={openPlanUpgradeModal} closeModal={() => setOpenPlanUpgradeModal(false)} />
         </>
     );
 };
