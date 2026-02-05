@@ -15,6 +15,7 @@ import type * as cronHelpers_projectMutations from "../cronHelpers/projectMutati
 import type * as cronHelpers_projectQueries from "../cronHelpers/projectQueries.js";
 import type * as cronJobs from "../cronJobs.js";
 import type * as crons from "../crons.js";
+import type * as helpers_userDeletion from "../helpers/userDeletion.js";
 import type * as projects from "../projects.js";
 import type * as reserveProject from "../reserveProject.js";
 import type * as storageConfig from "../storageConfig.js";
@@ -34,6 +35,7 @@ declare const fullApi: ApiFromModules<{
   "cronHelpers/projectQueries": typeof cronHelpers_projectQueries;
   cronJobs: typeof cronJobs;
   crons: typeof crons;
+  "helpers/userDeletion": typeof helpers_userDeletion;
   projects: typeof projects;
   reserveProject: typeof reserveProject;
   storageConfig: typeof storageConfig;

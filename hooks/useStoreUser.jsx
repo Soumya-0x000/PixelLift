@@ -10,25 +10,21 @@ export default function useStoreUser() {
     const { isAuthenticated, isLoading: convexAuthLoading } = convexAuth;
     const userResponse = useUser();
     const { user } = userResponse;
-    const subscriptionResponse = useSubscription(api.auth.getCurrentUser);
-    const { data } = subscriptionResponse;
-    const { subscriptionItems = [] } = data ?? {};
+    const { data: subscriptionData } = useSubscription();
 
     // Safely derive current plan (memoized)
     const currentUserPlan = useMemo(() => {
-        const activeItem = subscriptionItems?.find(item => item.status === 'active');
+        const subscriptionItems = subscriptionData?.subscriptionItems ?? [];
+        const activeItem = subscriptionItems.find(item => item.status === 'active');
         return activeItem?.plan?.slug ?? 'apprentice_user';
-    }, [subscriptionItems]);
-
-    // Consolidated loading state
-    const isLoading = convexAuthLoading || !isAuthenticated || subscriptionItems?.length === 0;
+    }, [subscriptionData]);
 
     const [userId, setUserId] = useState(null);
     const storeUser = useMutation(api.user.store);
 
-    // Create user in Convex once authenticated and plan loaded
+    // Create user in Convex once authenticated
     useEffect(() => {
-        if (!isAuthenticated || isLoading) return;
+        if (!isAuthenticated || convexAuthLoading) return;
 
         let isCancelled = false;
 
@@ -44,12 +40,11 @@ export default function useStoreUser() {
         createUser();
         return () => {
             isCancelled = true;
-            setUserId(null);
         };
-    }, [isAuthenticated, currentUserPlan, storeUser, user?.id]);
+    }, [isAuthenticated, convexAuthLoading, currentUserPlan, storeUser]);
 
     return {
-        isLoading: convexAuthLoading || (user && (isLoading || (isAuthenticated && userId === null))),
+        isLoading: convexAuthLoading || (isAuthenticated && userId === null),
         isAuthenticated: isAuthenticated && Boolean(userId),
         userId,
         user,
