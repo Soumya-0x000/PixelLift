@@ -151,9 +151,9 @@ const NewProjectModal = ({ isOpen, onClose }) => {
                 // Project metadata
                 title: projectInfo.title.value,
                 description: projectInfo.description.value || undefined,
-                canvasState: undefined,
-
+                
                 // Image dimensions and size
+                canvasState: undefined,
                 width: uploadResponse.width,
                 height: uploadResponse.height,
                 size: uploadResponse.size,

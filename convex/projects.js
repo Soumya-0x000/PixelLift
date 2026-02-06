@@ -111,9 +111,9 @@ export const createProjectWithVersion = mutation({
         // Project metadata
         title: v.string(),
         description: v.optional(v.string()),
-        canvasState: v.optional(v.any()),
-
+        
         // Image dimensions and size
+        canvasState: v.optional(v.any()),
         width: v.number(),
         height: v.number(),
         size: v.number(),
