@@ -28,7 +28,7 @@ export const reserveProjectId = mutation({
         }
 
         // 3. Generate a temporary project ID (we'll use this for the folder structure)
-        const tempProjectId = crypto.randomUUID();
+        const tempProjectId = `proj_${crypto.randomUUID()}`;
 
         // 4. Return project metadata for upload
         return {
@@ -111,9 +111,9 @@ export const createProjectWithVersion = mutation({
         // Project metadata
         title: v.string(),
         description: v.optional(v.string()),
-        canvasState: v.optional(v.any()),
-
+        
         // Image dimensions and size
+        canvasState: v.optional(v.any()),
         width: v.number(),
         height: v.number(),
         size: v.number(),

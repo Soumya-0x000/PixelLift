@@ -43,7 +43,7 @@ const NewProjectModal = ({ isOpen, onClose }) => {
     const { isApprenticeUser, isMasterUser, isDeityUser, planWiseLimit, checkLimit } = usePlanAccess();
     const { data: projectData, loading } = useConvexQuery(api.projects.getUserProjects);
     const { user } = useStoreUser();
-    const { mutate: reserveProject } = useConvexMutation(api.reserveProject.reserveProjectId);
+    const { mutate: reserveProject } = useConvexMutation(api.projects.reserveProjectId);
     const { mutate: createProjectWithVersion } = useConvexMutation(api.projects.createProjectWithVersion);
     const router = useRouter();
 
@@ -132,7 +132,6 @@ const NewProjectModal = ({ isOpen, onClose }) => {
             if (!reservationData?.imagekitFolder) {
                 throw new Error('Failed to reserve project');
             }
-            console.log(reservationData);
 
             // STEP 2: Upload to ImageKit with nested folder structure
             const formData = new FormData();
@@ -145,15 +144,16 @@ const NewProjectModal = ({ isOpen, onClose }) => {
             if (!success || status !== 200) {
                 throw new Error(uploadResponse?.error || 'Image upload failed');
             }
+            return;
 
             // STEP 3: Create project with versioning
             const projectResult = await createProjectWithVersion({
                 // Project metadata
                 title: projectInfo.title.value,
                 description: projectInfo.description.value || undefined,
-                canvasState: undefined,
 
                 // Image dimensions and size
+                canvasState: undefined,
                 width: uploadResponse.width,
                 height: uploadResponse.height,
                 size: uploadResponse.size,

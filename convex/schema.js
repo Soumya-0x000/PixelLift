@@ -22,6 +22,10 @@ export default defineSchema({
         // Timestamps
         createdAt: v.number(),
         lastActiveAt: v.number(),
+
+        // Deletion tracking
+        deleting: v.optional(v.boolean()),
+        deleteRequestedAt: v.optional(v.number()),
     })
         .index('by_token', ['tokenIdentifier'])
         .index('by_email', ['email'])
@@ -208,6 +212,7 @@ export default defineSchema({
         timestamp: v.number(),
     })
         .index('by_project', ['projectId'])
+        .index('by_user', ['userId'])
         .index('by_timestamp', ['timestamp']),
 
     promptedImages: defineTable({
