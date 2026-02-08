@@ -144,7 +144,6 @@ const NewProjectModal = ({ isOpen, onClose }) => {
             if (!success || status !== 200) {
                 throw new Error(uploadResponse?.error || 'Image upload failed');
             }
-            return;
 
             // STEP 3: Create project with versioning
             const projectResult = await createProjectWithVersion({
