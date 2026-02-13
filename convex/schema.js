@@ -127,7 +127,7 @@ export default defineSchema({
 
     images: defineTable({
         // Relationships
-        projectId: v.id('projects'),
+        projectId: v.optional(v.id('projects')),
         userId: v.id('users'),
 
         // Version control

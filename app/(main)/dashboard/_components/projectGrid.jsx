@@ -1,23 +1,16 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import ProjectCard from './ProjectCard';
 import { useRouter } from 'next/navigation';
-import {
-    Dialog,
-    DialogContent,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { api } from '@/convex/_generated/api';
-import { useConvexMutation } from '@/hooks/useConvexQuery';
-import { formatDistanceToNow } from 'date-fns/formatDistanceToNow';
+import { useConvexMutation, useConvexQuery } from '@/hooks/useConvexQuery';
 import useAPIContext from '@/context/APIcontext/useApiContext';
 
-const ProjectGrid = ({ projects }) => {
+const ProjectGrid = () => {
     const router = useRouter();
     const [selectedProject, setSelectedProject] = useState({
         edit: null,
@@ -28,14 +21,11 @@ const ProjectGrid = ({ projects }) => {
         delete: false,
     });
     const [isDeleting, setIsDeleting] = useState(false);
-    const { mutate: deleteProject, loading } = useConvexMutation(api.projects.deleteProject);
+
+    const { data: projects } = useConvexQuery(api.projects.getUserProjects);
+    const { mutate: deleteProject } = useConvexMutation(api.projects.deleteProject);
     const { mutate: updateProject } = useConvexMutation(api.projects.updateProject);
     const { del } = useAPIContext();
-
-    const lastUpdated = useCallback(
-        () => formatDistanceToNow(selectedProject?.delete?.updatedAt, { addSuffix: true }),
-        [selectedProject?.delete?.updatedAt]
-    );
 
     // Create a Map for O(1) lookup
     const projectMap = useMemo(() => {
@@ -136,27 +126,17 @@ const ProjectGrid = ({ projects }) => {
             </div>
 
             {/* Delete modal */}
-            <Dialog
-                open={openProjectModal.delete}
-                onOpenChange={val => setOpenProjectModal({ ...openProjectModal, delete: val })}
-            >
+            <Dialog open={openProjectModal.delete} onOpenChange={val => setOpenProjectModal({ ...openProjectModal, delete: val })}>
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>
                             <div className="flex gap-2 items-center w-full justify-start">
-                                <Avatar
-                                    className={`w-6 xs:w-8 h-6 xs:h-8 ring-1 ring-slate-700/50 flex`}
-                                >
+                                <Avatar className={`w-6 xs:w-8 h-6 xs:h-8 ring-1 ring-slate-700/50 flex`}>
                                     <AvatarImage
-                                        src={
-                                            selectedProject?.delete?.thumbnailUrl ||
-                                            '/api/placeholder/40/40'
-                                        }
+                                        src={selectedProject?.delete?.thumbnailUrl || '/api/placeholder/40/40'}
                                         className={` object-cover`}
                                     />
-                                    <AvatarFallback>
-                                        {selectedProject?.delete?.title}
-                                    </AvatarFallback>
+                                    <AvatarFallback>{selectedProject?.delete?.title}</AvatarFallback>
                                 </Avatar>
                                 <span className="text-[1rem] sm:text-base line-clamp-1 text-start w-[75%]">
                                     Delete Project "{selectedProject.delete?.title}"
@@ -165,18 +145,12 @@ const ProjectGrid = ({ projects }) => {
                         </DialogTitle>
                     </DialogHeader>
 
-                    <div className="text-xs sm:text-sm py-4">
-                        Are you sure you want to delete this project? This action cannot be undone.
-                    </div>
+                    <div className="text-xs sm:text-sm py-4">Are you sure you want to delete this project? This action cannot be undone.</div>
 
                     <DialogFooter>
                         <div className="flex justify-end gap-3">
                             <Button
-                                disabled={
-                                    isDeleting ||
-                                    !selectedProject?.delete?.title.trim() ||
-                                    !selectedProject?.delete
-                                }
+                                disabled={isDeleting || !selectedProject?.delete?.title.trim() || !selectedProject?.delete}
                                 className={`${!selectedProject?.delete && 'cursor-not-allowed pointer-events-none opacity-50 w-fit'}`}
                                 variant={'secondary'}
                                 onClick={handleDeleteProjectSubmission}
@@ -190,11 +164,7 @@ const ProjectGrid = ({ projects }) => {
                                 )}
                             </Button>
 
-                            <Button
-                                onClick={handleDialogCLose}
-                                variant="destructive"
-                                disabled={isDeleting}
-                            >
+                            <Button onClick={handleDialogCLose} variant="destructive" disabled={isDeleting}>
                                 Cancel
                             </Button>
                         </div>
