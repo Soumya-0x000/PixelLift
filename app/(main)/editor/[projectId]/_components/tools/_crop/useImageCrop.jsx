@@ -333,13 +333,22 @@ export const useImageCrop = ({ setShowSaveOptions }) => {
             const newProjectId = await createProject({
                 title: `${currentProject?.title || 'Untitled'} (Cropped)`,
                 description: `Cropped from: ${currentProject?.title || 'Untitled'}`,
-                originalImageUrl: uploadData.url,
-                currentImageUrl: uploadData.url,
+
+                // ImageKit data
+                imgKitFileId: uploadData.fileId,
+                imagekitUrl: uploadData.url,
+                imagekitFolder: uploadData.filePath || `/pixellift-projects/${uploadData.userId || 'default'}`,
+                fileName: uploadData.name || fileName,
                 thumbnailUrl: uploadData.thumbnailUrl,
+                format: uploadData.fileType?.split('/')[1] || 'png',
+                mimeType: uploadData.fileType || 'image/png',
+
+                // Image dimensions
                 width: Math.round(actualCropWidth),
                 height: Math.round(actualCropHeight),
-                imgKitFileId: uploadData.fileId,
                 size: uploadData.size,
+
+                // Canvas state
                 canvasState: null,
             });
 

@@ -36,16 +36,17 @@ export default defineSchema({
         title: v.string(),
         description: v.optional(v.string()),
         userId: v.id('users'),
+        status: v.union(v.literal('pending'), v.literal('active'), v.literal('deleted'), v.literal('failed')),
 
         // Canvas state
-        canvasState: v.any(),
+        canvasState: v.optional(v.any()),
         width: v.number(),
         height: v.number(),
         size: v.number(),
 
         // Version tracking
-        currentImageId: v.id('images'), // Points to current version
-        originalImageId: v.id('images'), // Points to v0 (never changes)
+        currentImageId: v.optional(v.id('images')), // Points to current version
+        originalImageId: v.optional(v.id('images')), // Points to v0 (never changes)
         totalVersions: v.number(), // Count of versions
         maxVersions: v.number(), // 7 (v0 + 6 edits)
 
@@ -127,7 +128,7 @@ export default defineSchema({
 
     images: defineTable({
         // Relationships
-        projectId: v.optional(v.id('projects')),
+        projectId: v.id('projects'),
         userId: v.id('users'),
 
         // Version control

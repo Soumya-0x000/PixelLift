@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { parseISO } from 'date-fns/parseISO';
 import { format } from 'date-fns/format';
+import placeholderImg from '../../../../public/media/no-image.jpg';
 
 const ProjectCard = React.memo(({ project }) => {
     const { title, description, thumbnailUrl, updatedAt } = project;
@@ -46,26 +47,35 @@ const ProjectCard = React.memo(({ project }) => {
         },
     };
 
-    const formattedDate = updatedAt
-        ? format(typeof updatedAt === 'string' ? parseISO(updatedAt) : new Date(updatedAt), 'PPP p')
-        : 'N/A';
+    const formattedDate = updatedAt ? format(typeof updatedAt === 'string' ? parseISO(updatedAt) : new Date(updatedAt), 'PPP p') : 'N/A';
+
+    const handleImageLoadingError = (e) => {
+        if (e.target.src !== placeholderImg.src) {
+            console.error('Image failed to load:', thumbnailUrl);
+            e.target.src = placeholderImg.src;
+        }
+    }
 
     return (
         <motion.div
-            className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-slate-900 to-slate-800 shadow-lg hover:shadow-2xl transition-all duration-300 w-full max-w-sm h-fit"
+            className="group relative overflow-hidden rounded-xl bg-linear-to-br from-slate-900 to-slate-800 shadow-lg hover:shadow-2xl transition-all duration-300 w-full max-w-sm h-fit"
             onHoverStart={() => setIsHovered(true)}
             onHoverEnd={() => setIsHovered(false)}
         >
             {/* Image Container - Compact */}
             <div className="relative w-full h-40 overflow-hidden">
+                {console.log(thumbnailUrl)}
                 <motion.img
-                    src={thumbnailUrl || '/api/placeholder/400/320'}
+                    src={thumbnailUrl || placeholderImg}
                     alt={title}
                     className="w-full h-full object-cover"
                     animate={{ scale: isHovered ? 1.1 : 1 }}
                     transition={{ duration: 0.5 }}
+                    onError={handleImageLoadingError}
+                    loading="lazy"
+                    crossOrigin="anonymous"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/20 to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-t from-slate-900/80 via-slate-900/20 to-transparent" />
 
                 {/* Action Buttons - Staggered Animation with Motion */}
                 <motion.div
@@ -105,14 +115,10 @@ const ProjectCard = React.memo(({ project }) => {
             {/* Bottom Content */}
             <div className="py-2 px-2 h-fit">
                 {/* Title */}
-                <span className="text-base font-semibold tracking-wide text-white line-clamp-1">
-                    {title}
-                </span>
+                <span className="text-base font-semibold tracking-wide text-white line-clamp-1">{title}</span>
 
                 {/* Description - Optional, compact */}
-                <p className="text-xs text-slate-400 line-clamp-1 w-full hyphens-auto h-4.5">
-                    {description}
-                </p>
+                <p className="text-xs text-slate-400 line-clamp-1 w-full hyphens-auto h-4.5">{description}</p>
 
                 {/* Bottom Row - Date & Action */}
                 <div className="flex items-end justify-between gap-2 pt-2.5">
@@ -125,16 +131,15 @@ const ProjectCard = React.memo(({ project }) => {
                                     <span>{formatDate(updatedAt)}</span>
                                 </div>
                             </TooltipTrigger>
-                            <TooltipContent
-                                className={`bg-slate-300 fill-slate-300 text-slate-900`}
-                            >
-                                {formattedDate}
-                            </TooltipContent>
+                            <TooltipContent className={`bg-slate-300 fill-slate-300 text-slate-900`}>{formattedDate}</TooltipContent>
                         </Tooltip>
 
                         <div className="text-[0.6rem] flex items-center gap-1.5 text-slate-500 mt-1">
                             <span className="px-1 py-0.5 ring-[0.5px] bg-slate-900  ring-slate-600 rounded-sm line-clamp-1">{`${project.width} x ${project.height}px`}</span>
-                            <span className="px-1 py-0.5 ring-[0.5px] bg-slate-900  ring-slate-600 rounded-sm line-clamp-1">{`${(project.size / (1024 * 1024)).toFixed(2)} MB`}</span>
+                            <span className="px-1 py-0.5 ring-[0.5px] bg-slate-900  ring-slate-600 rounded-sm line-clamp-1">{`${(
+                                project.size /
+                                (1024 * 1024)
+                            ).toFixed(2)} MB`}</span>
                         </div>
                     </div>
 

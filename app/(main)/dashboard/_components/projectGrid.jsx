@@ -30,7 +30,7 @@ const ProjectGrid = () => {
     // Create a Map for O(1) lookup
     const projectMap = useMemo(() => {
         const mp = new Map();
-        projects.forEach(p => mp.set(p._id, p));
+        projects?.forEach(p => mp.set(p._id, p));
         return mp;
     }, [projects]);
 

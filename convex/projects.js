@@ -27,17 +27,52 @@ export const reserveProjectId = mutation({
             }
         }
 
-        // 3. Generate a temporary project ID (we'll use this for the folder structure)
-        const tempProjectId = `proj_${crypto.randomUUID()}`;
+        const now = Date.now();
 
-        // 4. Return project metadata for upload
-        return {
-            tempProjectId,
-            userId: user._id,
-            clerkUserId: user.tokenIdentifier.split('|')[1], // Extract Clerk user ID
-            imagekitFolder: `/pixellift-projects/${user.tokenIdentifier.split('|')[1]}/${tempProjectId}/versions`,
+        // 3. Create project entry with required fields (placeholder values)
+        const projectId = await ctx.db.insert('projects', {
             title: args.title,
             description: args.description,
+            userId: user._id,
+
+            // Project status (pending until image upload completes)
+            status: 'pending',
+
+            // Required fields with placeholder values (will be updated later)
+            canvasState: undefined,
+            width: 0,
+            height: 0,
+            size: 0,
+            totalVersions: 0,
+            maxVersions: 7,
+            imgKitFileId: '',
+            totalStorageBytes: 0,
+            imagekitFolder: '', // Will be updated below
+
+            // Optional fields
+            deleteStatus: 'none',
+
+            // Timestamps
+            createdAt: now,
+            updatedAt: now,
+            lastEditedAt: now,
+        });
+
+        // 4. Generate ImageKit folder using real Convex projectId
+        const clerkUserId = user.tokenIdentifier.split('|')[1];
+        const imagekitFolder = `/pixellift-projects/${clerkUserId}/${projectId}/versions`;
+
+        // 5. Update project with imagekitFolder
+        await ctx.db.patch(projectId, {
+            imagekitFolder,
+        });
+
+        // 6. Return Convex ID and folder path
+        return {
+            projectId, // Real Convex ID
+            imagekitFolder,
+            userId: user._id,
+            clerkUserId,
         };
     },
 });
@@ -47,85 +82,20 @@ export const create = mutation({
         title: v.string(),
         description: v.optional(v.string()),
         canvasState: v.optional(v.any()),
-        
-        originalImageUrl: v.optional(v.string()),
-        currentImageUrl: v.optional(v.string()),
-        thumbnailUrl: v.optional(v.string()),
-        imgKitFileId: v.string(),
-        
-        width: v.number(),
-        height: v.number(),
-        size: v.number(),
-    },
-    handler: async (ctx, args) => {
-        // get current user
-        const user = await ctx.runQuery(internal.user.getCurrentUser);
-
-        // ensure user is authenticated
-        if (!user) {
-            throw new Error('Not authenticated');
-        }
-
-        // enforce free plan limits
-        if (user?.plan === 'apprentice_user') {
-            const projectCount = await ctx.db
-                .query('projects')
-                .withIndex('by_user', q => q.eq('userId', user._id))
-                .collect();
-
-            if (projectCount.length >= 3) {
-                throw new Error('Free plan limit reached. Please upgrade to create unlimited projects.');
-            }
-        }
-
-        // create new project
-        const projectId = await ctx.db.insert('projects', {
-            title: args.title,
-            description: args.description,
-            originalImageUrl: args.originalImageUrl,
-            currentImageUrl: args.currentImageUrl,
-            thumbnailUrl: args.thumbnailUrl,
-            width: args.width,
-            height: args.height,
-            imgKitFileId: args.imgKitFileId,
-            size: args.size,
-            canvasState: args.canvasState,
-            userId: user._id,
-            deleteStatus: 'none',
-            createdAt: Date.now(),
-            updatedAt: Date.now(),
-        });
-
-        // update user's project count
-        await ctx.db.patch(user._id, {
-            projectsUsed: user.projectsUsed + 1,
-            lastActiveAt: Date.now(),
-        });
-
-        return projectId;
-    },
-});
-
-export const createProjectWithVersion = mutation({
-    args: {
-        // Project metadata
-        title: v.string(),
-        description: v.optional(v.string()),
-        
-        // Image dimensions and size
-        canvasState: v.optional(v.any()),
-        width: v.number(),
-        height: v.number(),
-        size: v.number(),
 
         // ImageKit data
         imgKitFileId: v.string(),
         imagekitUrl: v.string(),
-        imagekitFolder: v.string(), // e.g., "/pixellift-projects/user123/proj456"
-        fileName: v.string(), // e.g., "v0_original_1738410000000.jpg"
+        imagekitFolder: v.string(),
+        fileName: v.string(),
         thumbnailUrl: v.string(),
-        format: v.string(), // e.g., "jpg", "png"
-        mimeType: v.string(), // e.g., "image/jpeg"
+        format: v.string(),
+        mimeType: v.string(),
+
+        // Image dimensions
+        width: v.number(),
+        height: v.number(),
+        size: v.number(),
     },
     handler: async (ctx, args) => {
         // 1. Get current user
@@ -154,11 +124,175 @@ export const createProjectWithVersion = mutation({
         }
 
         const now = Date.now();
+        const clerkUserId = user.tokenIdentifier.split('|')[1];
+
+        // 4. Create project entry
+        const projectId = await ctx.db.insert('projects', {
+            title: args.title,
+            description: args.description,
+            userId: user._id,
+
+            // Canvas state
+            canvasState: args.canvasState,
+            width: args.width,
+            height: args.height,
+            size: args.size,
+
+            // Version tracking (will be updated after image creation)
+            totalVersions: 1,
+            maxVersions: 7,
+
+            // Image URLs
+            originalImageUrl: args.imagekitUrl,
+            currentImageUrl: args.imagekitUrl,
+            thumbnailUrl: args.thumbnailUrl,
+            imgKitFileId: args.imgKitFileId,
+
+            // Storage info
+            totalStorageBytes: args.size,
+            imagekitFolder: args.imagekitFolder || `/pixellift-projects/${clerkUserId}/${projectId}/versions`,
+
+            // Optional fields
+            deleteStatus: 'none',
+
+            // Timestamps
+            createdAt: now,
+            updatedAt: now,
+            lastEditedAt: now,
+        });
+
+        // 5. Create v0 image record
+        const imageId = await ctx.db.insert('images', {
+            // Relationships
+            projectId: projectId,
+            userId: user._id,
+
+            // Version control
+            version: 0,
+            parentImageId: undefined,
+            isCurrentVersion: true,
+            isOriginal: true,
+
+            // Image classification
+            imageType: 'uploaded',
+
+            // Edit tracking
+            editOperations: [],
+            lastOperation: undefined,
+
+            // ImageKit storage
+            imagekitFileId: args.imgKitFileId,
+            imagekitUrl: args.imagekitUrl,
+            imagekitPath: args.imagekitFolder,
+            fileName: args.fileName,
+
+            // Image metadata
+            width: args.width,
+            height: args.height,
+            size: args.size,
+            format: args.format,
+            mimeType: args.mimeType,
+
+            // Thumbnails
+            thumbnailUrl: args.thumbnailUrl,
+            previewUrl: args.thumbnailUrl,
+
+            // AI-generated specific
+            prompt: undefined,
+            promptHash: undefined,
+            aiModel: undefined,
+
+            // Timestamps
+            createdAt: now,
+
+            // Soft delete
+            isDeleted: false,
+            deletedAt: undefined,
+        });
+
+        // 6. Update project with imageId references
+        await ctx.db.patch(projectId, {
+            currentImageId: imageId,
+            originalImageId: imageId,
+        });
+
+        // 7. Create version history entry
+        await ctx.db.insert('versionHistory', {
+            projectId: projectId,
+            userId: user._id,
+            action: 'created',
+            fromVersion: undefined,
+            toVersion: 0,
+            imageId: imageId,
+            operation: 'upload',
+            timestamp: now,
+        });
+
+        // 8. Update user storage and project count
+        await ctx.db.patch(user._id, {
+            projectsUsed: user.projectsUsed + 1,
+            totalStorageBytes: newTotalStorage,
+            lastActiveAt: now,
+        });
+
+        // 9. Return project ID
+        return projectId;
+    },
+});
+
+export const createProjectWithVersion = mutation({
+    args: {
+        // Project metadata
+        title: v.string(),
+        description: v.optional(v.string()),
+        projectId: v.id('projects'), // Real Convex ID from reserveProjectId
+
+        // Image dimensions and size
+        canvasState: v.optional(v.any()),
+        width: v.number(),
+        height: v.number(),
+        size: v.number(),
+
+        // ImageKit data
+        imgKitFileId: v.string(),
+        imagekitUrl: v.string(),
+        imagekitFolder: v.string(), // e.g., "/pixellift-projects/user123/proj456"
+        fileName: v.string(), // e.g., "v0_original_1738410000000.jpg"
+        thumbnailUrl: v.string(),
+        format: v.string(), // e.g., "jpg", "png"
+        mimeType: v.string(), // e.g., "image/jpeg"
+    },
+    handler: async (ctx, args) => {
+        // 1. Get current user
+        const user = await ctx.runQuery(internal.user.getCurrentUser);
+
+        if (!user) {
+            throw new Error('Not authenticated');
+        }
+
+        // 2. Verify project exists and belongs to user
+        const existingProject = await ctx.db.get(args.projectId);
+
+        if (!existingProject) {
+            throw new Error('Project not found');
+        }
+
+        if (existingProject.userId !== user._id) {
+            throw new Error('Not authorized to update this project');
+        }
+
+        // 3. Check storage limits
+        const newTotalStorage = user.totalStorageBytes + args.size;
+        if (newTotalStorage > user.storageLimit) {
+            throw new Error(`Storage limit exceeded. You need ${Math.ceil((newTotalStorage - user.storageLimit) / 1024 / 1024)}MB more space.`);
+        }
+
+        const now = Date.now();
 
         // 4. Create v0 image record
         const imageId = await ctx.db.insert('images', {
             // Relationships
-            projectId: null, // Will be updated after project creation
+            projectId: args.projectId, // Real Convex ID
             userId: user._id,
 
             // Version control
@@ -204,11 +338,10 @@ export const createProjectWithVersion = mutation({
             deletedAt: undefined,
         });
 
-        // 5. Create project record
-        const projectId = await ctx.db.insert('projects', {
-            title: args.title,
-            description: args.description,
-            userId: user._id,
+        // 5. Update project with complete data
+        await ctx.db.patch(args.projectId, {
+            // Project status (now active and visible in UI)
+            status: 'active',
 
             // Canvas state
             canvasState: args.canvasState,
@@ -236,28 +369,14 @@ export const createProjectWithVersion = mutation({
             activeTransformations: undefined,
             backgroundRemoved: undefined,
 
-            folderId: undefined,
-            deleteStatus: 'none',
-
-            // Deletion tracking
-            failedAt: undefined,
-            retryCount: undefined,
-            maxRetries: undefined,
-
             // Timestamps
-            createdAt: now,
             updatedAt: now,
             lastEditedAt: now,
         });
 
-        // 6. Update image record with projectId
-        await ctx.db.patch(imageId, {
-            projectId: projectId,
-        });
-
-        // 7. Create version history entry
+        // 6. Create version history entry
         await ctx.db.insert('versionHistory', {
-            projectId: projectId,
+            projectId: args.projectId,
             userId: user._id,
 
             // Action tracking
@@ -273,20 +392,20 @@ export const createProjectWithVersion = mutation({
             timestamp: now,
         });
 
-        // 8. Update user storage and project count
+        // 7. Update user storage and project count
         await ctx.db.patch(user._id, {
             projectsUsed: user.projectsUsed + 1,
             totalStorageBytes: newTotalStorage,
             lastActiveAt: now,
         });
 
-        // 9. Return complete project data
+        // 8. Return complete project data
         return {
-            projectId,
+            projectId: args.projectId,
             imageId,
             version: 0,
             project: {
-                _id: projectId,
+                _id: args.projectId,
                 title: args.title,
                 description: args.description,
                 currentImageUrl: args.imagekitUrl,
@@ -317,7 +436,8 @@ export const getUserProjects = query({
             .order('desc')
             .collect();
 
-        return projects;
+        // Filter out pending projects (not yet fully created)
+        return projects.filter(project => project.status === 'active');
     },
 });
 

@@ -23,7 +23,7 @@ const SpaceIndicator = () => {
         const used = userData.totalStorageBytes || 0;
         const limit = userData.storageLimit || 0;
         const remaining = Math.max(0, limit - used);
-        const percentage = limit > 0 ? Math.min(100, Math.round((used / limit) * 100)) : 0;
+        const percentage = limit > 0 ? Math.min(100, ((used / limit) * 100).toFixed(2)) : 0;
 
         return {
             used,
@@ -37,6 +37,13 @@ const SpaceIndicator = () => {
     }, [userData]);
 
     if (!storageStats) return null;
+
+    const gradient =
+        storageStats.percentage >= 90
+            ? 'linear-gradient(to right, #ab2a2a, #ef4444)' // dark red → red
+            : storageStats.percentage >= 70
+            ? 'linear-gradient(to right, #af5019, #eab308)' // dark yellow → yellow
+            : 'linear-gradient(to right, #3459bd, #3b82f6)'; // dark blue → blue
 
     return (
         <div className="ring-1 ring-slate-700/50 rounded-md py-1.5 px-2 bg-slate-800/30 w-full max-w-160">
@@ -69,16 +76,9 @@ const SpaceIndicator = () => {
                 <motion.div
                     className="h-full rounded-full origin-left"
                     initial={false}
-                    animate={{
-                        scaleX: storageStats.percentage / 100,
-                    }}
-                    transition={{
-                        duration: 0.4,
-                        ease: 'easeOut',
-                    }}
-                    style={{
-                        backgroundColor: storageStats.percentage >= 90 ? '#ef4444' : storageStats.percentage >= 70 ? '#eab308' : '#3b82f6',
-                    }}
+                    animate={{ scaleX: storageStats.percentage / 100 }}
+                    transition={{ duration: 0.4, ease: 'easeOut' }}
+                    style={{ background: gradient }}
                 />
             </div>
         </div>
