@@ -128,6 +128,7 @@ const NewProjectModal = ({ isOpen, onClose }) => {
                 title: projectInfo.title.value,
                 description: projectInfo.description.value || undefined,
             });
+            console.log('reserve', reservationData);
 
             if (!reservationData?.imagekitFolder) {
                 throw new Error('Failed to reserve project');
@@ -144,13 +145,15 @@ const NewProjectModal = ({ isOpen, onClose }) => {
             if (!success || status !== 200) {
                 throw new Error(uploadResponse?.error || 'Image upload failed');
             }
-            return;
+            console.log('upload', uploadResponse);
+            // return
 
             // STEP 3: Create project with versioning
             const projectResult = await createProjectWithVersion({
                 // Project metadata
                 title: projectInfo.title.value,
                 description: projectInfo.description.value || undefined,
+                projectId: reservationData.projectId,
 
                 // Image dimensions and size
                 canvasState: undefined,
@@ -196,9 +199,9 @@ const NewProjectModal = ({ isOpen, onClose }) => {
         <>
             {/* project create modal */}
             <Dialog open={isOpen} onOpenChange={handleDialogCLose} className=" backdrop-blur-xs">
-                <DialogContent className={` w-fit sm:max-w-[70vw] h-fit max-h-[90vh]`}>
+                <DialogContent className={` w-full sm:max-w-[70vw] md:max-w-[50vw] xl:max-w-[36vw] h-fit max-h-[90vh]`}>
                     <DialogHeader>
-                        <DialogTitle>Create your first project</DialogTitle>
+                        <DialogTitle className={`text-sm md:text-base`}>Create your first project</DialogTitle>
 
                         <div className="flex gap-2 flex-wrap mt-2">
                             <Badge className={` bg-slate-700/30 text-slate-300 border-slate-700/50`}>
@@ -217,9 +220,9 @@ const NewProjectModal = ({ isOpen, onClose }) => {
                                     : `${currentProjectCount} / ${planWiseLimit?.projects} projects used`}
                             </Badge>
 
-                            <Alert className={` basis-full`} variant={planWiseAlertVariant()}>
+                            <Alert className={` basis-full p-2 flex items-center`} variant={planWiseAlertVariant()}>
                                 <BadgeInfo />
-                                <AlertDescription>{planWiseAlertText()}</AlertDescription>
+                                <AlertDescription className={`text-xs md:text-sm`}>{planWiseAlertText()}</AlertDescription>
                             </Alert>
                         </div>
 
@@ -266,7 +269,7 @@ const NewProjectModal = ({ isOpen, onClose }) => {
                         ))}
                     </div>
 
-                    <DialogFooter>
+                    <DialogFooter className={`flex flex-row-reverse justify-end `}>
                         <Button
                             disabled={isUploading || !projectInfo?.title?.value?.trim() || !selectedFile}
                             className={`${!canCreateProject && 'cursor-not-allowed pointer-events-none opacity-50'}`}
@@ -295,6 +298,18 @@ const NewProjectModal = ({ isOpen, onClose }) => {
 
             {/* Upgrade Plan Modal */}
             <UpgradePlanModal openModal={openPlanUpgradeModal} closeModal={() => setOpenPlanUpgradeModal(false)} />
+
+            {isUploading && (
+                <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/60 backdrop-blur-xs rounded-lg">
+                    <div className="flex flex-col items-center gap-4 shadow-2xl">
+                        <Loader2 className="w-12 h-12 animate-spin text-blue-500" />
+                        <div className="text-center">
+                            <p className="text-lg font-semibold text-white">Uploading Image...</p>
+                            <p className="text-sm text-slate-400 mt-1">Please wait while we process your project</p>
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 };
